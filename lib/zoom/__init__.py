@@ -10,11 +10,14 @@ __author__ = [
 __license__ = "Mozilla Public License 1.1"
 __contributors__ = ""
 
-import response
+import os
+import system
 
 def run():
-    print response.HTMLResponse('Hello, world.').render()
-
-if __name__ == '__main__':
-    run()
+    if 'Apache' in os.environ.get('SERVER_SIGNATURE',''):
+        system_class = system.ApacheSystem
+    else:
+        system_class = system.WebpySystem
+    s = system_class()
+    s.run()
 
