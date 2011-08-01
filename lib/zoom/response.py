@@ -1,5 +1,7 @@
 """HTTP responses for various common responses.
 """
+__all__ = ['HTMLResponse','PNGResponse','XMLResponse','TextResponse','RedirectResponse','FileResponse']
+
 class Response:
     def __init__(self,content):
         self.headers = {}
@@ -8,6 +10,16 @@ class Response:
         return (''.join(["%s: %s\n" % (header, value) for header, value in self.headers.items()]))+'\n'
     def render(self):
         return self.render_headers() + self.content
+
+class PNGResponse(Response):
+    def __init__(self,content):
+        Response.__init__(self,content)
+        self.headers['Content-type']  = 'image/png'
+        self.headers['Cache-Control'] = 'no-cache'
+    def render(self):
+        doc = self.content
+        self.headers['Content-length'] = ('%s' % len(doc))
+        return self.render_headers() + doc
 
 class HTMLResponse(Response):
     def __init__(self,content='',printed_output=''):

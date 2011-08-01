@@ -12,12 +12,9 @@ __contributors__ = ""
 
 import os
 import system
+import web
+from response import *
 
-def run():
-    if 'Apache' in os.environ.get('SERVER_SIGNATURE',''):
-        system_class = system.ApacheSystem
-    else:
-        system_class = system.WebpySystem
-    s = system_class()
-    s.run()
+from system import run
+
 

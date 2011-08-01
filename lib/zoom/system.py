@@ -3,15 +3,10 @@
 
 import web
 
-def app():
-    import os
-    from response import HTMLResponse
-    e = repr(os.environ)
-    return HTMLResponse('Hello, world.\n<br>' + e)
-
 class WebpySystem:
     def dispatch(self):
-        result = app()
+        import app
+        result = app.app()
         for k,v in result.headers.iteritems():
             web.header(k,v)
         content = result.content
@@ -22,15 +17,7 @@ class WebpySystem:
         platform = web.application(('/.*',self.dispatch),globals())
         platform.run()
 
-class ApacheSystem:
-    def dispatch(self):
-        result = app()
-        return result.render()
-
-    def run(system_config_pathname='../sites/zoom.ini',hostname=None):
-        import sys
-        result = self.dispatch()
-        sys.stdout.write(result)
-
-
+def run():
+    s = WebpySystem()
+    s.run()
 
