@@ -11,10 +11,14 @@ __license__ = "Mozilla Public License 1.1"
 __contributors__ = ""
 
 import os
-import system
 import web
 from response import *
+from system import System
+from config import config
 
-from system import run
+system = System()
+
+def run(system_config_pathname='../sites',force_server_name=None):
+    system.run(system_config_pathname)
 
 
