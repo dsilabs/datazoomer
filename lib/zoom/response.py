@@ -22,6 +22,14 @@ class PNGResponse(Response):
         return self.render_headers() + doc
 
 class HTMLResponse(Response):
+    """
+    Render an HTML response.
+
+    >>> import response
+    >>> response.HTMLResponse('test123').render()
+    'Content-length: 7\\nContent-type: text/html\\nCache-Control: no-cache\\n\\ntest123'
+
+    """
     def __init__(self,content='',printed_output=''):
         Response.__init__(self,content)
         self.content        = content
@@ -78,3 +86,6 @@ class FileResponse(Response):
         self.headers['Content-length'] = ('%s' % len(doc))
         return self.render_headers() + doc
 
+if __name__=='__main__':
+    import doctest
+    doctest.testmod()
