@@ -22,6 +22,9 @@ import ConfigParser
 class Config:
 
     def setup(self,instance_path,server_name):
+        self.instance_path = instance_path
+        self.server_name = server_name.lower()
+
         system_config_pathname = os.path.join(instance_path,'zoom.ini')
         if not os.path.exists(system_config_pathname):
             raise Exception('Missing config file %s (%s)' % 
@@ -34,7 +37,6 @@ class Config:
 
         # Read the site config (overrides defaults)
         system_path, filename = os.path.split(self.system_config_pathname)
-        self.server_name = server_name.lower()
         site_directory = self.server_name.strip('www.')
         self.site_path = os.path.join(system_path,site_directory)
         self.site_config_pathname = os.path.join(system_path,site_directory,'config.ini')
@@ -55,7 +57,6 @@ class Config:
         except:
             raise
 
-config = Config()
 
 if __name__ == '__main__':
     import doctest

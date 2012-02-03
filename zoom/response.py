@@ -1,6 +1,6 @@
 """HTTP responses for various common responses.
 """
-__all__ = ['HTMLResponse','PNGResponse','XMLResponse','TextResponse','RedirectResponse','FileResponse']
+__all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse','RedirectResponse','FileResponse']
 
 class Response:
     def __init__(self,content):
