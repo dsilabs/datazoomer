@@ -1,5 +1,6 @@
 
 import os
+import imp
 import web
 import time
 import types
@@ -17,49 +18,77 @@ class System(threadeddict):
 
 
     def setup(self, instance_path, request):
-        self.instance_path = instance_path
+        self.path = self.instance_path = os.path.abspath(instance_path)
         self.config = config = Config()
-        self.config.setup(instance_path, request.host)
+        self.host = request.host.split(':')[0]
+        self.config.setup(instance_path, self.host)
         self.request = request
         self.server_name = request.host
         self.root = os.path.split(os.path.abspath(os.getcwd()))[0]
         self.uri = request.uri
-        self.authentication = config.get('site','authentication','basic')
-        self.them = config.get('theme','name','default')
+
+        self.theme = config.get('theme', 'name', 'default')
+        self.theme_path = config.get('theme', 'path', self.root + '/themes')
+
         self.start_time = time.time()
-        self.path = self.instance_path = os.path.abspath(config.instance_path)
-        self.host = request.host
-        self.theme = 'default'
-        self.guest_username = config.get('site','guest','guest')
+
+        self.authentication = config.get('site', 'authentication', 'basic')
+        self.guest_username = config.get('site', 'guest', 'guest')
+
         self.warnings = []
         self.errors = []
         self.mesages = []
+
+        self.apps_path = config.get('apps','path','../apps')
+        self.apps_paths = self.apps_path.split(';')
+        self.default_app = self.config.get('apps','default','content')
+        self.index_app = self.config.get('apps','index','content')
+        self.home_app = self.config.get('apps','index','home')
+
         self.app = NoApp()
         self.database = Database(config)
 
-
     def run(self):
     
-        def load_app(name):
-            #import numapp as app
-            import app
-            return app.app
-            for path in self.app_paths:
-                pathname = os.path.join(path, name, 'app.py')
+        def locate_app(name):
+            for path in self.apps_paths:
+                path = os.path.abspath(os.path.join(path, name))
+                pathname = os.path.join(path, 'app.py')
                 if os.path.exists(pathname):
+                    return path
+            raise Exception('Unable to locate app %s' % repr(name))
+
+        def run_app(path):
+            pathname = os.path.join(path, 'app.py')
+            if os.path.exists(pathname):
+                save_dir = os.getcwd()
+                os.chdir(path)
+                try:
+                    self.internal_pathname = os.path.abspath(pathname)
                     mod = imp.load_source('app', pathname)
                     app = getattr(mod, 'app')
                     if app:
-                        title = getattr(mod, 'title', name)
-                        return title, app
+                        result = app()
+                    else:
+                        raise Exception('Unable to load app at %s' % repr(pathmame))
+                finally:
+                    os.chdir(save_dir)
+            else:
+                raise Exception('Unable to find app at %s' % repr(pathmame))
+            return result
     
         try:
-            # Load and run the app that will handle the request
+            # Determine which app should handle the request
             request = self.request
-            default_app = self.config.get('apps','index','content')
-            target_app = request.route and request.route[0] or default_app
-            app = load_app(target_app)
-            result = app()
+            self.target_app = request.route and request.route[0] or self.index_app or self.default_app
+
+            # Locate the app that will handle the request
+            app_path = locate_app(self.target_app)
+
+            # Load the app
+            result = run_app(app_path)
+
+            # Prepare the response
             if not isinstance(result, Response):
                 if type(result) == types.StringType:
                     result = HTMLResponse(result)
