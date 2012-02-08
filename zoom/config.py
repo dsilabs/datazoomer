@@ -21,7 +21,7 @@ import ConfigParser
 
 class Config:
 
-    def setup(self,instance_path,server_name):
+    def setup(self, instance_path, server_name):
         self.instance_path = instance_path
         self.server_name = server_name.lower()
 
@@ -38,8 +38,8 @@ class Config:
         # Read the site config (overrides defaults)
         system_path, filename = os.path.split(self.system_config_pathname)
         site_directory = self.server_name.strip('www.')
-        self.site_path = os.path.join(system_path,site_directory)
-        self.site_config_pathname = os.path.join(system_path,site_directory,'config.ini')
+        self.site_path = os.path.join(system_path, site_directory)
+        self.site_config_pathname = os.path.join(system_path, site_directory, 'site.ini')
         self.site_config = ConfigParser.ConfigParser()
         self.site_config.read(self.site_config_pathname)
 
