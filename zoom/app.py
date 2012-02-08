@@ -21,9 +21,9 @@ def app():
     info.append(('user', user))
     info.append(('session', session))
     info.append(('system', system))
-    info.append(('config', config.__dict__))
-    info.append(('globals', globals()))
+    info.append(('config', system.config.__dict__))
     info.append(('ctx', web.ctx))
+    info.append(('globals', globals()))
 
     t = ''.join(['<H1 style="margin-bottom:0.2em">%s</H1>%s' % (a,fmt(b)) for a,b in info])
     return HTMLResponse('<H1>images</H1><img src="?image=yes"> <img src="/static/icons/mailbox.png">'+t)
