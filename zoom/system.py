@@ -2,7 +2,7 @@
 import os
 import imp
 import web
-import time
+import timeit
 import types
 
 from utils import threadeddict
@@ -15,6 +15,8 @@ class NoApp:
     title = name
 
 class System(threadeddict):
+
+    elapsed_time = property(lambda a: timeit.default_timer() - a.start_time)
 
 
     def setup(self, instance_path, request):
@@ -30,7 +32,7 @@ class System(threadeddict):
         self.theme = config.get('theme', 'name', 'default')
         self.theme_path = config.get('theme', 'path', self.root + '/themes')
 
-        self.start_time = time.time()
+        self.start_time = timeit.default_timer()
 
         self.authentication = config.get('site', 'authentication', 'basic')
         self.guest_username = config.get('site', 'guest', 'guest')
