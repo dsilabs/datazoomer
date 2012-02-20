@@ -1,4 +1,7 @@
 
+
+__all__ = ['System']
+
 import os
 import imp
 import web
@@ -13,6 +16,25 @@ from response import *
 class NoApp:
     name = 'noapp'
     title = name
+
+def create_database(config):
+    """Creates a database object"""
+
+    engine = config.get('database', 'engine', 'mysql')
+
+    if engine == 'mysql':
+        params = dict(
+                host = config.get('database', 'dbhost', 'localhost'),
+                db = config.get('database', 'dbname', 'dzdev'),
+                user = config.get('database', 'dbuser', 'dzadmin'),
+                passwd = config.get('database', 'dbpass', ''),
+                )
+        import MySQLdb 
+        db = Database(MySQLdb.Connect, **params)
+        db.autocommit = True
+        return db
+
+    raise Exception('Unknown database engine %s' % repr(engine))
 
 class System(threadeddict):
 
@@ -48,7 +70,7 @@ class System(threadeddict):
         self.home_app = self.config.get('apps','index','home')
 
         self.app = NoApp()
-        self.database = Database(config)
+        self.database = create_database(config)
 
     def run(self):
     
