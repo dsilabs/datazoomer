@@ -43,12 +43,12 @@ class Config:
         self.site_config = ConfigParser.ConfigParser()
         self.site_config.read(self.site_config_pathname)
 
-    def get(self,section,option,default=None):
+    def get(self, section, option, default=None):
         try:
-            return self.site_config.get(section,option)
+            return self.site_config.get(section, option)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             try:
-                return self.system_config.get(section,option)
+                return self.system_config.get(section, option)
             except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
                 if default != None:
                     return default
