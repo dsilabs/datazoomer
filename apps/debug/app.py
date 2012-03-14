@@ -16,10 +16,9 @@ def app():
         return PNGResponse(file(system.theme_path + '/default/images/no_photo.png','rb').read())
 
     info = []
-    info.append(('data', request.data))
     info.append(('request', request))
-    info.append(('user', user))
     info.append(('session', session))
+    info.append(('user', user))
     info.append(('system', system))
     info.append(('config', system.config.__dict__))
     info.append(('ctx', web.ctx))
