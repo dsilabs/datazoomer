@@ -1,6 +1,7 @@
 
 import os
 import web
+import Cookie
 
 from request import Request
 from system import System
@@ -25,6 +26,16 @@ def get_current_username(system):
         system.config.get('users','default','guest') or \
         None
 
+def bake_session_cookie(sid, host, lifespan, secure=True):
+    cookie = Cookie.SimpleCookie()
+    cookie[SESSION_COOKIE_NAME] = sid
+    cookie[SESSION_COOKIE_NAME]['httponly'] = True
+    cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
+    if secure:
+        cookie[SESSION_COOKIE_NAME]['secure'] = True
+    (k,v) = cookie[SESSION_COOKIE_NAME].output().split(':',1)
+    return k, v
+
 class Handler:
     """
     Handles requests.
@@ -42,9 +53,11 @@ class Handler:
             request.setup(web.ctx)
             system.setup(self.instance_path, request)
 
-            session.setup(system.database, '1.1.1.1')
+            # establish session
             sid = system.request.cookies.get(SESSION_COOKIE_NAME, None)
-            session.load(sid)
+            db = system.database
+            ip = '1.1.1.1'
+            new_sid = session.establish(db, ip, sid)
 
             current_username = get_current_username(system)
 
@@ -52,7 +65,10 @@ class Handler:
 
             response = system.run()
 
-            session.save(SESSION_COOKIE_LIFESPAN * 60)
+            # save session
+            lifespan = 60
+            session.save(lifespan)
+            web.header(*bake_session_cookie(new_sid, 'localhost', lifespan, secure=False))
 
             return response
 
