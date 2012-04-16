@@ -2,7 +2,6 @@
 __all__ = ['Request']
 
 import web
-import timer
 
 class Request(web.threadeddict):
 
