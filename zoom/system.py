@@ -72,11 +72,13 @@ class System(threadeddict):
         self.app = NoApp()
         self.database = create_database(config)
 
+        self.username = 'anybody'
+
     def run(self):
     
         def locate_app(name):
             for path in self.apps_paths:
-                path = os.path.abspath(os.path.join(path, name))
+                path = os.path.abspath(os.path.join(self.instance_path, path, name))
                 pathname = os.path.join(path, 'app.py')
                 if os.path.exists(pathname):
                     return path

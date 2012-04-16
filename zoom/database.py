@@ -615,4 +615,8 @@ class Record:
     def __nonzero__(self):
         return 1
 
+def test_database():
+    import MySQLdb
+    return Database(MySQLdb.Connect,host='localhost',user='testuser',passwd='password',db='test')
+
 
