@@ -1,19 +1,17 @@
 """
-Database
 
-NOTES:
-Allows a block of data to be read using a layout that makes it act like
-it has columns.
+    Database
 
-Some of this code is based on the Lazy DB code by John B. Dell'Aquila found
-in the Python Cookbook.
+    Some of this code is based on the Lazy DB code by John B. Dell'Aquila found
+    in the Python Cookbook.
 
-TODO:
-1.  Use fetchmany() instead of fetchall()
+    TODO:
+    1.  Use fetchmany() instead of fetchall()
+    2.  Support PostgreSQL
 
 """
 
-__all__ = ['Database', 'Table', 'Columns', 'Column']
+__all__ = ['Database', 'Table', 'Columns', 'Column', 'database']
 
 import string
 import decimal
@@ -615,8 +613,19 @@ class Record:
     def __nonzero__(self):
         return 1
 
+def database(engine='mysql', host='localhost', name='zoomdata', user='root', password=''):
+    """Create and return a connected database"""
+    if engine == 'mysql':
+        import warnings
+        warnings.filterwarnings('ignore', '.*the sets module is deprecated.*',
+                                        DeprecationWarning, 'MySQLdb')
+        import MySQLdb
+        db = Database(MySQLdb.Connect, host=host, user=user, passwd=password, db=name)
+        db.autocommit(1)
+        return db
+
 def test_database():
-    import MySQLdb
-    return Database(MySQLdb.Connect,host='localhost',user='testuser',passwd='password',db='test')
+    """Create and return a connected testing database"""
+    return database(name='test', user='testuser', passwd='password')
 
 
