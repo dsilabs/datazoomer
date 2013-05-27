@@ -30,10 +30,10 @@ the techniques and patterns we liked the most.
 
 In 2012 we renamed our internal DataZoomer library to Zoom.  The Zoom library is 
 found on github at https://github.com/hlainchb/python-zoom and the DataZoomer name 
-is used to refer to our instance of the library which runs as a service at datazoomer.com
-and is used to power our commercial solutions.  DataZoomer is implemented using
-this Zoom library and other libraries developed by other open source development
-firms.
+is used to refer to our instance of the library which runs as a service at 
+datazoomer.com and is used to power our commercial solutions.  DataZoomer is 
+implemented using this Zoom library and other libraries developed by other open 
+source development firms.
 
 In 2013 we combined all of our Zoom modules and published them to the new githib 
 location.
