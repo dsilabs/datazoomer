@@ -1,68 +1,81 @@
-"""
-    Config
+# Copyright (c) 2005-2011 Dynamic Solutions Inc. (support@dynamic-solutions.com)
+#
+# This file is part of DataZoomer.
+#
+# DataZoomer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# DataZoomer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Accesses configuration settings from a main configuration and
-    a site specific configuration file.  This allows a main config
-    file for most settings with the ability to override for
-    site specific settings.
+import ConfigParser, os.path
 
-    >>> config = Config()
-    >>> config.setup('../../test','localhost')
-    >>> config.get('site','name')
-    'Zoom'
-
-    >>> config.get('site','title')
-    'Zoom Platform'
-
-"""
-
-import os
-import ConfigParser
+def p(path,*a):
+    return os.path.abspath(os.path.join(path,*a))
 
 class Config:
+    def __init__(self, dz_conf_path, server_name):
 
-    def setup(self, instance_path, server_name):
-        self.instance_path = instance_path
-        self.server_name = server_name.lower()
-
-        system_config_pathname = os.path.join(instance_path,'zoom.ini')
-        if not os.path.exists(system_config_pathname):
-            raise Exception('Missing config file %s (%s)' % 
-                    (repr(system_config_pathname),repr(os.path.abspath(system_config_pathname))))
-
-        # Read the instance config (defaults)
-        self.system_config_pathname = os.path.abspath(system_config_pathname)
+        # read the system config file - one per instance
+        self.instance_path = p(dz_conf_path)
         self.system_config = ConfigParser.ConfigParser()
-        self.system_config.read(system_config_pathname)
+        self.system_config_pathname =os.path.join(self.instance_path, 'dz.conf')
+        if not os.path.exists(self.system_config_pathname):
+            raise Exception('Config file missing %s' % self.system_config_pathname)
+        self.system_config.read(self.system_config_pathname)
+        try:
+            sites_path = self.system_config.get('sites', 'path', 'sites')
+            self.sites_path = os.path.join(self.instance_path, sites_path)
+        except:
+            print 'Failed loading config file %s' % self.system_config_pathname
+            raise            
 
-        # Read the site config (overrides defaults)
-        system_path, filename = os.path.split(self.system_config_pathname)
-        site_directory = self.server_name.strip('www.')
-        self.site_path = os.path.join(system_path, site_directory)
-        self.site_config_pathname = os.path.join(system_path, site_directory, 'site.ini')
+        # read the default config file - one per environment
+        self.config = ConfigParser.ConfigParser()
+        self.default_config_pathname = os.path.join(self.sites_path, 'default.conf')
+        self.config.read(self.default_config_pathname)
+
+        # read the site config file - one per site
+        self.site_path = os.path.join(self.sites_path, server_name)
         self.site_config = ConfigParser.ConfigParser()
+        self.site_config_pathname = os.path.join(self.site_path, 'site.conf')
         self.site_config.read(self.site_config_pathname)
 
     def get(self, section, option, default=None):
+
+        def missing_report(section, option):
+            raise Exception('Unable to read [%s]%s from configs:\n%s\n%s\n%s' % (
+                section, option,
+                self.system_config_pathname,
+                os.path.join(self.sites_path, 'default.conf'),
+                os.path.join(self.site_path, 'site.conf')))
+
         try:
             return self.site_config.get(section, option)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        except:            
             try:
-                return self.system_config.get(section, option)
-            except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                return self.config.get(section, option)
+
+            except:
                 if default != None:
                     return default
                 else:
-                    raise
-        except:
-            raise
+                    missing_report(section, option)
+
+    def __str__(self):
+        return '<Config: %s>' % repr([self.default_config_pathname, self.site_config_pathname])
 
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
-    
 
 
 
