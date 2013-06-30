@@ -1,0 +1,559 @@
+/*
+
+DataZoomer 4
+Copyright 2011 - Dynamic Solutions Inc.
+written for www.datazoomer.com
+
+*/
+
+
+/* Input
+==========================*/
+    .field       { overflow: auto; padding: 2px 0; line-height: 2em; display:block; width:100%; font-size: 14px; }
+    .field_label { float:left; text-align:right; padding-right:10px; line-height:2em; min-width:25%; width:25%; color: #666; }
+    .field_edit, .field_show { float:left; width:70%; line-height:2em; min-height:2em; }
+
+    .text_field { height: 2em; border: 1px solid #aaaaaa; }
+    textarea.memo_field { border: 1px solid #aaaaaa; }
+    .field_edit .text_field  { height: 2em; border: 1px solid #aaaaaa; }
+    .field_edit .number_field { height: 2em; border: 1px solid #aaaaaa; }
+    .field_edit .date_field  { height: 2em; border: 1px solid #aaaaaa; }
+    .field_show .textarea    { border: 0px solid #aaaaaa; width:100%;  line-height: 1.25em; padding-top: 0.5em; }
+    .field_edit .textarea    { border: 1px solid #aaaaaa; width:100%; height:8em; }
+    .field_edit .memo_field  { border: 1px solid #aaaaaa; cols:60; min-height:8em; }
+    .field_edit .multiselect { border: 1px solid #aaaaaa; min-height:8em; min-width:180px; background: white; }
+    .field_edit .checkbox_field { line-height:2em; border: 0; }
+    .field_edit .pulldown    { height: 2em; min-width: 10em; }
+
+    .field_show .textarea h1,
+    .field_show .textarea h2,
+    .field_show .textarea h3
+    {
+        font-size: 1em;
+        font-weight: bold;
+        margin: 0;
+        padding: 0;
+    }
+
+    select,
+    textarea,
+    input[type="text"],
+    input[type="password"],
+    input[type="datetime"],
+    input[type="datetime-local"],
+    input[type="date"],
+    input[type="month"],
+    input[type="time"],
+    input[type="week"],
+    input[type="number"],
+    input[type="email"],
+    input[type="url"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="color"],
+    .uneditable-input {
+        display: inline-block;
+        height: 2em;
+        padding: 2px 6px;
+        margin: 0;
+        smargin-right: 0.5em;
+        font-size: 14px;
+        line-height: 20px;
+        color: #555;
+        vertical-align: middle;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+    }
+
+    /* margin for hints */
+    .field_edit input,
+    .field_edit textarea,
+    .field_edit select
+    { margin-right: 0.5em; }
+
+    div.content div.field_show p { margin: 0; }
+    div.content div.field_edit ul { margin: 0; }
+    div.content form { margin: 0; padding: 0 }
+
+    input, textarea {
+        font-size: 14px;
+        font-family: Arial;
+        width: auto;
+    }
+    input.checkbox_field {
+        margin-right: 0.5em;
+    }
+    select.multiselect {
+        margin-top: 0.2em;
+    }
+
+    div input { padding-right: 5px; padding-left: 5px; }
+    div textarea { padding: 5px; }
+    
+    input.radio { height: 1em; position:relative; top:2px; border:0; }
+    span.radio { margin-right:10px; }
+    span.radio input { height: 1em; position:relative; top:2px; border:0; margin:2px; }
+    select.pulldown { height: 29px; line-height:2em; font-size:14px; }
+    ul.checkbox_field li { list-style-type: none; margin-right: 2em; height:30px; }
+    ul.checkbox_field div { display: inline; line-height: 2em; }
+    div.checkbox input { height:2em; line-height: 2em; padding-top:0.5em; }
+
+    div.content .action,
+    div.content .button,
+    div.content .search_button,
+    div.content input.field_button {
+        background: #325A90;
+        height: 25px;
+        line-height: 25px;
+        font-weight: bold;
+        font-size: 14px;
+        font-family: Arial;
+        padding: 5px 15px;
+        color: white;
+        min-width: 40px;
+        border: 1px outset #aaaaaa;
+        text-align: center;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        }
+    div.content .action:hover,
+    div.content .button:hover,
+    div.content .search_button:hover {
+        background:#668FC8;
+        text-decoration:none;
+        color:white;
+        }
+    div.content input.button { height: 40px; }
+    div.content input.field_button { height: 30px; padding: 0 15px; }
+    
+    .content fieldset {
+        border: 1px solid #ccc; 
+        padding: 10px; 
+        width: 80%;
+    }
+    .content legend {
+        padding: 0px 10px;
+        color: #444;
+    }
+
+
+/* Search
+==========================*/
+    .search {
+        display: inline;
+        float: right;
+    }
+    div.content input.search_button { height: 37px; margin-left: 5px; }
+
+/* Actions
+==========================*/
+    .actions {
+        display: block;
+        margin: 0;
+    }
+    .actions ul, .actions ul li {
+        list-style-type: none;
+        margin: 0;
+    }
+    .actions ul li {
+        margin-left: 5px;
+    }
+    .action {
+        float:right;
+        margin-left: 5px;
+    }
+
+
+/* Flags, likes, etc.
+==========================*/
+.flag {
+     text-indent: -5000px;
+     display: block;
+     width: 28px;
+     height: 28px;
+}
+.star {
+     background: transparent url(/static/images/star-off.png) no-repeat;
+}
+.star_on {
+     background: transparent url(/static/images/star-on.png) no-repeat;
+}
+.heart {
+     background: transparent url(/static/images/heart-off.png) no-repeat;
+}
+.heart_on {
+     background: transparent url(/static/images/heart-on.png) no-repeat;
+}
+.mail {
+     background: transparent url(/static/images/mail-off.png) no-repeat;
+}
+.mail_on {
+     background: transparent url(/static/images/mail-on.png) no-repeat;
+}
+.thumbs-up {
+     background: transparent url(/static/images/thumbs-up-off.png) no-repeat;
+}
+.thumbs-up_on {
+     background: transparent url(/static/images/thumbs-up.png) no-repeat;
+}
+.thumbs-down {
+     background: transparent url(/static/images/thumbs-down-off.png) no-repeat;
+}
+.thumbs-down_on {
+     background: transparent url(/static/images/thumbs-down.png) no-repeat;
+}
+
+/* Misc
+==========================*/
+    .user_info { font-size: 0.8em; display:inline; height:40px; }
+    .meta { color: #555; font-size: 0.8em; }
+    .wrong { color: red; font-size: 0.8em; margin-right: 1em;}
+    .hint { color: #555; font-size: 1em; line-height: 1.2em; margin-top: 0.5em; }
+
+/* Message Boxes
+==========================*/
+    .content div.errors ul, div.warnings ul, div.messages ul { padding: 0.5em; border-style:solid; border-width:medium; margin:0; }
+    .content div.errors li, div.warnings li, div.messages li { list-style-type:none; padding: 0.25em; margin:0; }
+
+    .messages { color: green; background-color: #ddeedd; }
+    .warnings { color: #A66E00; background-color: #FFEA73; }
+    .errors { color: red; background-color: #eeddee; }
+
+/* Tables
+==========================*/
+    .content table { 
+        border-collapse: collapse; 
+        border: 1px solid #ccc; 
+        background: white;
+    }
+    .content th, .content td { 
+        padding: 0.4em 1.0em; 
+        border: 1px solid #ccc; 
+    }
+    .content th {
+        background-color: #d2e2f2;
+        border-bottom: 1px solid #ccc; 
+    }
+
+    .content .transparent, .content .transparent th, .content .transparent td { 
+        border: none;
+        background: none; 
+        color: none;
+        padding: 0;
+        margin: 0;
+    }
+
+
+/* Lists (like tables but for data records)
+==========================*/
+    .baselist table { 
+        width:100%; 
+        border-spacing:0; 
+        margin:0; 
+        padding:0; 
+        border: 1px solid #ccc; 
+        border-spacing: 0px; 
+    }
+    .baselist table th {
+        border-bottom: 1px solid #ccc;
+        text-transform: capitalize;
+    }
+    .baselist table tbody th { 
+        color: black;
+        background-color: #d2e2f2;
+        line-height:25px;
+        text-align:left; 
+        padding-top:0.3em;
+        padding-bottom:0.3em;
+        padding-right:0.3em;
+        padding-left: 0.5em;
+        margin: 0;
+        white-space:nowrap;
+        vertical-align:top;
+        text-transform:capitalize;
+    }
+    .obaselist table tbody td {
+        padding-top:0.3em;
+        padding-bottom:0.3em;
+        vertical-align:top;
+        padding-left: 0.5em;
+        margin: 0;
+    }
+    .baselist tr { line-height: 25px; }
+    .baselist tr p { line-height: 1em; }
+    .baselist tr.dark { background-color:#E8E8E8; }
+    .baselist tr.dark:hover { background-color:#B0B0B0; }
+    .baselist tr.light { background-color:#F8F8F8; }
+    .baselist tr.light:hover { background-color:#B0B0B0; }
+    .baselist td, .baselist a {
+        font-size: 12px;
+    }
+    .baselist a         { color: #284a80; text-decoration:none; }
+    .baselist a:visited { color: #284a80; text-decoration:none; }
+    .baselist a:hover   { color: #4d84bd; text-decoration:underline; }
+
+    .baselist-footer { color: #555; font-size: 0.8em; margin: 5px 0 0 8px;}
+
+    .baselist h1,
+    .baselist h2,
+    .baselist h3
+    {
+        font-size: 1em;
+        font-weight: bold;
+        margin: 0;
+        padding: 0;
+    }
+    div.baselist a.action,
+    div.baselist a.action:link,
+    div.baselist a.action:focus {
+        cursor: pointer;
+        float: none;
+        text-decoration: none;
+        font-size: 0.9em;
+        color: #787b7c;
+        margin: 0 2px;
+        padding: 5px 15px;
+        background: -moz-linear-gradient(
+            top,
+            #ffffff 0%,
+            #f1f1f1);
+        background: -webkit-gradient(
+            linear, left top, left bottom,
+            from(#ffffff),
+            to(#f1f1f1));
+        -moz-border-radius: 3px;
+        -webkit-border-radius: 3px;
+        border-radius: 3px;
+        border: 1px solid #cacaca;
+        text-shadow: 0 0 0;
+    }
+    div.baselist a.action:hover {
+        text-decoration: none;
+        background: -moz-linear-gradient(
+            top,
+            #424242 0%,
+            #000);
+        background: -webkit-gradient(
+            linear, left top, left bottom,
+            from(#424242),
+            to(#000));
+        color: #fff;
+        border-color: #000;
+    }
+
+/* Login
+==========================*/
+    div.login_box { 
+        -webkit-border-radius:1em; 
+        -moz-border-radius:1em; 
+        background-color:rgb(245,250,250); 
+        border:10px solid rgb(157,157,157); 
+        color:black;
+        margin:10px;
+        line-height:1em;
+        width:350px; 
+    }
+    div.login_box H1 { font-size: 20px; }
+    div.login_box li { display:inline; color: red; }
+
+
+/* Social
+==========================*/
+    div.social ul li#twitter a {
+        background-position: 0 0;
+    }
+    div.social ul li#twitter a:hover {
+        background-position: 0 -28px;
+    }
+    div.social ul li#facebook a {
+        background-position: -28px 0;
+    }
+    div.social ul li#facebook a:hover {
+        background-position: -28px -28px;
+    }
+    div.social ul li#linkedin a {
+        background-position: -56px 0;
+    }
+    div.social ul li#linkedin a:hover {
+        background-position: -56px -28px;
+    }
+    div.social ul li#youtube a {
+        background-position: -84px 0;
+    }
+    div.social ul li#youtube a:hover {
+        background-position: -84px -28px;
+    }
+    div.social ul li#google-plus a {
+        background-position: -112px 0;
+    }
+    div.social ul li#google-plus a:hover {
+        background-position: -112px -28px;
+    }
+    div.social ul li#blog a {
+        background-position: -140px 0;
+    }
+    div.social ul li#blog a:hover {
+        background-position: -140px -28px;
+    }
+    div.social ul li a {
+        float: right;
+        margin-left: 5px;
+        height: 28px;
+        width: 28px;
+        overflow: hidden;
+        text-indent: -2000px;
+        background-image: url(/static/images/social-icons.png);
+        background-repeat: no-repeat;
+    }
+    div.social ul li {
+        display: inline;
+    }
+    div.social ul {
+        display: block;
+        margin-left: auto;
+        margin: 0px;
+        padding-bottom: 5px;
+        list-style-type: none;
+        height: 28px;
+        width: 198px;
+    }
+
+    div.social-small div.social {
+        display: block;
+        list-style-type: none;
+        height: 20px;
+        width: 198px;
+    }
+    div.social-small div.social ul {
+        display: block;
+        list-style-type: none;
+        height: 20px;
+        width: 198px;
+    }
+    div.social-small div.social ul li a {
+        margin-left: 3px;
+        height: 20px;
+        width: 20px;
+        background-image: url(/static/images/social-icons-small.png);
+    }
+    div.social-small div.social ul li#twitter a {
+        background-position: 0 0;
+    }
+    div.social-small div.social ul li#twitter a:hover {
+        background-position: 0 -20px;
+    }
+    div.social-small div.social ul li#facebook a {
+        background-position: -20px 0;
+    }
+    div.social-small div.social ul li#facebook a:hover {
+        background-position: -20px -20px;
+    }
+    div.social-small div.social ul li#linkedin a {
+        background-position: -40px 0;
+    }
+    div.social-small div.social ul li#linkedin a:hover {
+        background-position: -40px -20px;
+    }
+    div.social-small div.social ul li#youtube a {
+        background-position: -60px 0;
+    }
+    div.social-small div.social ul li#youtube a:hover {
+        background-position: -60px -20px;
+    }
+    div.social-small div.social ul li#google-plus a {
+        background-position: -80px 0;
+    }
+    div.social-small div.social ul li#google-plus a:hover {
+        background-position: -80px -20px;
+    }
+    div.social-small div.social ul li#blog a {
+        background-position: -100px 0;
+    }
+    div.social-small div.social ul li#blog a:hover {
+        background-position: -100px -20px;
+    }
+
+
+/* Title
+==========================*/
+    #title_bar {
+        background: none;
+        width: 100%;
+        padding: 0.2em;
+        margin: 0;
+        border: none;
+    }
+    #title_bar_left, #title_bar_right {
+        height: 50px;
+        vertical-align: middle;
+        padding: 0;
+        margin: 0;
+        border: none;
+        background: none;
+    }
+    #title_bar_right {
+        text-align: right;
+    }
+    #title_bar h1 {
+        margin: 0;
+    }
+
+
+/* Price Boxes
+==========================*/
+    div.priceboxes {
+        width: 85%;
+        text-align: center;
+        margin: 0 auto;
+        display: block;
+        float: center;
+        margin-top: 2em;
+        margin-bottom: 2em;
+    }
+    div.pricebox {
+        width:22%;
+        background: white;
+        text-align: left;
+        float: left;
+        border: 1px solid #CCC;
+        padding: 2em 2.5em;
+    }
+    div.pricebox-top {
+        text-align: center;
+        padding-bottom: 1em;
+        border-bottom: 1px solid #CCC;
+        margin-bottom: 1em;
+    }
+    div.pricebox ul {
+        margin: 1em 0 0 1em;
+        display: block;
+    }
+    div.pricebox li {
+        list-style-type: disc;
+        display: list-item;
+        float: none;
+        text-align: left;
+    }
+    div.pricebox h1,
+    div.pricebox h2,
+    div.pricebox h3
+    {
+        margin: 0;
+        border: 0;
+        padding: 0;
+    }
+
+
+/* Groups
+==========================*/
+div.content div.group_relationships_list table {
+    line-height: 1.5em;
+    border: 0;
+}
+
+div.content div.group_relationships_list table td {
+    padding: 0 5px;
+}
+
+

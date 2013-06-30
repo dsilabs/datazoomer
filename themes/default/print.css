@@ -1,0 +1,20 @@
+
+
+div#main_menu {
+    display: none;
+}
+
+div#system_menu {
+    display: none;
+}
+
+div#bottom {
+    display: none;
+}
+
+span.user_info {
+    display: none;
+}
+
+a, a:visited { text-decoration: none; color: red; }
+

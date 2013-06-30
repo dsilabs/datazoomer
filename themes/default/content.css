@@ -1,0 +1,77 @@
+/*
+ * Page content styles.
+*/
+
+body, table, input, select { 
+    font-family: helvetica,arial,freesans,clean,sans-serif; 
+    font-size: 14px; 
+}
+
+a { 
+    text-decoration:none; 
+}
+
+a:hover { 
+    text-decoration:underline; 
+}
+
+.content { margin-left:auto; margin-right:auto; }
+.content h1 { font-size: 27px; margin: 1em 0 0.4em; }
+.content h2 { font-size: 18px; margin: 1em 0 0; }
+.content h3 { font-size: 16px; font-weight:bold; }
+.content p { margin: 0.5em 0 0.5em 0; }
+.content ul { margin-left: 2em; list-style-type: disc; }
+.content blockquote { margin-left: 2em; }
+.content hr {
+        height: 1px;
+        width: 100%;
+        margin: 20px 0px;
+        display: block;
+        border-top: thin dashed #ccc; 
+        background: none;
+    }
+
+.markdown table { border: thin solid #ccc; margin: 20 30 20 20; }
+.markdown table tr td, div.markdown table th td  { padding: 0 20 0 10; }
+.markdown table th { background-color: #ccc; padding: 2 20 2 10; }
+
+div.content p img {
+    float: right;
+    border: 1px solid #BBB;
+    padding: 5px;
+    margin: 10px;
+    background-color: white;
+}
+
+.content blockquote ol { 
+    list-style-type: lower-alpha; 
+    padding-left: 1em;
+}
+
+.content blockquote blockquote ol { 
+    list-style-type: lower-roman; 
+    padding-left: 1em;
+}
+
+.content ul li blockquote  {
+    margin: 0 0 0 0.25em;
+}
+
+.content ol li blockquote  {
+    margin: 0 0 0 1em;
+}
+
+.content pre code {
+    margin: 1em 4em 1em 2em;
+    display: block;
+    background: #ffc;
+    padding: 5px;
+}
+
+.content pre {
+    margin: 0;
+    padding: 0;
+    display: block;
+    background: #ffc;
+}
+
