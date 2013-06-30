@@ -49,10 +49,16 @@ class CollectionView(View):
             content = browse(items, labels=c.labels, columns=c.columns, fields=c.fields, footer=footer)
             return page(content, title=c.name, actions=actions)
 
-    def show(self, key):
+    def show(self, locator):
+        def action_for(r, name):
+            return name, '/'.join([r.url, id_for(name)])
+
+        def actions_for(r, *names):
+            return [action_for(r, n) for n in names]
+
         c = self.collection
-        actions = c.can_edit() and ['Edit', 'Delete'] or []
-        record = c.locate(key)
+        record = c.locate(locator)
+        actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
         if record:
             c.fields.update(record)
 
@@ -62,13 +68,13 @@ class CollectionView(View):
                 memo = ''
             return page(c.fields.show() + memo, title=c.item_name, actions=actions)
         else:
-            return page('%s missing' % key)
+            return page('%s missing' % locator)
 
     def new(self):
         c = self.collection
         if c.can_edit():
             form = Form(c.fields, ButtonField('Create', cancel=c.url))
-            return page(form.edit(), title=c.item_name)
+            return page(form.edit(), title='New '+c.item_name)
 
     def edit(self, key, **data):
         c = self.collection
@@ -103,8 +109,8 @@ class CollectionController(Controller):
             if c.fields.validate(data):
                 record = c.entity()
                 record.update(c.fields)
-                record.CREATED = now
-                record.UPDATED = now
+                record.created = now
+                record.updated = now
                 record.owner = user.username
                 record.created_by = user.username
                 record.updated_by = user.username
@@ -118,7 +124,7 @@ class CollectionController(Controller):
                 record = c.locate(key)
                 if record:
                     record.update(c.fields)
-                    record.UPDATED = now
+                    record.updated = now
                     record.updated_by = user.username
                     c.store.put(record)
                     return redirect_to('%s/%s'%(c.url, key))
