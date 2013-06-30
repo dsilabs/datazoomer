@@ -83,8 +83,12 @@ def page(content='', template='default', callback=None, css=None, js=None, title
         result = []
         for action in reversed(actions):
             if type(action) == tuple:
-                text = action[0]
-                url = '/'.join([''] + route + [action[1]])
+                if len(action) == 2:
+                    text, url = action
+                else:
+                    #TODO:  review to see if this is even useful
+                    text = action[0]
+                    url = '/'.join([''] + route + [action[1]])
             else:
                 text = action
                 url = '/'.join([''] + route + [id_for(action)])
