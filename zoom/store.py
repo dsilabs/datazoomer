@@ -265,7 +265,9 @@ class EntityStore:
             db('insert into entities (kind) values (%s)', self.kind)
             id = entity['_id'] = db.lastrowid
 
-        param_list = zip([self.kind]*len(keys),[id]*len(keys),keys,datatypes,values)
+        n = len(keys)
+        lkeys = [k.lower() for k in keys]
+        param_list = zip([self.kind]*n, [id]*n, lkeys, datatypes, values)
         cmd = 'insert into attributes (kind, row_id, attribute, datatype, value) values (%s,%s,%s,%s,%s)'
         db.cursor().executemany(cmd, param_list)
 
