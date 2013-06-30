@@ -31,28 +31,43 @@ from request import request, webvars
 from tools import db
 
 SESSION_COOKIE_NAME = 'dz4sid'
+SUBJECT_COOKIE_NAME = 'dz4sub'
 
 class SessionExpiredException(Exception): pass
 
 sessionLife = 60 # time in minutes
 
 def get_session_cookie():
+    return get_cookie(SESSION_COOKIE_NAME)
+
+def get_subject():
+    value = get_cookie(SUBJECT_COOKIE_NAME)
+    if not value or value == 'None':
+        return uuid.uuid4().hex
+    return value
+
+def get_cookie(name):
     raw_cookie = os.environ.get("HTTP_COOKIE", "")
     cookie = Cookie.SimpleCookie(raw_cookie)
     try:
-        value = cookie[SESSION_COOKIE_NAME].value
+        value = cookie[name].value
     except KeyError:
         value = None
     return value
 
 def set_session_cookie(response, sid, host, lifespan, secure=True):
     cookie = Cookie.SimpleCookie()
+
     cookie[SESSION_COOKIE_NAME] = sid
     cookie[SESSION_COOKIE_NAME]['httponly'] = True
     cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
     if secure:
         cookie[SESSION_COOKIE_NAME]['secure'] = True
-    (k,v) = cookie[SESSION_COOKIE_NAME].output().split(':',1)
+
+    cookie[SUBJECT_COOKIE_NAME] = system.subject
+    cookie[SUBJECT_COOKIE_NAME]['httponly'] = True
+    cookie[SUBJECT_COOKIE_NAME]['expires'] = 365 * 24 * 60 * 60
+    k,v = str(cookie).split(':',1)
     response.headers[k] = v
 
 class Session:

@@ -1,10 +1,9 @@
 
 
 import tools
-from zoom.utils import Record
-from store import store
+from store import store, Entity
 
-class Snippet(Record):
+class Snippet(Entity):
     """
     A chunk of text (usually HTML) that can be rendered by
     placing the <dz:snippet> tag in a document or template.
@@ -24,7 +23,7 @@ class Snippet(Record):
 
 snippets = store(Snippet)
 
-def render_snippet(name, variant=None, default='', markdown=False):
+def snippet(name, variant=None, default='', markdown=False):
     snippet = snippets.first(name=name, variant=variant)
     if snippet:
         snippet['impressions'] = snippet.get('impressions', 0) + 1

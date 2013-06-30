@@ -9,7 +9,8 @@ from user import user
 import html
 from zoom.utils import *
 import flags
-from snippets import render_snippet
+from snippets import snippet
+import goals
 
 def elapsed(fmt='%f'):
     """Returns time it took to generate current page."""
@@ -198,6 +199,11 @@ def name_for(text):
     result = text.replace('*','').replace(' ','_').strip().upper()
     return result
 
+def achieved(name):
+    """Triggers a goal achievement entry"""
+    goals.achieved(name, system.subject)
+    return ''
+
 def current_date():
     """Returns the current date in text form."""
     return '%s' % tools.today
@@ -246,17 +252,17 @@ def upper(text):
     """Returns the given text in upper case."""
     return text.upper()
     
-def snippet(name, variant=None, default='', markdown=False):
-    """
-    Returns a snippet of content.
-    
-        >>> from system import system
-        >>> system.setup_test()
-        >>> snippet('nosuchsnippet', default='test')
-        'test'
-
-    """
-    return render_snippet(name, variant, default, markdown)
+#def snippet(name, variant=None, default='', markdown=False):
+#    """
+#    Returns a snippet of content.
+#    
+#        >>> from system import system
+#        >>> system.setup_test()
+#        >>> snippet('nosuchsnippet', default='test')
+#        'test'
+#
+#    """
+#    return render_snippet(name, variant, default, markdown)
     
 def site_name():
     """Returns the site name."""
@@ -512,6 +518,7 @@ def multipart_form_for(content,**keywords):
 
 def construct_url(root,route,a,k):
     """Construct a site URL."""
+    a = [str(i) for i in a]
     if a and a[0][0]=='/':
         if len(a[0])>1:
             uri = root + '/'.join(list(a))

@@ -14,10 +14,11 @@ from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import session, SessionExpiredException
+from session import session, SessionExpiredException, get_subject
 from request import request, data
 from user import user
 from manager import manager
+from visits import visited
 
 FRIENDLY_ERROR_MESSAGE = """
 <H1>How embarrassing!</H1>
@@ -57,6 +58,10 @@ def generate_response(instance_path):
             session.load_session()
             user.setup()
             manager.setup()
+
+            system.subject = get_subject()
+
+            visited(system.subject, session.sid)
 
             csrf_token = data.pop('csrf_token',None)
             if request.method == 'POST' and system.csrf_validation:
