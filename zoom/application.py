@@ -30,6 +30,7 @@ class Application:
         self.version = None
         self.icon    = self.read_config('settings','icon',system.config.get('apps','icon','blank_doc'))
         self.title   = self.read_config('settings','title',name.capitalize())
+        self.visible = self.read_config('settings','visible',True) not in ['no', 'n', False, '0']
         self.description = self.read_config('settings','description','')
         self.categories = [a.strip() for a in self.read_config('settings','categories','').split(',') if a]
         self.tags = [a.strip() for a in self.read_config('settings','tags','').split(',') if a]
