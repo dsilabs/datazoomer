@@ -48,6 +48,16 @@ class DB:
         return getattr(system.database, name)
 db = DB()
 
+def site_url():
+    if request.port=='443':
+        protocol = 'https'
+    else:
+        protocol = 'http'
+    host = request.server
+    port = (request.port not in ['80','443']) and (':%s'%request.port) or ''
+    url = '%s://%s%s' % (protocol,host,port)
+    return url
+
 def redirect_to(location):
     """Return a redirect response for a URL."""
     if location.startswith('http://'):
