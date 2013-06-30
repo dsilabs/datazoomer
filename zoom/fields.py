@@ -234,7 +234,7 @@ class TwitterField(TextField):
 
     def display_value(self):
         twitter_id = (self.value or self.default).strip().strip('@')
-        return self.visible and twitter_id and '<a href="http://www.twitter.com/%(twitter_id)s">@%(twitter_id)s</a>' % locals() or ''
+        return self.visible and twitter_id and '<a target="_window" href="http://www.twitter.com/%(twitter_id)s">@%(twitter_id)s</a>' % locals() or ''
 
 
 class URLField(TextField):
@@ -242,28 +242,41 @@ class URLField(TextField):
     URL Field
 
         >>> URLField('Website', default='www.google.com').display_value()
-        '<a target="_window" href="http://www.google.com">www.google.com</a>'
+        '<a target="_window" href="http://www.google.com">http://www.google.com</a>'
 
         >>> f = URLField('Website', default='www.google.com')
         >>> f.assign('www.dsilabs.ca')
         >>> f.display_value()
-        u'<a target="_window" href="http://www.dsilabs.ca">www.dsilabs.ca</a>'
+        u'<a target="_window" href="http://www.dsilabs.ca">http://www.dsilabs.ca</a>'
 
         >>> f = URLField('Website', default='www.google.com')
         >>> f.assign('http://www.dsilabs.ca')
         >>> f.display_value()
         u'<a target="_window" href="http://www.dsilabs.ca">http://www.dsilabs.ca</a>'
 
+        >>> f = URLField('Website', default='www.google.com', trim=True)
+        >>> f.assign('http://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="http://www.dsilabs.ca">www.dsilabs.ca</a>'
+
     """
 
     size = 60
     maxlength = 120
+    trim = False
 
     def display_value(self):
         url = text = websafe(self.value) or self.default
         if url:
             if not url.startswith('http'):
                 url = 'http://' + url
+        if not self.trim and not text.startswith('http://'):
+            text = 'http://' + text
+        if self.trim and text.startswith('http://'):
+            text = text[7:]
+        if self.trim and text.endswith('/'):
+            text = text[:-1]
+            url = url[:-1]
         return self.visible and url and ('<a target="_window" href="%s">%s</a>' % (url, text)) or ''
 
     def assign(self, value):
