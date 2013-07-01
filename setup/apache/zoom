@@ -1,0 +1,53 @@
+<VirtualHost *:80>
+
+	ServerAdmin webmaster@localhost
+
+    setenv APPLICATION_ENVIRONMENT development
+
+	DocumentRoot /work/web/www
+	<Directory />
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	<Directory /work/web/www/>
+
+		Options Indexes FollowSymLinks MultiViews +ExecCGI
+
+        AcceptPathInfo On
+
+        AddHandler cgi-script py
+        DirectoryIndex index.html index.py
+
+        RewriteEngine on
+        RewriteBase /
+
+        # Static Content
+        RewriteRule ^images/(.*)$ site-content/%{HTTP_HOST}/content/images/$1 [L]
+        RewriteRule ^files/(.*)$ site-content/%{HTTP_HOST}/content/files/$1 [L]
+        RewriteRule ^static/(.*)$ static/$1 [L]
+        RewriteRule ^favicon.ico$ static/favicon.ico [L]
+        RewriteRule ^robots.txt$ robots.txt [L]
+
+        # Dynamic content
+        RewriteRule ^(.*).html$ index.py/content/$1 [L]
+        RewriteRule ^(.*)$ index.py
+
+	</Directory>
+
+    Alias /themes       /work/web/themes
+    Alias /site-content /work/web/sites
+
+    # Apache error log
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+	LogLevel debug
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    RewriteLog ${APACHE_LOG_DIR}/rewrite.log
+    RewriteLogLevel 3
+    
+</VirtualHost>
+
