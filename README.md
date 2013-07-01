@@ -1,6 +1,7 @@
 
-Zoom - the python web platform that does less
+Zoom 
 ====
+The python web platform that does less.
 
 Zoom is a small application platform for building dynamic web sites quickly.
 
