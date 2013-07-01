@@ -1,0 +1,15 @@
+Edit User 
+============
+
+<dz:form>
+{{fields}}
+
+<div class=field>
+    <div class=field_label>&nbsp;</div>
+    <div class=field_edit>
+        <dz:button "Update" name="update_button"> <dz:link_to "cancel" "/users/{{id}}">
+    </div>
+</div>
+
+</form>
+

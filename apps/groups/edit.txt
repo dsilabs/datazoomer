@@ -1,0 +1,14 @@
+Edit Group
+============
+<dz:form>
+{{fields}}
+
+<div class=field>
+    <div class=field_label>&nbsp;</div>
+    <div class=field_edit>
+        <dz:button "Update" name="UPDATE_BUTTON"> <dz:link_to "cancel" "/groups/{{id}}">
+    </div>
+</div>
+
+</form>
+

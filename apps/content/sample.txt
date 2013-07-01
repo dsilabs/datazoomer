@@ -1,0 +1,40 @@
+New Page
+========
+You can create internal links [like this](/terms.html)  
+You can create [external links](http://www.dynamic-solutions.com)
+
+When every you want to create a new page you just create the link for the page, save your changes and then click on the new link you created.
+
+Bullets are easy too:
+
+* Bullet One
+
+* Bullet Two
+
+* Bullet Three
+
+Or if you prefer numbered bullets, they are just as easy.
+
+1. One numbered bullet
+
+1. Two numbered bullets
+
+1. Numbered bullets
+
+
+Headings are done by underlining with ==== or ----.
+
+Like this
+
+Heading One
+===========
+This is the large heading
+
+Heading Two
+-----------
+This is the smaller heading.
+
+
+
+
+

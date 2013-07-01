@@ -1,0 +1,3 @@
+New Page
+========
+This is a new page.  Click the **edit** link above to edit the page.

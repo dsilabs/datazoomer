@@ -1,0 +1,13 @@
+Change Photo
+====
+
+<dz:multipart_form>
+
+{{photo}}
+
+<input type=file name="uploaded_photo">
+<br>
+<dz:button "Upload" name="upload_button"> <a href="/profile">cancel</a>
+
+</form>
+

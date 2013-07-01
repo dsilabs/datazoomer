@@ -1,0 +1,19 @@
+Reset Password
+==============
+Welcome back {{first_name}}!  
+
+In case you need it, your username is <strong>{{user_name}}</strong>.
+
+Please enter and confirm your new password in the spaces provided and we will reset it for you.
+<dz:form>
+New Password  
+<input type=password class="text_field" name=password size=30 value="">  
+
+Confirm  
+<input type=password class="text_field" name=confirm size=30 value="">  
+
+<input type=hidden name=token value="{{token}}">  
+<dz:button "Reset My Password Now" name="reset_password_button">  [Back to login](/login)
+</form>
+
+

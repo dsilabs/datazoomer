@@ -1,0 +1,253 @@
+
+div#main-panel {
+    background: white;
+    width: 958px;
+    float: left;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border: 1px solid #ccc;
+    color: #444;
+}
+
+div#main-panel-top {
+    height: 62px;
+    border-bottom: 1px solid #ccc;
+}
+
+div#main-panel-top, div#selector {
+    background: #ECECEC;
+}
+
+div#main-panel-top-content {
+    float: left;
+    font-size: 9px;
+    margin-left: 10px;
+}
+
+div#main-panel-top-content img {
+    margin: 0;
+    padding: 0;
+    width: 70px;
+    position: absolute;
+}
+
+div#main-panel-top-content H1 {
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+div#main-panel-top-content a {
+    font-size: 10px;
+}
+
+div#top-text {
+    position: relative;
+    left: 100px;
+    font-size: 10px;
+}
+
+div#main-panel-top-content a {
+    font-size: 10px;
+    color: white;
+}
+
+div#selector {
+    width: 237px;
+    float: left;
+}
+
+div#right-panel {
+    width: 190px;
+    float: right;
+}
+
+div#right-panel .section {
+    margin-bottom: 15px;
+}
+
+div#right-panel H1 {
+    margin-top: 0px;
+    font-size: 14px;
+    color: #444;
+}
+
+div.selector ul {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+}
+
+div.selector {
+    sborder-top: 1px solid #ccc;
+}
+
+div.selector hr {
+    padding: 0;
+    margin: 0;
+}
+
+div.selector h1 {
+    color: black;
+    font-size: 12px;
+    sborder-top: 1px solid #ccc;
+    padding: 10px;
+    padding-left: 20px;
+    margin: 0;
+}
+
+div.selector ul li {
+    list-style-type: none;
+    padding: 10px;
+    padding-left: 20px;
+    margin: 0;
+}
+
+div.selector ul li:hover, div.selector ul li.current {
+    background: #666;
+    color: white;
+}
+div.selector ul li.current {
+    border-right: 4px solid red;
+}
+
+div#selected {
+    font-size: 14px;
+    width: 721px;
+    float: left;
+    spadding-left:10px;
+}
+
+div.change {
+    border-bottom: 1px solid #eee;
+    margin-top: 10px;
+    padding-right: 10px;
+}
+
+div.change h1 {
+    font-size: 14px;
+}
+
+div.change div.views {
+    font-size: 11px;
+    color: #444;
+}
+
+div.change div.change-left {
+    float: left;
+    width: 300px;
+}
+
+div.change div.change-right {
+    float: right;
+    margin-top: 10px;
+    font-size: 10px;
+    color: #888;
+    width: 100px;
+    text-align: right;
+}
+
+/* Selected Items
+************************************************/
+div.content ul.app-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid #ccc;
+    }
+
+ul.app-list li {
+    smargin: 5px;
+    spadding: 1px;
+    float: left;
+    margin: 0;
+    padding: 0;
+    sdisplay: inline;
+    sdisplay: inline-block;
+    width: 240px;
+    height: 100px;
+    }
+
+ul.app-list a {
+    text-decoration: none;                
+    }            
+
+.app-info:hover {
+    background: #eee;
+}
+
+.app-info {
+    width: 240px; 
+    height: 100px;
+    sdisplay: inline; 
+    spadding: 10px; 
+    sbackground: #dedede;
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    position: relative;
+}
+
+.app-icon { 
+    sdisplay: block; 
+    smargin: 0px auto; 
+    height: 70px; 
+    width: 70px;
+    float: left;
+    position: absolute;
+    top: 22px;
+    right: 5px;
+    text-align: center;
+    }
+
+.app-icon img { 
+    margin: 0px auto; 
+    height: 50px; 
+    }
+
+.app-text {
+    height: 60px;
+    float: left;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+}
+
+.app-title {
+    font-size: 20px;
+    width: 150px;
+}
+
+.app-description {
+    font-size: 10px;
+    width: 150px;
+}
+
+div.content input.add-button {
+    height: 25px;
+    line-height: 25px;
+    padding: 0 10px;
+    font-weight: normal;
+    font-size: 12px;
+}
+
+div.content div.trash img {
+    margin: 0;
+    padding: 0;
+}
+
+.grouplist table {
+    border: 0;
+}
+
+.grouplist tr {
+    line-height: 20px;
+}
+
+.grouplist td {
+    border: 0;
+}
+
+div.content div.trash img {
+    margin-top: 3px;
+    border: 0;
+}
+

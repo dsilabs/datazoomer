@@ -1,0 +1,15 @@
+Password Reset
+==============
+Forgot your password?  No problem.   
+
+Enter your email address in the space provided and we will send you a 
+link that you can use to set your password again.  
+
+
+<dz:form>  
+Email Address  
+<input type=email class="text_field" name="EMAIL" size=60 value="{{email}}">  
+
+<dz:button "Request Password Reset" name="SUBMIT_BUTTON">  [Back to login](/login)
+</form>
+

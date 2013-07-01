@@ -1,0 +1,15 @@
+
+Add New Group
+============
+<dz:form>
+{{fields}}
+
+<div class=field>
+    <div class=field_label>&nbsp;</div>
+    <div class=field_edit>
+        <dz:button "Add This Group" name="ADD_GROUP_BUTTON"> <dz:cancel>
+    </div>
+    </div>
+</form>
+
+    

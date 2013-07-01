@@ -1,0 +1,41 @@
+<div id="main-panel">
+    <div id="main-panel-top">
+        <div id="main-panel-top-content">
+            <img src="/static/icons/blocks">
+            <div id="top-text">
+                <h1><dz:site_name> App Store</h1>
+                {{app_count}} apps,  {{installed_app_count}} installed, {{user_app_count}} in use by you
+            </div>
+        </div>
+    </div>
+    <div style="clear:both"></div>
+    <div id="main-panel-left">
+        <div id="selector">
+            <div class="selector">
+                <ul>
+                    <li id="your-apps" class="current">Your Apps</li>
+<!--
+                    <li>New</li>
+                    <li>Updates Available</li>
+                    <li>Trending</li>
+                    <li>Popular</li>
+                    <li>Being Discussed</li>
+-->
+                </ul>
+                <hr>
+                <h1>Installed</h1>
+                    {{installed_categories_list}}
+                <hr>
+                <h1>Not Installed</h1>
+                <ul>
+                    {{not_installed_categories_list}}
+                </ul>
+            </div>
+        </div>
+        <div id="selected">
+            {{selected_apps}}
+        </div>
+    </div>
+</div>
+<div style="clear:both"></div>
+

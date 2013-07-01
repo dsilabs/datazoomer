@@ -1,0 +1,47 @@
+
+        <br>
+        <br>
+        <center>
+        <div class=login_box>
+            <div style="margin:20px;text-align:left;">
+                <center>
+                    <H1><dz:site_name></H1>
+                </center>
+                    <br>
+                    <dz:alerts>
+                    <dz:form>
+
+                      <input type=hidden name=url value="">
+                      <div class="field">
+                          <div class="field_label">
+                              Username
+                          </div>
+                          <div class="field_edit">
+                              <input class="text_field" type="text" maxlength="50" size="20" id="USERNAME" name="USERNAME" value="{{username}}">
+                          </div>
+                      </div>
+                      <div class="field">
+                          <div class="field_label">
+                              Password
+                          </div>
+                          <div class="field_edit">
+                              <input class="text_field" type="password" maxlength="16" size="20" id="PASSWORD" name="PASSWORD" value="">
+                          </div>
+                      </div>
+                      <div class="field">
+                          <div class="field_label">&nbsp;
+                          </div>
+                          <div class="field_edit">
+                              <input class="button" type=submit id="LOGIN_BUTTON" name="LOGIN_BUTTON" value="Login"> {{registration_link}}
+                          </div>
+                      </div>
+
+                    </form>
+                <center>
+                    {{forgot_link}}                    
+                </center>
+            </div>
+        </div>            
+        </center>
+
+

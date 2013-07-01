@@ -1,0 +1,7 @@
+Group Details <a class="action" href="{{id}}/delete">Delete</a> <a class="action" href="{{id}}/edit">Edit</a>
+============
+
+{{fields}}
+
+{{relations}}
+

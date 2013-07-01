@@ -1,0 +1,21 @@
+User Details {{status}} {{actions}}
+============
+
+{{fields}}
+
+Member of
+------
+>> {{roles}}
+
+Applications
+----
+>> {{apps}}
+
+Recent Authorization Activity
+----
+{{auth_activity}}
+
+Recent Activity
+----
+{{activity}}
+

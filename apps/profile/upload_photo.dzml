@@ -1,0 +1,8 @@
+!Upload Image
+<dz:multipart_form>
+<#PHOTO>
+
+<input type=file name="upload_file">
+
+[-Upload-] [[index|cancel]]
+</form>

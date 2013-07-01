@@ -1,0 +1,27 @@
+Profile
+========
+
+<style>
+    .field_label { width: 20px; min-width:20%; }
+    H2 { position: relative; left: 20px; }
+</style>
+{{password_option}}
+<div stlye="width:100%;">
+<div style="width:170px;float:left;margin-top:30px;">
+<center>
+{{photo}}
+</center>
+<div>
+<center>
+<a href="/profile/change_photo">change photo</a>
+</center>
+</div>
+</div>
+<div style="width:70%;float:left;display:inline;margin-top:10px;">
+<dz:form>
+{{fields}}
+</form>
+</div>
+</div>
+<div style="clear:both"></div>
+<br>
