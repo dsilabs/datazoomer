@@ -276,6 +276,21 @@ def owner_name():
     """Returns the name of the site owner."""
     return system.config.get('site','owner_name','Awesome Sites Inc.')
         
+def owner_url():
+    """Returns the URL of the site owner."""
+    return system.config.get('site','owner_url','')
+
+def owner_link():
+    """Returns a link for the site owner."""
+    name = owner_name()
+    url = owner_url()
+    if url:
+        return link_to(name, url)
+    email = owner_email()
+    if email:
+        return tag_for('a', name, href='mailto:%s' % email)
+    return name
+
 def owner_email():
     """Returns the email address of the site owner as defined in the site.conf file."""
     return system.config.get('site','owner_email','info@dynamic-solutions.com')
