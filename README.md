@@ -8,14 +8,14 @@ Zoom is a small application platform for building dynamic web sites quickly.
 
 History
 ----
-This library was originally Developed in 2004 as DataZoomer by Herb Laincbury as
-an internal solution or the quick prototyping and development of websites for data 
-management, sharing and analysis for our clients at Dynamic Solutions.  It was 
-used to drive a wide vareity of web based solutions from e-commerce, to vertical 
-applications, to complex reporting and data analysis systems.
+This library was originally Developed in 2004 as DataZoomer by Dynamic Solutions as
+an internal solution for the quick prototyping and development of websites for data 
+management, sharing and analysis for our clients.  It was used to drive a wide variety 
+of web based solutions from e-commerce, to vertical applications, to complex reporting 
+and data analysis systems.
 
-We didn't intentionally set out to create another Python web framework. In 2010 
-we realized that many new frameworks had appeared since we started ours so we 
+Dynamic Solutions didn't intentionally set out to create another Python web framework. 
+In 2010 we realized that many new frameworks had appeared since we started ours so we 
 did a survey of many of the popular Python web frameworks to see if one of them
 would do what we had been doing with ours, in the hopes that we could retire some
 of our code and contribute to a shared project.
