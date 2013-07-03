@@ -11,7 +11,10 @@ def view():
     try:
         items['markdown version'] = markdown.__version__.version
     except:
-        items['markdown version'] = 'unable to get version info'
+        try:
+            items['markdown version'] = markdown.version
+        except:
+            items['markdown version'] = 'unable to get version info'
 
     items['path'] = '<br>'.join(sys.path)
     items['platform'] = sys.platform
