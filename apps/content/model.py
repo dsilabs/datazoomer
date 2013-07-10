@@ -89,14 +89,14 @@ textarea.editor {
 
 main_menu = [
     ('p','Pages','p'),
+    ('s','Snippets','s'),
     ('i','Images','i'),
     ('f','Files','f'),
-    ('sitemap','Sitemap','sitemap'),
     ]
 
 if user.is_admin:
-    main_menu.insert(1,
-        ('s','Snippets','s')
+    main_menu.append(
+    ('sitemap','Sitemap','sitemap'),
     )
 
 app = '/'+route[0]
