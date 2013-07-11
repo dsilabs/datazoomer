@@ -29,14 +29,18 @@ class CollectionView(View):
     def __init__(self, collection):
         self.collection = collection
 
-    def index(self, *a, **k):
+    def index(self, q='', *a, **k):
+        def matches(item, search_text):
+            v = repr(item.values()).lower()
+            return search_text and not any(t.lower() not in v for t in search_text.split())
+
         if route[-1:] == ['index']:
             return redirect_to('/'+'/'.join(route[:-1]),**k)
 
         c = self.collection
         actions = c.can_edit() and ['New'] or []
 
-        items = sorted(c.store, key=c.order)
+        items = sorted((i for i in c.store if not q or matches(i,q)), key=c.order)
 
         if env.get('HTTP_ACCEPT','') == 'application/json':
             return dumps([item for item in items])
@@ -47,7 +51,7 @@ class CollectionView(View):
                 footer_name = c.item_name
             footer = '%s %s' % (len(items), footer_name.lower())
             content = browse(items, labels=c.labels, columns=c.columns, fields=c.fields, footer=footer)
-            return page(content, title=c.name, actions=actions)
+            return page(content, title=c.name, actions=actions, search=q)
 
     def show(self, locator):
         def action_for(r, name):
