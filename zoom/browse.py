@@ -85,7 +85,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, on_click=
 
     t = []
     if labels:
-        t.append( '<tr>' )
+        t.append( '<thead><tr>' )
 
         colnum = 0
         for label in labels:
@@ -96,7 +96,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, on_click=
             t.append('<th colwidth=1px>%s</th>' % '')
         if on_remove:
             t.append('<th colwidth=1px>%s</th>' % '')
-        t.append( '</tr>' )
+        t.append( '</tr></thead>' )
         odd_rowclass = 'light' # if there is a header start line shading on 2nd line
         evn_rowclass = 'dark'
 
