@@ -67,7 +67,7 @@ class CollectionView(View):
             c.fields.update(record)
 
             if 'updated' in record and 'updated_by' in record:
-                memo = '<br><span class="meta" style="float:right"> updated %(updated)s by %(updated_by)s</span>' % record
+                memo = '<div class="meta" style="float:right"> record updated %(updated)s by %(updated_by)s</div><div style="clear:both"></div>' % record
             else:
                 memo = ''
             return page(c.fields.show() + memo, title=c.item_name, actions=actions)
