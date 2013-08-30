@@ -23,6 +23,8 @@ from markdown import Markdown
 from system import system
 from request import request, route
 from response import HTMLResponse, RedirectResponse
+from utils import id_for
+from html import ul, div
 
 # Handy date values
 today     = datetime.date.today()
@@ -81,6 +83,34 @@ def to_page(name=None, *a, **k):
         return redirect_to('/%s/%s' % (system.app.name,name), *a, **k)
     else:
         return redirect_to('/%s' % system.app.name, **k)
+
+def as_actions(items):
+    """
+        returns actions
+
+        >>> as_actions(['New'])
+        '<div class="actions"><ul><li><a class="action" id="new-action" href="/new">New</a></li></ul></div>'
+        >>> as_actions(['New','Delete'])
+        '<div class="actions"><ul><li><a class="action" id="delete-action" href="/delete">Delete</a></li><li><a class="action" id="new-action" href="/new">New</a></li></ul></div>'
+
+    """
+    if not items:
+        return ''
+    result = []
+    for item in reversed(items):
+        if type(item) == tuple:
+            if len(item) == 2:
+                text, url = item
+            else:
+                #TODO:  review to see if this is even useful
+                text = item[0]
+                url = '/'.join([''] + route + [item[1]])
+        else:
+            text = item
+            url = '/'.join([''] + route + [id_for(item)])
+
+        result.append('<a class="action" id="%s-action" href="%s">%s</a>' % (id_for(text), url, text))
+    return div(ul(result), Class='actions')
 
 def redirect_to_app(name):
     """Return a redirect response for an app."""
