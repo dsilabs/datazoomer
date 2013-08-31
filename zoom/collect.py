@@ -54,7 +54,7 @@ class CollectionView(View):
             return page(content, title=c.name, actions=actions, search=q)
 
     def clear(self):
-        return home()
+        return redirect_to('/' + '/'.join(route[:-1]))
 
     def show(self, locator):
         def action_for(r, name):
