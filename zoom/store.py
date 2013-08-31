@@ -550,8 +550,9 @@ class EntityStore:
             2
 
         """
-        cmd = 'select distinct row_id from attributes where kind=%s'
-        return len(self.db(cmd, self.kind))
+        cmd = 'select count(*) n from (select distinct row_id from attributes where kind=%s) a'
+        r = self.db(cmd, self.kind)
+        return int(r[0].N)
 
     def _find(self, **kv):
         """
@@ -651,7 +652,12 @@ class EntityStore:
         return self.all()
 
     def __getitem__(self, n):
-        return self.all()[n]
+        if n<0 or n>len(self)-1:
+            raise Exception('Invalid value for n: %s' % n)
+        cmd = 'select distinct row_id from attributes where kind="%s" limit %s,1' % (self.kind, n)
+        rs = self.db(cmd)
+        if rs:
+            return self.get(rs[0].ROW_ID)
 
     def __repr__(self):
         return str(self.all())
