@@ -2,9 +2,9 @@
 from helpers import link_to, url_for, name_for
 from system import system
 from request import route
-from tools import unisafe
+from tools import unisafe, as_actions
 
-def browse(items, labels=None, columns=None, fields=None, footer=None, on_click=None, on_delete=None, on_remove=None, *args, **keywords):
+def browse(items, labels=None, columns=None, fields=None, footer=None, title=None, actions=None, header=None, on_click=None, on_delete=None, on_remove=None, *args, **keywords):
 
     def trash_can(key,kind,action,**args):
         link  = url_for(str(key),action,**args)
@@ -135,9 +135,16 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, on_click=
     if not count:
         t.append('<tr><td colspan=%s>None</td></tr>' % len(labels))
 
-    footer_body = footer and ('<div class="baselist-footer">%s</div>' % footer) or ''
+    if not header:
+        if title:
+            header = '<div class="title">%s</div>' %  title
+        if actions:
+            header += as_actions(actions)
 
-    result = '\n'.join(['<div class="baselist"><table>'] + t + ['</table></div>'] + [footer_body])
+    header_body = header and ('<div class="header">%s</div>' % header) or ''
+    footer_body = footer and ('<div class="footer">%s</div>' % footer) or ''
+
+    result = '\n'.join(['<div class="baselist">'] + [header_body] + ['<table>'] + t + ['</table>'] + [footer_body] + ['</div>'])
     return result
 
 

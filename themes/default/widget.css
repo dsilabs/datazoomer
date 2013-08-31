@@ -282,14 +282,30 @@
     .baselist tr.dark:hover { background-color:#B0B0B0; }
     .baselist tr.light { background-color:#F8F8F8; }
     .baselist tr.light:hover { background-color:#B0B0B0; }
-    .baselist td, .baselist a {
-        font-size: 12px;
-    }
+
     .baselist a         { color: #284a80; text-decoration:none; }
     .baselist a:visited { color: #284a80; text-decoration:none; }
     .baselist a:hover   { color: #4d84bd; text-decoration:underline; }
 
-    .baselist-footer { color: #555; font-size: 0.8em; margin: 5px 0 0 8px;}
+    .baselist div.header {
+        display: inline-block;
+        width: 100%;
+        color: #555;
+        font-size: 16px;
+        line-height: 1em;
+        font-weight: bold;
+        margin: 5px 0;
+        margin-bottom: 5px;
+    }
+    .baselist div.header div.title {
+        display: inline-block;
+        padding: 10px 0 0px;
+    }
+    .baselist div.header div.actions {
+        float: right;
+    }
+
+    .baselist div.footer { color: #555; font-size: 0.8em; margin: 5px 0 0 8px;}
 
     .baselist h1,
     .baselist h2,
@@ -304,12 +320,12 @@
     div.baselist a.action:link,
     div.baselist a.action:focus {
         cursor: pointer;
-        float: none;
         text-decoration: none;
-        font-size: 0.9em;
+        font-weight: normal;
         color: #787b7c;
         margin: 0 2px;
-        padding: 5px 15px;
+        padding: 0px 10px;
+        background: #f1f1f1;
         background: -moz-linear-gradient(
             top,
             #ffffff 0%,
@@ -326,6 +342,7 @@
     }
     div.baselist a.action:hover {
         text-decoration: none;
+        background: #424242;
         background: -moz-linear-gradient(
             top,
             #424242 0%,
