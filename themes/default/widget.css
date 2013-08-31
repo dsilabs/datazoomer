@@ -136,11 +136,36 @@
 
 /* Search
 ==========================*/
-    .search {
+    div.search {
+        position: relative;
         display: inline;
         float: right;
     }
-    div.content input.search_button { height: 37px; margin-left: 5px; }
+    div.search form {
+        display: block;
+        width: 400px;
+    }
+    div.search input {
+        display: inline;
+        line-height: 25px; /* for IE */
+    }
+    div.search input.text_field {
+        width: 200px;
+    }
+    div.content input.search_button { 
+        height: 37px; 
+        margin-left: 9px; 
+        margin-right: 5px;
+    }
+    div.search span.clear {
+        position: absolute;
+        right: 100px;
+        top: 7px;
+    }
+    div.search span.clear a {
+        display: inline;
+    }
+
 
 /* Actions
 ==========================*/

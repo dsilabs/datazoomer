@@ -57,7 +57,6 @@ class CollectionView(View):
         if q:
             title = 'Selected Users'
             users = Users.all()
-            actions.append(('Show All','showall'))
         else:
             if options.index_recent and not showall:
                 title = 'Recent Users'
@@ -86,6 +85,9 @@ class CollectionView(View):
         labels= self.labels
         return page(browse(items, labels=labels), title=title, search=q, actions=actions)
         
+    def clear(self):
+        return redirect_to('/%s' % system.app.name)
+
     def showall(self):
         return redirect_to('/%s?showall=1' % system.app.name)
 

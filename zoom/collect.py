@@ -53,6 +53,9 @@ class CollectionView(View):
             content = browse(items, labels=c.labels, columns=c.columns, fields=c.fields, footer=footer)
             return page(content, title=c.name, actions=actions, search=q)
 
+    def clear(self):
+        return home()
+
     def show(self, locator):
         def action_for(r, name):
             return name, '/'.join([r.url, id_for(name)])

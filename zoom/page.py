@@ -79,9 +79,14 @@ def render(content='', items=None):
 def page(content='', template='default', callback=None, css=None, js=None, title=None, search=None, actions=None, items=None, head=''):
 
     def render_search(value):
-        if value == None:
+        if value == None: 
             return ''
-        return '<div class="search">%s</div>' % form_for('<input type="text" class="text_field" name="q" value="%s"><input class="search_button" type=submit value="Search">' % value, method='GET')
+        elif value == '':
+            clear = '<span class="clear"></span>'
+        else:
+            clear = '<span class="clear"><a href="%s"><img src="/static/images/remove_filter.png"></a></span>' % ('/'.join([''] + route + ['clear']))
+        return '<div class="search">%s</div>' % form_for('<input type="text" class="text_field" name="q" value="%s">%s<input class="search_button" type=submit value="Search">' % (value,clear), method='GET')
+
 
     header_layout = """
 <table id="title_bar"><tr>
