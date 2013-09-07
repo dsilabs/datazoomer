@@ -510,7 +510,8 @@ def form(action='/'+'/'.join(route),*args,**keywords):
     t = []
     for arg_name in params:
         t.append('\n<input type=hidden name="%s" value="%s">' % (arg_name,params[arg_name]))
-    t.append('\n<input type="hidden" name="csrf_token" value="%s">' % csrf_token())
+    if method == 'POST':
+        t.append('\n<input type="hidden" name="csrf_token" value="%s">' % csrf_token())
     return '<form action="%s" id="%s" name="%s" method="%s">%s' % (action,form_name,form_name,method,''.join(t))
 
 def form_for(content,**keywords):
