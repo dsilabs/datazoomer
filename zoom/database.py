@@ -626,6 +626,6 @@ def database(engine='mysql', host='localhost', name='zoomdata', user='root', pas
 
 def test_database():
     """Create and return a connected testing database"""
-    return database(name='test', user='testuser', passwd='password')
+    return database(name='test', user='testuser', password='password')
 
 
