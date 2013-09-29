@@ -234,6 +234,15 @@ class EmailField(TextField):
         return self.visible and address and markdown('<%s>' % address) or ''
 
 
+class PostalCodeField(TextField):
+
+    size = maxlength = 7
+
+    def __init__(self, label='Postal Code', *validators, **keywords):
+        TextField.__init__(self, label, valid_postal_code, *validators, **keywords)
+
+
+
 class TwitterField(TextField):
 
     def display_value(self):

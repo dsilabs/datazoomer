@@ -96,6 +96,34 @@ class URLValidator(Validator):
         # only test if value exists
         return not value or bool(Validator.valid(self, value))
 
+class PostalCodeValidator(RegexValidator):
+    """
+    A Postal Code Validator
+
+        >>> validator = PostalCodeValidator()
+        >>> validator.valid('V8X 1G1')
+        True
+
+        >>> validator = PostalCodeValidator()
+        >>> validator.valid('V8X1G1')
+        True
+
+        >>> validator = PostalCodeValidator()
+        >>> validator.valid('V8X XG1')
+        False
+
+        >>> validator = PostalCodeValidator()
+        >>> validator.valid('8X XG1')
+        False
+
+        >>> validator = PostalCodeValidator()
+        >>> validator.valid('V8X 1g1')
+        True
+
+    """
+    def __init__(self):
+        e = '^[A-Za-z][0-9][A-Za-z]\s*[0-9][A-Za-z][0-9]$'
+        RegexValidator.__init__(self, 'enter a valid postal code', e)
 
 class MinimumLength(Validator):
     """A minimum length validator"""
@@ -125,4 +153,5 @@ valid_username = RegexValidator('letters and numbers only', r'^[a-zA-Z0-9.@\\]+$
 valid_password = MinimumLength(6)
 valid_new_password = MinimumLength(8)
 valid_url = URLValidator()
+valid_postal_code = PostalCodeValidator()
 
