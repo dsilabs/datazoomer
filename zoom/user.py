@@ -26,7 +26,7 @@ def get_current_username():
         system.config.get('users','override','') or \
         session.login_id or \
         os.environ.get('REMOTE_USER',None) or \
-        system.config.get('users','default','guest') or \
+        system.guest or \
         None
 
 def authenticate(login_id, password):
@@ -104,7 +104,6 @@ def update_user(user_id, **values):
     values['DTUPD'] = now
     values['USERID'] = user_id
     users = system.database.table('dz_users','USERID')
-    print user_id, values
     id = users.update(values)
     return id
 
@@ -115,10 +114,37 @@ def delete_user(user_id):
 def using_old_passwords():
     return system.database('describe dz_users password')[0].TYPE == 'char(16)'
 
+def is_member(user, groups):
+    """Determines if a user is a member of a set of groups
+
+    >>> class User: pass
+    >>> joe = User()
+    >>> joe.groups = ['g1']
+    >>> is_member(joe, ['g2','g3'])
+    False
+    >>> joe.groups.append('g2')
+    >>> is_member(joe, ['g2','g3'])
+    True
+    >>> is_member(joe, 'g2,g3')
+    True
+    >>> is_member(joe, 'g1,g3')
+    True
+    >>> is_member(joe, 'g4,g3,g6')
+    False
+
+    """
+    if isinstance(groups, str):
+        items = groups.split(',')
+    else:
+        items = groups
+    return bool(set(items).intersection(user.groups))
+
 class User:
-    def __init__(self,login_id=None):
+    def __init__(self, login_id=None):
         if login_id:
             self.initialize(login_id)
+        self.is_developer = False
+        self.is_administrator = False
 
     def login(self,login_id,password):
         if authenticate(login_id,password):
@@ -128,8 +154,7 @@ class User:
             
     def logout(self):
         session.destroy_session()
-        return self.initialize(get_current_username())
-        #return self.initialize(system.config.get('users','default','guest'))
+        return self.initialize()
             
     def set_password(self, password):
         if using_old_passwords():
@@ -139,7 +164,7 @@ class User:
         system.database(cmd, password, self.login_id)
 
     def is_member(self, groups):
-        return bool(set(groups).intersection(user.groups))
+        return is_member(self, groups)
 
     def setup(self):
         return self.initialize()
@@ -174,21 +199,29 @@ class User:
         else:
             raise Exception('Unable to intialize user.')
 
+        # determine membership in groups
         self.groups    = self.get_groups()
         self.apps      = [item[2:] for item in self.groups if item[:2]=='a_']
         self.roles     = [item for item in self.groups if item[:2]!='a_']
-        self.is_admin  = self.is_administrator = system.administrator_group in self.groups
-        self.is_manager   = system.config.get('users','mangers_group','managers') in self.groups
-        self.is_developer = system.config.get('users','developer_group','developers') in self.groups
-        self.is_anonymous = self.login_id == system.config.get('users','default','guest')
+        self.is_admin  = self.is_administrator = \
+                system.administrator_group in self.groups or \
+                self.is_member(system.administrators)
+        self.is_manager = \
+                system.manager_group in self.groups or \
+                self.is_member(system.managers)
+        self.is_developer = \
+                system.developer_group in self.groups or \
+                self.is_member(system.developers)
+        self.is_anonymous = self.login_id == system.guest
         self.is_authenticated = not self.is_anonymous
 
+        # determine default app
         if self.is_anonymous:
-            self.default_app = system.config.get('apps','index')
+            self.default_app = system.index
         else:
-            self.default_app = system.config.get('apps','home')
+            self.default_app = system.home
             if self.default_app not in self.apps:
-                self.default_app = system.config.get('apps','index')
+                self.default_app = system.index
 
     def get_groups(self,user_id=None):
         def get_memberships(group,memberships,depth=0):
