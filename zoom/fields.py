@@ -16,7 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Fields for HTML forms"""
-import datetime, types, re
+import datetime, types
+from validators import *
 
 from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown
@@ -264,6 +265,9 @@ class URLField(TextField):
     size = 60
     maxlength = 120
     trim = False
+
+    def __init__(self, label, *validators, **keywords):
+        TextField.__init__(self, label, valid_url, *validators, **keywords)
 
     def display_value(self):
         url = text = websafe(self.value) or self.default
@@ -1123,82 +1127,6 @@ class Form(Fields):
                 ''.join([field.edit() for field in self.fields])
                 )
 
-
-class Validator:
-    """A content validator."""
-
-    def __init__(self, msg, test):
-        self.msg = msg
-        self.test = test
-
-    def valid(self, value): 
-        return self.test(value)
-
-    def __call__(self, value):
-        return self.valid(value)
-
-
-class RegexValidator(Validator):
-    """
-    A regular expressoin validator
-
-        >>> validator = RegexValidator('invalid input', r'^[a-zA-Z0-9]+$')
-        >>> validator.valid('1')
-        True
-
-        >>> validator = RegexValidator('invalid input', r'^[a-zA-Z0-9]+$')
-        >>> validator.valid('')
-        True
-
-        >>> is_valid = RegexValidator('invalid input', r'^[a-zA-Z0-9]+$')
-        >>> is_valid('')
-        True
-        >>> is_valid('*')
-        False
-
-        >>> validator = RegexValidator('invalid input', r'^[a-zA-Z0-9]+$')
-        >>> validator.valid('-')
-        False
-        >>> validator.msg
-        'invalid input'
-    """
-
-    def __init__(self, msg, regex):
-        self.msg = msg
-        self.test = re.compile(regex).match
-
-    def valid(self, value):
-        # only test if value exists
-        return not value or bool(Validator.valid(self, value))
-
-
-class MinimumLength(Validator):
-    """A minimum length validator"""
-
-    def __init__(self, min_length, empty_allowed=False):
-        self.empty_allowed = empty_allowed
-        self.msg = 'minimum length %s' % min_length
-        self.test = lambda a: (self.empty_allowed and a=='') or not len(a) < min_length
-
-
-def email_valid(email):
-    if email=='': return True
-    email_re = re.compile(
-        r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-        r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string
-        r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE)  # domain
-    return email_re.match(email)
-
-
-# Common Validators
-notnull = Validator("required", bool)
-required = Validator("required", lambda a: bool(a) and not (hasattr(a,'isspace') and a.isspace()))
-valid_name = MinimumLength(2)
-valid_email = Validator('invalid email address', email_valid)
-valid_phone = RegexValidator('invalid phone number', '^\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$')
-valid_username = RegexValidator('letters and numbers only', r'^[a-zA-Z0-9.@\\]+$')
-valid_password = MinimumLength(6)
-valid_new_password = MinimumLength(8)
 
 
 if __name__ == '__main__':
