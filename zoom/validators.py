@@ -119,7 +119,7 @@ def email_valid(email):
 notnull = Validator("required", bool)
 required = Validator("required", lambda a: bool(a) and not (hasattr(a,'isspace') and a.isspace()))
 valid_name = MinimumLength(2)
-valid_email = Validator('invalid email address', email_valid)
+valid_email = Validator('enter a valid email address', email_valid)
 valid_phone = RegexValidator('invalid phone number', '^\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$')
 valid_username = RegexValidator('letters and numbers only', r'^[a-zA-Z0-9.@\\]+$')
 valid_password = MinimumLength(6)

@@ -226,6 +226,9 @@ class Hidden(SimpleField):
 
 class EmailField(TextField):
 
+    def __init__(self, label, *validators, **keywords):
+        TextField.__init__(self, label, valid_email, *validators, **keywords)
+
     def display_value(self):
         address = self.value or self.default
         return self.visible and address and markdown('<%s>' % address) or ''
