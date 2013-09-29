@@ -104,7 +104,7 @@ def generate_response(instance_path):
         except:
             t = traceback.format_exc()
             logger.error(t)
-            if system.config.get('error','users','0')=='1' or user.is_developer or user.is_administrator:
+            if system.show_errors or user.is_developer or user.is_administrator:
                 msg = load_template('system_application_error_developer', STANDARD_ERROR_MESSAGE)
                 response = Page(msg % dict(message=t)).render()
             else:
