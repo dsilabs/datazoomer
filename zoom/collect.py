@@ -31,13 +31,15 @@ class CollectionView(View):
 
     def index(self, q='', *a, **k):
         def matches(item, search_text):
-            v = repr(item.values()).lower()
+            f.update(item)
+            v = repr(f.display_value()).lower()
             return search_text and not any(t.lower() not in v for t in search_text.split())
 
         if route[-1:] == ['index']:
             return redirect_to('/'+'/'.join(route[:-1]),**k)
 
         c = self.collection
+        f = self.collection.fields
         actions = c.can_edit() and ['New'] or []
 
         items = sorted((i for i in c.store if not q or matches(i,q)), key=c.order)
