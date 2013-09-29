@@ -88,7 +88,16 @@ class System:
         self.secure_cookies = config.get('sessions', 'secure_cookies', False) not in ['0','False','off','no',False]
 
         # users and groups
-        self.administrator_group = system.config.get('users','administrator_group','administrators')
+        self.guest = config.get('users', 'default', 'guest')
+        self.administrator_group = system.config.get('users', 'administrator_group', 'administrators')
+        self.manager_group = config.get('users', 'manager_group', 'managers')
+        self.managers = config.get('users', 'managers', 'managers')
+        self.developers = config.get('users', 'developer', 'developers')
+        self.administrators = config.get('users', 'administrators', 'administrators')
+
+        # apps
+        self.index = config.get('apps', 'index', 'index')
+        self.home  = config.get('apps', 'home', 'home')
 
         # connect to the database
         self.database = database.database(
@@ -121,7 +130,9 @@ class System:
         self.warnings = []
         self.errors   = []
         self.messages = []
-        
+
+        self.show_errors = config.get('error','users','0') == '1'
+
         self.webhook = config.get('webhook','url','')
 
         self.logging = config.get('log', 'logging', True) not in ['0','False','off','no',False]
