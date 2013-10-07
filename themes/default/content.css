@@ -21,6 +21,7 @@ a:hover {
 .content h3 { font-size: 16px; font-weight:bold; }
 .content p { margin: 0.5em 0 0.5em 0; }
 .content ul { margin-left: 2em; list-style-type: disc; }
+.content ol { margin-left: 2em; }
 .content blockquote { margin-left: 2em; }
 .content hr {
         height: 1px;
