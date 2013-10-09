@@ -34,7 +34,14 @@ class IndexView(View):
             s = store(dict)
             s.kind = name
             items = s.all()
-        return page(browse(items), title='Entity: '+name)
+
+        if len(items) == 1:
+            footer_name = 'record'
+        else:
+            footer_name = 'records'
+        footer = '%s %s' % (len(items), footer_name)
+
+        return page(browse(items, footer=footer), title='Entity: '+name)
 
     def drop(self,name,item):
         db('delete from storage_values where kind=%s and attribute=%s',name,item)
