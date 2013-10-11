@@ -3,6 +3,7 @@
 """
 
 import datetime
+import decimal
 from zoom.utils import Record
 from zoom.tools import db
 
@@ -243,16 +244,27 @@ class EntityStore:
             if type(d) == datetime.datetime:
                 # avoids mysqldb reliance on strftime that lacks support for dates before 1900
                 return "%02d-%02d-%02d %02d:%02d:%02d" % (d.year,d.month,d.day,d.hour,d.minute,d.second)
+            if type(d) == decimal.Decimal:
+                return str(d)
             else:
                 return d                
+
+        def get_type_str(v):
+            t = repr(type(v))
+            if 'type' in t:
+                return t.strip('<type >').strip("'")
+            elif 'class' in t:
+                return t.strip('<class >').strip("'")
+            else:
+                return t
 
         db = self.db
     
         keys        = [k for k in entity.keys() if k <> '_id']
         values      = [entity[k] for k in keys]
-        datatypes   = [repr(type(i)).strip("<type >").strip("'") for i in values]
+        datatypes   = [get_type_str(v) for v in values]
         values      = [fixval(i) for i in values] # same fix as above
-        valid_types = ['str','unicode','long','int','float','datetime.date','datetime.datetime','bool','NoneType']
+        valid_types = ['str','unicode','long','int','float','decimal.Decimal','datetime.date','datetime.datetime','bool','NoneType']
 
         for atype in datatypes:
             if atype not in valid_types:
@@ -285,10 +297,10 @@ class EntityStore:
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
-            >>> id = people.put(Person(**{'name': 'Sam', 'age':15}))
+            >>> id = people.put(Person(**{'name': 'Sam', 'age':15, 'salary': decimal.Decimal('100.00')}))
             >>> sam = people.get(id)
             >>> sam
-            <Person {'name': 'Sam', 'age': 15}>
+            <Person {'name': 'Sam', 'age': 15, 'salary': Decimal('100.00')}>
 
         """
         if keys == None: return None
@@ -330,6 +342,9 @@ class EntityStore:
 
             elif rec.DATATYPE == 'float':
                 value = float(rec.VALUE)
+
+            elif rec.DATATYPE == 'decimal.Decimal':
+                value = decimal.Decimal(rec.VALUE)
 
             elif rec.DATATYPE == "datetime.date":
                 y = int(rec.VALUE[:4])
