@@ -68,10 +68,10 @@ You can do either bulleted lists, like this:
 
 * Level One
 * Level One
-> * Level Two
->> * Level Three
->> * Level Three
-> * Level Two
+    * Level Two
+        * Level Three
+        * Level Three
+    * Level Two
 * Level One
 
 Or, you can do numbered lists, like this:
@@ -79,10 +79,10 @@ Or, you can do numbered lists, like this:
 1. Level One Numeric
 1. Level One Numeric
 1. Level One Numeric
-> 1. Level Two Numeric
->> 1. Level Three Numeric
->> 1. Level Three Numeric
-> 1. Level Two Numeric
+    1. Level Two Numeric
+        1. Level Three Numeric
+        1. Level Three Numeric
+    1. Level Two Numeric
 1. Level One Numeric
  
  *   A list item.
