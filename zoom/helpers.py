@@ -109,13 +109,17 @@ def printed_output():
     """Returns the printed output for debugging."""
     return '{*PRINTED*}'
 
-def system_menu():
+def system_menu_items():
     """Returns the system menu."""
     def title_of(app):
         return manager.apps[app].title
-    return html.ul([link_to(title_of(app),'/'+app) for app in manager.get_system_app_names()])
+    return html.li(link_to(title_of(app),'/'+app) for app in manager.get_system_app_names())
 
-def main_menu():
+def system_menu():
+    """Returns the system menu."""
+    return '<ul>%s</ul>' % system_menu_items()
+
+def main_menu_items():
     """Returns the main menu."""
 
     def assign_defaults(name,title,url,group=[]):
@@ -143,7 +147,11 @@ def main_menu():
             url = '<a href="%s" id="current">%s</a>' % (url_for('/'+current_app),system.app.title)
             links.insert(pos, url)
 
-    return html.ul(links)
+    return html.li(links)
+
+def main_menu():
+    """Returns the main menu."""
+    return '<ul>%s</ul>' % main_menu_items()
 
 def app_menu():
     """Returns the app menu."""

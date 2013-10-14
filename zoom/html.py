@@ -16,7 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def ul(items,Class=''):
+def li(items):
+    """
+        produced HTML for list items
+
+        >>> li(['this','that'])
+        '<li>this</li><li>that</li>'
+
+    """
+    return ''.join('<li>%s</li>' % item for item in items)
+
+def ul(items, Class=''):
     """
         produced HTML for an unordered list
         

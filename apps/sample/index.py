@@ -19,6 +19,7 @@ my_form = Fields(
             CheckboxesField('Provinces',value=['Alberta','Quebec'],values=provinces, hint=large_hint * 4),
             MultiselectField('Cities',value=['Victoria','Vancouver'], options=cities, hint=large_hint * 4),
             CheckboxField('Notify Me', hint='this is a hint'),
+            CheckboxField('Save Prefereces', value=True, hint='this is another hint'),
             RadioField('How Many',value='One',values=['One','Two','Three'], hint='this is a hint'),
             MemoField('Notes',hint='this is a hint'),
             ]),

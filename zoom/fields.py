@@ -454,7 +454,7 @@ class CheckboxField(TextField):
         '<div class="field"><div class="field_label">Done</div><div class="field_show">yes</div></div>'
 
         >>> CheckboxField('Done').widget()
-        '<DIV CLASS="checkbox"><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" VALUE="yes" ID="DONE" /></DIV>'
+        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" VALUE="" ID="DONE" />'
 
         >>> f = CheckboxField('Done', options=['yes','no'], value=False)
         >>> f
@@ -502,15 +502,17 @@ class CheckboxField(TextField):
 
     def widget(self):
         checked = self.value and 'checked ' or ''
-        t = tag_for('div',tag_for('input',
-                None,
-                checked,
-                name=self.name,
-                id=self.id,
-                value='yes',
-                Type='checkbox',
-                Class='checkbox_field'), Class="checkbox")
-        return t
+        tag = tag_for(
+            'input',
+            None,
+            checked,
+            name = self.name,
+            id = self.id,
+            Type='checkbox',
+            Class='checkbox_field',
+            value=self.value,
+            )
+        return tag
 
     def edit(self):
         content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())

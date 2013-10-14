@@ -18,9 +18,24 @@
     .field_edit .textarea    { border: 1px solid #aaaaaa; width:100%; height:8em; }
     .field_edit .memo_field  { border: 1px solid #aaaaaa; cols:60; min-height:8em; }
     .field_edit .multiselect { border: 1px solid #aaaaaa; min-height:8em; min-width:180px; background: white; }
-    .field_edit .checkbox_field { line-height:2em; border: 0; }
     .field_edit .pulldown    { height: 2em; min-width: 10em; }
 
+    /* checkbox */
+    .field_edit input.checkbox_field {
+        margin: 0 0.5em 2px 0;
+        line-height: 2em;
+        vertical-align: middle;
+    }
+    .field_edit ul.checkbox_field li { 
+        list-style-type: none; 
+        margin-right: 2em; 
+    }
+    .field_edit ul.checkbox_field div { 
+        display: inline; 
+        line-height: 2em; 
+    }
+
+    /* textarea */
     .field_show .textarea h1,
     .field_show .textarea h2,
     .field_show .textarea h3
@@ -68,17 +83,14 @@
     .field_edit select
     { margin-right: 0.5em; }
 
-    div.content div.field_show p { margin: 0; }
-    div.content div.field_edit ul { margin: 0; }
+    div.content div.field_show p { margin: 0; padding: 0; }
+    div.content div.field_edit ul { margin: 0; padding: 0; }
     div.content form { margin: 0; padding: 0 }
 
     input, textarea {
         font-size: 14px;
         font-family: Arial;
         width: auto;
-    }
-    input.checkbox_field {
-        margin-right: 0.5em;
     }
     select.multiselect {
         margin-top: 0.2em;
@@ -91,16 +103,12 @@
     span.radio { margin-right:10px; }
     span.radio input { height: 1em; position:relative; top:2px; border:0; margin:2px; }
     select.pulldown { height: 29px; line-height:2em; font-size:14px; }
-    ul.checkbox_field li { list-style-type: none; margin-right: 2em; height:30px; }
-    ul.checkbox_field div { display: inline; line-height: 2em; }
-    div.checkbox input { height:2em; line-height: 2em; padding-top:0.5em; }
 
     div.content .action,
     div.content .button,
     div.content .search_button,
     div.content input.field_button {
         background: #325A90;
-        height: 25px;
         line-height: 25px;
         font-weight: bold;
         font-size: 14px;
@@ -230,7 +238,7 @@
     .user_info { font-size: 0.8em; display:inline; height:40px; }
     .meta { color: #555; font-size: 0.8em; }
     .wrong { color: red; font-size: 0.8em; margin-right: 1em;}
-    .hint { color: #555; font-size: 1em; line-height: 1.2em; margin-top: 0.5em; }
+    .hint { color: #555; font-size: 1em; line-height: 1.2em; margin-top: 0.42em; }
 
 /* Message Boxes
 ==========================*/
@@ -263,6 +271,7 @@
         color: none;
         padding: 0;
         margin: 0;
+        vertical-align: top;
     }
 
 
