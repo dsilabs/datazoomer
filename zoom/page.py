@@ -85,7 +85,7 @@ def page(content='', template='default', callback=None, css=None, js=None, title
             clear = '<span class="clear"></span>'
         else:
             clear = '<span class="clear"><a href="%s"><img src="/static/images/remove_filter.png"></a></span>' % ('/'.join([''] + route + ['clear']))
-        return '<div class="search">%s</div>' % form_for('<input type="text" class="text_field" name="q" value="%s">%s<input class="search_button" type=submit value="Search">' % (value,clear), method='GET')
+        return '<div class="search">%s</div>' % form_for('<input type="text" class="text_field" id="search_text" name="q" value="%s">%s<input class="search_button" type=submit value="Search">' % (value,clear), method='GET')
 
 
     header_layout = """
