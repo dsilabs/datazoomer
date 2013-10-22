@@ -41,7 +41,12 @@ class IndexView(View):
             footer_name = 'records'
         footer = '%s %s' % (len(items), footer_name)
 
-        return page(browse(items, footer=footer), title='Entity: '+name)
+        a = db('select distinct attribute, count(*) as count from attributes where kind=%s group by 1 order by count, attribute',name)
+        if not a:
+            a = db('select distinct attribute, count(*) as count from storage_values where kind=%s group by 1 order by count, attribute',name)
+        attributes = [i.attribute for i in a]
+
+        return page(browse(items, columns=attributes, footer=footer), title='Entity: '+name)
 
     def drop(self,name,item):
         db('delete from storage_values where kind=%s and attribute=%s',name,item)
