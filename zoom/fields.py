@@ -330,7 +330,7 @@ class NumberField(TextField):
         >>> n = NumberField('Size')
         >>> n.assign('2')
         >>> n.value
-        '2'
+        2
     """
 
     size = maxlength = 10
@@ -338,6 +338,12 @@ class NumberField(TextField):
 
     def evaluate(self):
         return {self.name: str(self.value)}
+
+    def assign(self, value):
+        try:
+            self.value = int(value)
+        except:
+            self.value = None
 
 
 class IntegerField(TextField):
