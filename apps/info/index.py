@@ -1,6 +1,7 @@
 
 import os 
 from zoom import system, manager, page, markdown
+from zoom.helpers import *
 
 def status_info():
     """Returns various system status variables for debugging purposes."""
@@ -32,6 +33,7 @@ def view():
     site_path = system.config.site_path
     theme_path = system.themes_path
     app_paths = manager.app_paths
+    status = status_info()
 
     return page(markdown("""
 Paths
@@ -46,7 +48,7 @@ app_path......: %(app_paths)s
 
 Context
 ----
-<dz:status_info>
+%(status)s
     """) % locals(), title='Overview')
     
     
