@@ -90,7 +90,7 @@ class EntityList(list):
 
         data_lengths = {}
         for rec in self:
-            for field in self[0].keys():
+            for field in rec.keys():
                 n = data_lengths.get(field, 0)
                 m = len('%s' % rec.get(field, ''))
                 if n < m:
