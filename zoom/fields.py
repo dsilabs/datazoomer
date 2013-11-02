@@ -460,7 +460,35 @@ class CheckboxField(TextField):
         '<div class="field"><div class="field_label">Done</div><div class="field_show">yes</div></div>'
 
         >>> CheckboxField('Done').widget()
-        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" VALUE="" ID="DONE" />'
+        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+
+        >>> f = CheckboxField('Done', value=True)
+        >>> f.widget()
+        '<INPUT CHECKED  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+        >>> f.validate(**{'DONE': 'on'})
+        True
+        >>> f.evaluate()
+        {'DONE': True}
+
+        >>> f = CheckboxField('Done')
+        >>> f.widget()
+        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+        >>> f.evaluate()
+        {'DONE': None}
+        >>> f.validate(**{})
+        True
+        >>> f.evaluate()
+        {'DONE': None}
+
+        >>> f = CheckboxField('Done')
+        >>> f.widget()
+        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+        >>> f.evaluate()
+        {'DONE': None}
+        >>> f.validate(**{'DONE': 'on'})
+        True
+        >>> f.evaluate()
+        {'DONE': True}
 
         >>> f = CheckboxField('Done', options=['yes','no'], value=False)
         >>> f
@@ -505,6 +533,7 @@ class CheckboxField(TextField):
 
     """
     options = ['yes','no']
+    default = None
 
     def widget(self):
         checked = self.value and 'checked ' or ''
@@ -516,7 +545,6 @@ class CheckboxField(TextField):
             id = self.id,
             Type='checkbox',
             Class='checkbox_field',
-            value=self.value,
             )
         return tag
 
