@@ -74,6 +74,7 @@ class System:
             theme = '',
             data_path = os.path.join(config.sites_path,self.server_name,config.get('data','path','data')),
             url = self.uri,
+            tracking_id = config.get('site', 'tracking_id', ''),
             )
 
         # authentication
