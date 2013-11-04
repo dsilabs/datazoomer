@@ -145,11 +145,17 @@ def SendMail(fromaddr,toaddr,subject,body,mailtype='plain',attachments=[]):
     msg_alternative = MIMEMultipart('alternative')
     message.attach(msg_alternative)
 
+    # add switch for characterset when unicode body found
+    _char = 'us-ascii'
+    if type(body)==type(u''):
+        _char = 'utf8'
+        body = body.encode('utf8')
+
     # attach a plain text version of the html email
     if mailtype=='html':
-        msg_alternative.attach(MIMEText(get_plain_from_html(body),'plain'))
+        msg_alternative.attach(MIMEText(get_plain_from_html(body),'plain',_char))
         body = format_email(body)
-    body = MIMEText(body,mailtype)
+    body = MIMEText(body,mailtype,_char)
     msg_alternative.attach( body )
 
     for attachment in attachments:
