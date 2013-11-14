@@ -34,6 +34,7 @@ from formatter import AbstractFormatter, DumbWriter
 from email.Utils import COMMASPACE, formatdate, formataddr, quote
 from fill import fill
 from system import system
+from tools import unisafe
 
 class EmailEncryptionFail(Exception): pass
 class SenderKeyMissing(Exception): pass
@@ -145,11 +146,13 @@ def SendMail(fromaddr,toaddr,subject,body,mailtype='plain',attachments=[]):
     msg_alternative = MIMEMultipart('alternative')
     message.attach(msg_alternative)
 
-    # add switch for characterset when unicode body found
-    _char = 'us-ascii'
-    if type(body)==type(u''):
-        _char = 'utf8'
+    if isinstance(body,unicode):
         body = body.encode('utf8')
+        
+    # simple encoding test, we will leave as ascii if possible (readable)
+    _char = 'us-ascii'
+    try: body.decode('ascii')
+    except: _char = 'utf8'
 
     # attach a plain text version of the html email
     if mailtype=='html':
