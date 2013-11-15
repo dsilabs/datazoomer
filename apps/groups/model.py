@@ -23,7 +23,7 @@ def group_name_available(group_name):
 name_available = Validator('group exists', group_name_available)
 
 group_fields = Fields(
-    TextField('Name', required, MinimumLength(4), valid_group_name, name_available, size=20),
+    TextField('Name', required, MinimumLength(3), valid_group_name, name_available, size=20),
     TextField('Description', size=60, default='', name='DESCR'),
     TextField('Group Administrators', is_group, default=system.administrator_group, name='ADMIN'),
     )
