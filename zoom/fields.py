@@ -230,8 +230,13 @@ class EmailField(TextField):
         TextField.__init__(self, label, valid_email, *validators, **keywords)
 
     def display_value(self):
+        def antispam_format(address):
+            t = markdown('<%s>' % address)
+            if t.startswith('<p>') and t.endswith('</p>'):
+                return t[3:-4]
+            return t
         address = self.value or self.default
-        return self.visible and address and markdown('<%s>' % address) or ''
+        return self.visible and address and antispam_format(address) or ''
 
 
 class PostalCodeField(TextField):
