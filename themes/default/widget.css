@@ -164,6 +164,7 @@
         height: 37px; 
         margin-left: 9px; 
         margin-right: 5px;
+        display: inline;
     }
     div.search span.clear {
         position: absolute;
@@ -178,11 +179,12 @@
 /* Actions
 ==========================*/
     .actions {
-        display: block;
+        display: inline;
         margin: 0;
     }
     .actions ul, .actions ul li {
         list-style-type: none;
+        display: inline;
         margin: 0;
     }
     .actions ul li {
@@ -545,6 +547,7 @@
     #title_bar h1 {
         margin: 0;
     }
+
 
 
 /* Price Boxes
