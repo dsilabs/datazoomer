@@ -370,9 +370,9 @@ def format_field(label,content,edit=in_form()):
     
 def tag_for(tag_text,content='',*args,**keywords):
     """Returns an HTML tag."""
-    tag_type = tag_text.upper()
-    singles = ''.join([' %s' % arg.upper() for arg in args])
-    attribute_text = ''.join([' %s="%s"' % (key.upper(),keywords[key]) for key in keywords])
+    tag_type = tag_text.lower()
+    singles = ''.join([' %s' % arg.lower() for arg in args])
+    attribute_text = ''.join([' %s="%s"' % (key.lower(),keywords[key]) for key in keywords])
     if content or tag_type.lower() in ['textarea']:
         return '<%s%s%s>%s</%s>' % (tag_type,singles,attribute_text,content,tag_type)
     else:
