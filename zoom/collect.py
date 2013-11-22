@@ -67,8 +67,8 @@ class CollectionView(View):
 
         c = self.collection
         record = c.locate(locator)
-        actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
         if record:
+            actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
             c.fields.update(record)
 
             if 'updated' in record and 'updated_by' in record:
@@ -136,7 +136,7 @@ class CollectionController(Controller):
                     record.updated = now
                     record.updated_by = user.username
                     c.store.put(record)
-                    return redirect_to('%s/%s'%(c.url, key))
+                    return redirect_to(record.url)
 
     def delete(self, key, CONFIRM='YES'):
         c = self.collection
