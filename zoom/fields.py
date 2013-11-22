@@ -289,9 +289,9 @@ class URLField(TextField):
     def display_value(self):
         url = text = websafe(self.value) or self.default
         if url:
-            if not url.startswith('http'):
+            if not (url.startswith('http') or url.startswith('ftp:')):
                 url = 'http://' + url
-        if not self.trim and not text.startswith('http://'):
+        if not self.trim and not (text.startswith('http://') or text.startswith('ftp:')):
             text = 'http://' + text
         if self.trim and text.startswith('http://'):
             text = text[7:]
