@@ -38,12 +38,31 @@ class CollectionController(Controller):
         return redirect_to('/users/%s' % id)
 
     def save_password_button(self, id, *a, **data):
-        if data['PASSWORD'] == data['CONFIRM']:
-            user = ZoomUser(get_username(id))
-            user.set_password(data['PASSWORD'])
-            return redirect_to('/users/%s' % id)
-        else:
-            error('passwords do not match')
+        if password_fields.validate(data):
+            if data['PASSWORD'] == data['CONFIRM']:
+                password = data['PASSWORD']
+                username = get_username(id)
+                user = ZoomUser(username)
+                user.set_password(password)
+                if password_fields.evaluate()['RESEND_INVITATION'] == True:
+                    recipients = [user.email]
+                    tpl = load('welcome.md')
+                    t = dict(
+                            first_name = user.first_name,
+                            username = username,
+                            password = password,
+                            site_name = site_name(),
+                            site_url = site_url(),
+                            admin_email = system.from_addr,
+                            owner_name = owner_name(),
+                            )
+                    body = markdown(viewfill(tpl, t.get))
+                    subject = 'Welcome - ' + site_name()
+                    send(recipients, subject, body)
+                    message('invitation sent')
+                return redirect_to('/users/%s' % id)
+            else:
+                error('passwords do not match')
 
         
 class CollectionView(View):

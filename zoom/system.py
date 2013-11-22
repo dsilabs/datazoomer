@@ -109,6 +109,9 @@ class System:
             config.get('database','dbpass','password'),
             )
             
+        # email settings
+        self.from_addr = system.config.get('mail','from_addr')
+
         # load theme
         self.themes_path = existing(config.get('theme', 'path', os.path.join(self.root,'themes')))
         self.theme = self.themes_path and config.get('theme','name','default')

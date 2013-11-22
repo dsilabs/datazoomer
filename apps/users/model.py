@@ -37,6 +37,7 @@ new_user_button_fields = Fields(
 password_fields = Fields([
     TextField('New Password', required, valid_password, name='PASSWORD', size=30),
     TextField('Confirm New Password', required, valid_password, name='CONFIRM', size=30),
+    CheckboxField('Resend Invitation'),
     ])
     
 user_fields = Fields(personal_fields, account_fields)
