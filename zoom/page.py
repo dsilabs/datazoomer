@@ -4,7 +4,7 @@ from request import route
 from response import HTMLResponse
 from utils import id_for
 from helpers import form_for, link_to, url_for
-from tools import as_actions
+from tools import as_actions, unisafe
 from html import ul
 import helpers, tools
 from system import system
@@ -111,7 +111,7 @@ def page(content='', template='default', callback=None, css=None, js=None, title
     else:
         page_header = ''
 
-    page.content = page_header + render(content, items)
+    page.content = unisafe(page_header) + unisafe(render(unisafe(content), items))
     page.css = css or ''
     page.js = js or ''
     page.callback = callback
