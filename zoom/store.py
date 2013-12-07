@@ -663,6 +663,36 @@ class EntityStore:
             return self.get(r[-1])
         return None
 
+    def search(self, text):
+        """
+        search for entities that match text
+
+            >>> import MySQLdb, database
+            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
+            >>> delete_tables(db)
+            >>> create_tables(db)
+            >>> class Person(Entity): pass
+            >>> class People(EntityStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam', age=25))
+            >>> id = people.put(Person(name='Sally', age=55))
+            >>> id = people.put(Person(name='Bob', age=25))
+
+            >>> list(people.search('bob'))
+            [<Person {'name': 'Bob', 'age': 25}>]
+
+            >>> list(people.search(25))
+            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+
+            >>> list(people.search('Bill'))
+            []
+
+        """
+        t = unicode(text).lower()
+        for rec in self:
+            if t in repr(rec.values()).lower():
+                yield rec
+
     def __iter__(self):
         return self.all()
 
