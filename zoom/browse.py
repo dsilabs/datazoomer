@@ -100,6 +100,8 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
         odd_rowclass = 'light' # if there is a header start line shading on 2nd line
         evn_rowclass = 'dark'
 
+    t.append( '<tbody>' )
+
     count = 0
     for row in alist:
         count += 1
@@ -107,7 +109,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
             rowclass = odd_rowclass
         else:
             rowclass = evn_rowclass
-        t.append( '<tr class=%s>' % rowclass )
+        t.append( '<tr id="row-%s" class="%s">' % (count, rowclass) )
 
         colnum = 0
         for item in row:
@@ -131,6 +133,8 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
             t.append(trash_can(key,'remove',on_remove))
 
         t.append( '</tr>' )
+
+    t.append( '</tbody>' )
 
     if not count:
         t.append('<tr><td colspan=%s>None</td></tr>' % len(labels))
