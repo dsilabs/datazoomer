@@ -1,7 +1,8 @@
 
 div#main-panel {
     background: white;
-    width: 958px;
+    width: 100%;
+    min-width: 960px;
     float: left;
     border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
@@ -34,6 +35,7 @@ div#main-panel-top-content img {
 div#main-panel-top-content H1 {
     font-size: 18px;
     margin-top: 10px;
+    line-height: 1em;
 }
 
 div#main-panel-top-content a {
