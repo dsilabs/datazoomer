@@ -1008,7 +1008,7 @@ class EditField(Field):
 class FieldIterator:
 
     def __init__(self, fields):
-        self.field_list = [(n.lower(),v) for n,v in fields.evaluate().items()]
+        self.field_list = fields._fields()
         self.current = 0
         self.high = len(self.field_list)
 
@@ -1059,6 +1059,15 @@ class Fields:
                 result = dict(result, **{field.name: field.display_value()})
             else:
                 result = dict(result, **field.display_value())
+        return result
+
+    def _fields(self):
+        result = []
+        for field in self.fields:
+            if hasattr(field, 'name'):
+                result.append(field)
+            else:
+                result.extend(field.as_list())
         return result
 
     def evaluate(self):
