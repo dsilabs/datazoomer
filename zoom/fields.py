@@ -1067,7 +1067,7 @@ class Fields:
             if hasattr(field, 'name'):
                 result.append(field)
             else:
-                result.extend(field.as_list())
+                result.extend(field._fields())
         return result
 
     def evaluate(self):
