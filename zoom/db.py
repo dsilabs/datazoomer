@@ -129,9 +129,8 @@ class Database(object):
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
 
     if engine == 'mysql':
-        warnings.filterwarnings('ignore', 
-                '.*the sets module is deprecated.*',
-                DeprecationWarning, 'MySQLdb')
-        return Database(MySQLdb.connect, host=host, db=db, user=user, *a, **k)
+        db = Database(MySQLdb.connect, host=host, db=db, user=user, *a, **k)
+        db.autocommit(1)
+        return db
 
 

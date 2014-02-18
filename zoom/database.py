@@ -616,9 +616,6 @@ class Record:
 def database(engine='mysql', host='localhost', name='zoomdata', user='root', password=''):
     """Create and return a connected database"""
     if engine == 'mysql':
-        import warnings
-        warnings.filterwarnings('ignore', '.*the sets module is deprecated.*',
-                                        DeprecationWarning, 'MySQLdb')
         import MySQLdb
         db = Database(MySQLdb.Connect, host=host, user=user, passwd=password, db=name)
         db.autocommit(1)

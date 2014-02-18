@@ -38,6 +38,10 @@ from browse import browse
 
 ITEM_MISSING_ERROR = '<H1>Error</H1>Unable to locate page %s.'
 
+import warnings
+warnings.filterwarnings('ignore', 
+    '.*the sets module is deprecated.*',
+    DeprecationWarning, 'MySQLdb')
 
 class App:
     def authorized(self):
