@@ -31,6 +31,9 @@ class Result(object):
     def __repr__(self):
         return repr(list(self))
 
+    def first(self):
+        for i in self: return i
+
 
 class Database(object):
     """
@@ -124,7 +127,23 @@ class Database(object):
             return Result(cursor)
         else:
             return cursor.lastrowid
-    
+
+    def execute_many(self, sql, *a):
+        cursor = self.cursor()
+
+        if self.__debug:
+            start = time.time()
+        try:
+            result = cursor.executemany(sql, *a)
+        finally:
+            if self.__debug:
+                print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, a)
+
+        if cursor.description:
+            return Result(cursor)
+        else:
+            return cursor.lastrowid
+
 
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
 

@@ -1061,6 +1061,15 @@ class Fields:
                 result = dict(result, **field.display_value())
         return result
 
+    def as_list(self):
+        result = []
+        for field in self.fields:
+            if hasattr(field, 'name'):
+                result.append(field)
+            else:
+                result.extend(field._fields())
+        return result
+
     def _fields(self):
         result = []
         for field in self.fields:
