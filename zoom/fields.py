@@ -1008,7 +1008,7 @@ class EditField(Field):
 class FieldIterator:
 
     def __init__(self, fields):
-        self.field_list = fields._fields()
+        self.field_list = [(n.lower(),v) for n,v in fields.evaluate().items()]
         self.current = 0
         self.high = len(self.field_list)
 
