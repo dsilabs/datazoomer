@@ -336,6 +336,11 @@ class NumberField(TextField):
         >>> n.assign('2')
         >>> n.value
         2
+
+        >>> n = NumberField('Size')
+        >>> n.assign('2,123')
+        >>> n.value
+        2123
     """
 
     size = maxlength = 10
@@ -346,6 +351,8 @@ class NumberField(TextField):
 
     def assign(self, value):
         try:
+            if type(value) == str and ',' in value:
+                value = value.replace(',','')
             self.value = int(value)
         except:
             self.value = None
