@@ -298,6 +298,10 @@ def owner_email():
     """Returns the email address of the site owner as defined in the site.conf file."""
     return system.config.get('site','owner_email','info@dynamic-solutions.com')
         
+def admin_email():
+    """Returns the email address of the site owner as defined in the site.conf file."""
+    return system.config.get('site','admin_email','support@dynamic-solutions.com')
+
 def uri():
     """Returns the site URI."""
     return system.uri
