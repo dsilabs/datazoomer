@@ -49,7 +49,6 @@ class System:
             if pathname and os.path.exists(pathname):
                 return pathname
 
-
         self.start_time  = timeit.default_timer()
         self.lib_path = os.path.split(os.path.abspath(__file__))[0]
         self.instance_path = os.path.abspath(instance_path)
@@ -72,6 +71,7 @@ class System:
         self.site = Site(
             name = '',
             theme = '',
+            home = os.path.join(config.sites_path, self.server_name),
             data_path = os.path.join(config.sites_path,self.server_name,config.get('data','path','data')),
             url = self.uri,
             tracking_id = config.get('site', 'tracking_id', ''),
