@@ -80,7 +80,7 @@ class CollectionView(View):
             if options.index_recent and not showall:
                 title = 'Recent Users'
                 users = Users.recent()
-                actions.append(('Show All','showall'))
+                actions.append(('Show All',system.app.name + '/showall'))
             else:
                 title = 'Users'
                 users = Users.all()
