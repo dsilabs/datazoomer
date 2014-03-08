@@ -1165,6 +1165,18 @@ class Fieldset(Fields):
         return '<fieldset><legend>%s</legend>%s\n%s</fieldset>' % (self.label,self.render_hint(),Fields.edit(self))
 
 
+class FileField(TextField):
+    value = default = None
+    _type = 'file'
+    css_class = 'file_field'
+
+    def requires_multipart_form(self): return True
+
+    def assign(self, value):
+        if hasattr(value, 'filename'):
+            self.value = dict(filename=value.filename, value=value.value)
+
+
 class Form(Fields):
     """
     An HTML form.
