@@ -4,7 +4,7 @@ from os import environ as env
 from zoom import *
 
 dumps = json.dumps
-
+duplicate_key_msg = "There is an existing record with that name or key already in the database"
 
 class Text:
     def __init__(self, text):
@@ -123,20 +123,28 @@ class CollectionController(Controller):
                 record.owner = user.username
                 record.created_by = user.username
                 record.updated_by = user.username
-                c.store.put(record)
-                return redirect_to(c.url)
+                if c.locate(record.key) is not None:
+                    error(duplicate_key_msg)
+                else:
+                    c.store.put(record)
+                    return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
         c = self.collection
         if c.can_edit():
             if c.fields.validate(data):
                 record = c.locate(key)
+                keyid = record._id
                 if record:
                     record.update(c.fields)
                     record.updated = now
                     record.updated_by = user.username
-                    c.store.put(record)
-                    return redirect_to(record.url)
+                    newid = c.locate(record.key)
+                    if newid is not None and keyid!=newid._id:
+                        error(duplicate_key_msg)
+                    else:
+                        c.store.put(record)
+                        return redirect_to(record.url)
 
     def delete(self, key, CONFIRM='YES'):
         c = self.collection
