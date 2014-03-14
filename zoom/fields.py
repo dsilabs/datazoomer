@@ -87,6 +87,9 @@ class Field:
             return name_for(self.label)
         raise AttributeError             
 
+    def initialize(self,**values):
+        self.assign(values.get(self.name.lower(), self.default))
+
     def update(self,**values):
         for value in values:
             if value.lower() == self.name.lower():
@@ -1047,6 +1050,17 @@ class Fields:
         for field in self.fields:
             result = dict(result, **field.as_dict())
         return result
+
+    def initialize(self, *a, **k):
+        if a:
+            values = a[0]
+        elif k:
+            values = k
+        else:
+            values = None
+        if values:
+            for field in self.fields:
+                field.initialize(**values)
 
     def update(self,*a,**k):
         if a:
