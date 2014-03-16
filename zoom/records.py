@@ -46,6 +46,7 @@ def setup_test():
             db='test',
             user='testuser',
             passwd='password')
+    db.autocommit(1)
     delete_test_tables(db)
     create_test_tables(db)
     return db
