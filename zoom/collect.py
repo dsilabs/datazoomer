@@ -118,14 +118,14 @@ class CollectionController(Controller):
             if c.fields.validate(data):
                 record = c.entity()
                 record.update(c.fields)
-                record.created = now
-                record.updated = now
-                record.owner = user.username
-                record.created_by = user.username
-                record.updated_by = user.username
                 if c.locate(record.key) is not None:
                     error(duplicate_key_msg)
                 else:
+                    record.created = now
+                    record.updated = now
+                    record.owner = user.username
+                    record.created_by = user.username
+                    record.updated_by = user.username
                     c.store.put(record)
                     return redirect_to(c.url)
 
@@ -134,15 +134,13 @@ class CollectionController(Controller):
         if c.can_edit():
             if c.fields.validate(data):
                 record = c.locate(key)
-                keyid = record._id
                 if record:
                     record.update(c.fields)
-                    record.updated = now
-                    record.updated_by = user.username
-                    newid = c.locate(record.key)
-                    if newid is not None and keyid!=newid._id:
+                    if record.key <> key and c.locate(record.key):
                         error(duplicate_key_msg)
                     else:
+                        record.updated = now
+                        record.updated_by = user.username
                         c.store.put(record)
                         return redirect_to(record.url)
 
