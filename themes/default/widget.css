@@ -187,12 +187,10 @@
         display: inline;
         margin: 0;
     }
-    .actions ul li {
-        margin-left: 5px;
-    }
     .action {
         float:right;
-        margin-left: 5px;
+        margin-left: 2px;
+        margin-right: 2px;
     }
 
 
