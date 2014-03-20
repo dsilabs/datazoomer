@@ -341,7 +341,7 @@
         float: right;
     }
 
-    .baselist div.footer { color: #555; font-size: 0.8em; margin: 5px 0 0 8px;}
+    .baselist div.footer { background: none; line-height: 1em; height: auto; color: #555; font-size: 0.8em; margin: 5px;}
 
     .baselist h1,
     .baselist h2,
