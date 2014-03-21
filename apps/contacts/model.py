@@ -112,7 +112,7 @@ class Collection:
 
 class ContactsCollection(Collection):
     name = 'Contacts'
-    item_name = 'contact'
+    item_name = 'Contact'
     labels = 'name', 'title', 'photo'
     columns = 'linked_name', 'title', 'photo'
     entity = Contact
