@@ -55,7 +55,7 @@ def name_for(text):
     """Calculates a valid HTML field name given an arbitrary string."""
     return text.replace('*','').replace(' ','_').strip().upper()
 
-def id_for(text):
+def id_for(*args):
     """
     Calculates a valid HTML tag id given an arbitrary string.
 
@@ -65,10 +65,16 @@ def id_for(text):
         'new-record'
         >>> id_for('New "special" Record')
         'new-special-record'
+        >>> id_for("hi", "test")
+        'hi~test'
+        >>> id_for("hi test")
+        'hi-test'
 
     """
-    return str(text.strip()).translate(norm, special).lower().replace(' ','-')
-    return text.replace('*','').replace(' ','-').strip().lower()
+    def id_(text):
+        return str(text.strip()).translate(norm, special).lower().replace(' ','-')
+
+    return '~'.join([id_(arg) for arg in args])
 
 def tag_for(tag_text,content='',*args,**keywords):
     """
