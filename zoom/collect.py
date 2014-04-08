@@ -118,7 +118,11 @@ class CollectionController(Controller):
             if c.fields.validate(data):
                 record = c.entity()
                 record.update(c.fields)
-                if c.locate(record.key) is not None:
+                try:
+                    key = record.key
+                except AttributeError:
+                    key = None
+                if key and c.locate(record.key) is not None:
                     error(duplicate_key_msg)
                 else:
                     record.created = now

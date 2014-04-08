@@ -38,14 +38,18 @@ class Config:
             raise            
 
         # read the default config file - one per environment
+        self.default_config_pathname = os.path.join(self.sites_path, 'default', 'site.ini')
+        if not os.path.exists(self.default_config_pathname): # legacy location
+            self.default_config_pathname = os.path.join(self.sites_path, 'default.conf')
         self.config = ConfigParser.ConfigParser()
-        self.default_config_pathname = os.path.join(self.sites_path, 'default.conf')
         self.config.read(self.default_config_pathname)
 
         # read the site config file - one per site
         self.site_path = os.path.join(self.sites_path, server_name)
+        self.site_config_pathname = os.path.join(self.site_path, 'site.ini')
+        if not os.path.exists(self.site_config_pathname):
+            self.site_config_pathname = os.path.join(self.site_path, 'site.conf')
         self.site_config = ConfigParser.ConfigParser()
-        self.site_config_pathname = os.path.join(self.site_path, 'site.conf')
         self.site_config.read(self.site_config_pathname)
 
     def get(self, section, option, default=None):

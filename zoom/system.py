@@ -137,6 +137,8 @@ class System:
 
         self.show_errors = config.get('error','users','0') == '1'
 
+        self.profile = config.get('system','profile','0') == '1'
+
         self.webhook = config.get('webhook','url','')
 
         self.logging = config.get('log', 'logging', True) not in ['0','False','off','no',False]

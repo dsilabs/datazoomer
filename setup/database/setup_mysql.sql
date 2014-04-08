@@ -301,8 +301,8 @@ UNLOCK TABLES;
 /*!40000 ALTER TABLE `dz_users` DISABLE KEYS */;
 LOCK TABLES `dz_users` WRITE;
 INSERT INTO `dz_users` VALUES
-    (1,'admin',password('admin'),'Admin','User','admin@datazoomer.com','','',now(),now(),'A'),
-    (2,'user',password('user'),'User','Known','user@datazoomer.com','','',now(),now(),'A'),
+    (1,'admin',old_password('admin'),'Admin','User','admin@datazoomer.com','','',now(),now(),'A'),
+    (2,'user',old_password('user'),'User','Known','user@datazoomer.com','','',now(),now(),'I'),
     (3,'guest','','Guest','User','guest@datazoomer.com','','',now(),now(),'A');
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `dz_users` ENABLE KEYS */;

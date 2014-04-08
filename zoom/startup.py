@@ -8,6 +8,8 @@ import os
 import StringIO
 import traceback
 import datetime
+import cProfile
+import pstats
 
 from system import system
 from log import logger
@@ -48,6 +50,8 @@ class CrossSiteRequestForgeryAttempt(Exception): pass
 
 def generate_response(instance_path):
 
+    profiler = None
+
     # capture stdout
     real_stdout = sys.stdout
     sys.stdout = StringIO.StringIO()
@@ -79,7 +83,16 @@ def generate_response(instance_path):
                 request.route.append(default_app_name)
             if manager.can_run(requested_app_name):
                 system.app = manager.get_app(requested_app_name)
+
+                profiler = system.profile and cProfile.Profile()
+                if profiler:
+                    profiler.enable()
+
                 response = system.app.run()
+
+                if profiler:
+                    profiler.disable()
+
             elif not requested_app_name:
                 system.app = manager.get_app(default_app_name)
                 response = system.app.run()
@@ -111,6 +124,17 @@ def generate_response(instance_path):
                 msg = load_template('system_application_error_user', FRIENDLY_ERROR_MESSAGE)
                 response = Page(msg).render()
 
+        if profiler:
+            stats_s = StringIO.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(profiler, stream=stats_s)
+            ps.sort_stats(sortby)
+            ps.print_stats(.1)
+            t = stats_s.getvalue()
+            t = t.replace(system.lib_path, '~zoom'
+                    ).replace('/usr/lib/python2.7/dist-packages/','~'
+                            ).replace('/usr/local/lib/python2.7/dist-packages/','~')
+            print t
     finally:
         printed_output = sys.stdout.getvalue()
         sys.stdout.close()

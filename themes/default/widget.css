@@ -187,12 +187,10 @@
         display: inline;
         margin: 0;
     }
-    .actions ul li {
-        margin-left: 5px;
-    }
     .action {
         float:right;
-        margin-left: 5px;
+        margin-left: 2px;
+        margin-right: 2px;
     }
 
 
@@ -305,19 +303,11 @@
         vertical-align:top;
         text-transform:capitalize;
     }
-    .obaselist table tbody td {
-        padding-top:0.3em;
-        padding-bottom:0.3em;
-        vertical-align:top;
-        padding-left: 0.5em;
-        margin: 0;
-    }
+
     .baselist tr { line-height: 25px; }
     .baselist tr p { line-height: 1em; }
-    .baselist tr.dark { background-color:#E8E8E8; }
-    .baselist tr.dark:hover { background-color:#B0B0B0; }
-    .baselist tr.light { background-color:#F8F8F8; }
-    .baselist tr.light:hover { background-color:#B0B0B0; }
+    .baselist tr:nth-child(odd) { background-color:#E8E8E8; }
+    .baselist tr:hover { background-color:#B0B0B0; }
 
     .baselist a         { color: #284a80; text-decoration:none; }
     .baselist a:visited { color: #284a80; text-decoration:none; }
@@ -341,7 +331,7 @@
         float: right;
     }
 
-    .baselist div.footer { color: #555; font-size: 0.8em; margin: 5px 0 0 8px;}
+    .baselist div.footer { background: none; line-height: 1em; height: auto; color: #555; font-size: 0.8em; margin: 5px;}
 
     .baselist h1,
     .baselist h2,
