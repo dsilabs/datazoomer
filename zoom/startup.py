@@ -22,6 +22,21 @@ from user import user
 from manager import manager
 from visits import visited
 
+NEW_INSTALL_MESSAGE = """
+<head>
+    <style>
+      body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; }
+        div#welcome { margin-left: 5%; margin-top: 50px; }
+    </style>
+</tail>
+<body>
+<div id="welcome">
+<h1>Welcome!</h1>
+This site is currently under construction.
+</div>
+</body>
+"""
+
 FRIENDLY_ERROR_MESSAGE = """
 <H1>How embarrassing!</H1>
 You have found an error in the <dz:site_name> system.  Sorry about that.<br><br>
@@ -81,6 +96,7 @@ def generate_response(instance_path):
 
             if not request.route:
                 request.route.append(default_app_name)
+
             if manager.can_run(requested_app_name):
                 system.app = manager.get_app(requested_app_name)
 
@@ -147,7 +163,10 @@ def generate_response(instance_path):
     return response
 
 def run_as_cgi(instance_path='..'):
-    response = generate_response(instance_path)
+    if not os.path.exists(os.path.join(instance_path,'dz.conf')):
+        response = HTMLResponse(NEW_INSTALL_MESSAGE)
+    else:
+        response = generate_response(instance_path)
     sys.stdout.write(response.render())
 
 run = run_as_cgi
