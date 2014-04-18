@@ -561,7 +561,29 @@ def construct_url(root,route,a,k):
         return uri
 
 def url_for(*a,**k):
-    """Return a URL for a page."""
+    """
+    Return a URL for a page.
+
+        >>> system.uri = 'http://localhost'
+        >>> url_for('test')
+        'http://localhost/test'
+
+        >>> system.uri = 'https://localhost'
+        >>> url_for('test')
+        'https://localhost/test'
+
+        >>> system.uri = 'http://localhost'
+        >>> route.append('main')
+        >>> url_for('test')
+        'http://localhost/main/test'
+
+        >>> system.uri = ''
+        >>> route.pop()
+        'main'
+        >>> url_for('test')
+        '/test'
+
+    """
     return construct_url(system.uri,route,a,k)
 
 def url_for_app(*a,**k):
