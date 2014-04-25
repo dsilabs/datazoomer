@@ -120,13 +120,6 @@ class CollectionView(View):
         from zoom.user import User
         from zoom.manager import manager
 
-        def status_link(status, key):
-            from zoom.helpers import abs_url_for
-            if status in ['E','I','S']:
-                return link_to(status, abs_url_for('/info/system-log', key))
-            else:
-                return status
-
         user = Users.get(id)
         if user:
             user_fields.update(user.__dict__)
@@ -145,8 +138,11 @@ class CollectionView(View):
             u = User(user['username'])
 
             activity_data = db('select id, timestamp, route, status, address, elapsed, message from log where user=%s and timestamp>=%s order by timestamp desc limit 50', user.username, today-26*one_week)
-            labels = 'id', 'Time Stamp', 'Route', 'Status', 'Address', 'Elapsed', 'Message'
-            activity = browse([(a[0],a[1],a[2],status_link(a[3], a[0]),a[4],a[5],a[6][:40]) for a in activity_data], labels=labels)
+            labels = 'id', 'When', 'Route', 'Status', 'Address', 'Elapsed', 'Message'
+            activity = browse([(
+                link_to(a[0], abs_url_for('/info/system-log', a[0])),
+                '<span title="%s">%s</span>' % (a[1], how_long_ago(a[1])),
+                a[2],a[3],a[4],a[5],a[6][:40]) for a in activity_data], labels=labels)
 
             auth_data = db('select * from audit_log where (subject1=%s or subject2=%s) and timestamp>=%s order by timestamp desc limit 20', user.username, user.username, today-26*one_week)
             labels = 'id', 'App', 'User', 'Activity', 'Subject1', 'Subject2', 'Timestamp'
@@ -175,9 +171,7 @@ class CollectionView(View):
             ).get)
 
     def delete(self,id,confirm=True):
-        #system.app.menu = (('index','Users','index'),)
         if confirm:
-            #system.app.menu = (('index','Users','index'),)
             user = Users.get(id)
             name = user.get_full_name()
             return Page("""

@@ -117,6 +117,27 @@ def redirect_to_app(name):
     return RedirectResponse(url_for(name))
 
 def home(view=None):
+    """
+    Redirect to application home.
+
+        >>> route.append('contact')
+        >>> route.append('new')
+        >>> route
+        ['contact', 'new']
+        >>> request.port = '80'
+        >>> home().content
+        ''
+        >>> home().headers
+        {'Location': 'http://localhost/contact'}
+
+        >>> home('old').headers
+        {'Location': 'http://localhost/contact/old'}
+
+        >>> request.port = '443'
+        >>> home('secure').headers
+        {'Location': 'https://localhost/contact/secure'}
+
+    """
     if view:
         return redirect_to('/'+route[0]+'/' + view)
     return redirect_to('/'+route[0])
@@ -233,8 +254,22 @@ def get_setting(name):
                 return item
 
 def how_long(t1,t2):
-    """Returns a string that describes the difference between two dates."""
-#    print t1, t2, t2-t1
+    """
+    Returns a string that describes the difference between two dates.
+
+    >>> how_long(now, now + 2 * one_day)
+    '2 days'
+
+    >>> how_long(now, now + 15 * one_day)
+    '2 weeks'
+
+    >>> how_long(now, now + 35 * one_day)
+    'over a month'
+
+    >>> how_long(now, now + 361 * one_day)
+    'almost a year'
+
+    """
     diff = t2 - t1
     if diff.days > 365*2:
         return 'over %s years' % (diff.days / 365)

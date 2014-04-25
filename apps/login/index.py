@@ -25,6 +25,7 @@ class LoginController(Controller):
                     logger.security('user account deactivated')
 
                 elif user.login(USERNAME, PASSWORD):
+                    logger.info('user successfully logged in')
                     return redirect_to('/')
             else:
                 logger.security('unknown username (%s)' % USERNAME)
