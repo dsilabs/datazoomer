@@ -43,10 +43,11 @@ class Page:
                 self.template = name
             elif thing=='app_title':
                 self.app_title = name
+            return '<!-- %s set to "%s" -->' % (thing, name)
 
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
 
-        fill('<dz:set_','>',self.content,set_setting)
+        self.content = fill('<dz:set_','>',self.content,set_setting)
             
         template_pathname = system.theme_path 
         if template_pathname:
