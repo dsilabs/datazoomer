@@ -596,4 +596,8 @@ div.content div.group_relationships_list table td {
     padding: 0 5px;
 }
 
-
+/* Activities
+ * ==================== */
+.activity {
+    margin-bottom: 0.75em;
+}

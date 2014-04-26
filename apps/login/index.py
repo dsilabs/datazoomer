@@ -25,7 +25,11 @@ class LoginController(Controller):
                     logger.security('user account deactivated')
 
                 elif user.login(USERNAME, PASSWORD):
-                    logger.info('user successfully logged in')
+                    username = user.username
+                    user_id = user.id
+                    msg = '<a href="/users/%(user_id)s">%(username)s</a> logged in' % locals()
+                    logger.info('user %s successfully logged in' % USERNAME)
+                    logger.activity('session', msg)
                     return redirect_to('/')
             else:
                 logger.security('unknown username (%s)' % USERNAME)
