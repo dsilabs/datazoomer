@@ -61,12 +61,15 @@ def set_session_cookie(response, sid, host, lifespan, secure=True):
     cookie[SESSION_COOKIE_NAME] = sid
     cookie[SESSION_COOKIE_NAME]['httponly'] = True
     cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
-    if secure:
-        cookie[SESSION_COOKIE_NAME]['secure'] = True
 
     cookie[SUBJECT_COOKIE_NAME] = system.subject
     cookie[SUBJECT_COOKIE_NAME]['httponly'] = True
     cookie[SUBJECT_COOKIE_NAME]['expires'] = 365 * 24 * 60 * 60
+
+    if secure:
+        cookie[SESSION_COOKIE_NAME]['secure'] = True
+        cookie[SUBJECT_COOKIE_NAME]['secure'] = True
+
     k,v = str(cookie).split(':',1)
     response.headers[k] = v
 
