@@ -155,7 +155,8 @@ def generate_response(instance_path):
         printed_output = sys.stdout.getvalue()
         sys.stdout.close()
         sys.stdout = real_stdout
-        logger.complete()
+        if system.logging:
+            logger.complete()
 
     if hasattr(response,'printed_output'):
         response.printed_output = printed_output.replace('<','&lt;').replace('>','&gt;')
