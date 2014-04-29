@@ -66,7 +66,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
 
         alist = []
         for item in items:
-            fields.initialize(dict((col,item.get(col,'')) for col in columns))
+            fields.initialize(item)
             flookup = fields.display_value()
             row = [flookup.get(col.upper(),getcol(item,col)) for col in columns]
             alist.append(row)
