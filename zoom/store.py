@@ -31,6 +31,7 @@ def create_tables(db):
     """)
 
 def delete_tables(db):
+    db.autocommit(1)
     db('drop table if exists attributes')
     db('drop table if exists entities')
 
@@ -120,7 +121,8 @@ class EntityList(list):
             t.append(''.join(fmtstr) % tuple(values))
         return ''.join(title) + ''.join(lines) + '\n'.join(t) + ('\n%s records' % len(self))
 
-    def __init__(self):
+    def __init__(self, a=[]):
+        list.__init__(self, a)
         self._n = 0
 
     def __iter__(self):
@@ -136,6 +138,68 @@ class EntityList(list):
         return result
 
 
+def entify(rs, klass):
+    """
+    converts query result into an EntityList
+    """
+    entities = {}
+
+    for rec in rs:
+        row_id = rec['ROW_ID']
+        attribute = rec['ATTRIBUTE'].lower()
+        datatype = rec['DATATYPE']
+        value = rec['VALUE']
+
+        if datatype == 'str':
+            pass
+
+        elif datatype == 'unicode':
+            pass
+
+        elif datatype == "long":
+            value = long(value)
+
+        elif datatype == "int":
+            value = int(value)
+
+        elif datatype == 'float':
+            value = float(value)
+
+        elif datatype == 'decimal.Decimal':
+            value = decimal.Decimal(value)
+
+        elif datatype == "datetime.date":
+            y = int(value[:4])
+            m = int(value[5:7])
+            d = int(value[8:10])
+            value = datetime.date(y,m,d)
+
+        elif datatype == "datetime.datetime":
+            y = int(value[:4])
+            m = int(value[5:7])
+            d = int(value[8:10])
+            hr = int(value[11:13])
+            mn = int(value[14:16])
+            sc = int(value[17:19])
+            value = datetime.datetime(y,m,d,hr,mn,sc)
+
+        elif datatype == 'bool':
+            value = (value == '1' or value == 'True')
+
+        elif datatype == 'NoneType':
+            value = None
+
+        elif datatype == 'instance':
+            value = long(rec.id)
+
+        else:
+            raise TypeException,'unsupported data type: ' + repr(datatype)
+
+        entities.setdefault(row_id, klass(_id=row_id))[attribute] = value
+
+    return EntityList(entities.values())
+
+
 class EntityStore:
     """
     stores entities
@@ -143,6 +207,28 @@ class EntityStore:
         >>> import MySQLdb
         >>> from database import Database
         >>> db = Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
+        >>> delete_tables(db)
+        >>> create_tables(db)
+
+        >>> stuff = EntityStore(db)
+        >>> stuff.put(dict(name='Joe', age=14))
+        1L
+        >>> stuff.put(dict(name='Sally', age=34))
+        2L
+        >>> stuff.put(dict(name='Sam', age=34))
+        3L
+        >>> stuff.find(name='Joe')
+        [{'age': 14, '_id': 1L, 'name': 'Joe'}]
+        >>> s = stuff.find(age=34)
+        >>> print s
+        dict
+            id  age  name   
+        ------- ---- ------ 
+             2  34   Sally  
+             3  34   Sam    
+        2 records
+
+
         >>> delete_tables(db)
         >>> create_tables(db)
         >>> class Person(Entity): pass
@@ -318,81 +404,15 @@ class EntityStore:
             else:
                 return None
 
-        db = self.db
-
         cmd = 'select * from attributes where kind=%s and row_id in (%s)' % ('%s',','.join(['%s']*len(keys)))
-        entities = {}
-        rs = db(cmd, self.kind, *keys)
+        rs = self.db(cmd, self.kind, *keys)
 
-        for rec in rs:
-            row_id = rec.ROW_ID
-            attribute = rec.ATTRIBUTE.lower()
+        result = entify(rs, self.entity_class)
 
-            if rec.DATATYPE == "str":
-                value = rec.VALUE
-
-            elif rec.DATATYPE == 'unicode':
-                value = rec.VALUE                
-
-            elif rec.DATATYPE == "long":
-                value = long(rec.VALUE)
-
-            elif rec.DATATYPE == "int":
-                value = int(rec.VALUE)
-
-            elif rec.DATATYPE == 'float':
-                value = float(rec.VALUE)
-
-            elif rec.DATATYPE == 'decimal.Decimal':
-                value = decimal.Decimal(rec.VALUE)
-
-            elif rec.DATATYPE == "datetime.date":
-                y = int(rec.VALUE[:4])
-                m = int(rec.VALUE[5:7])
-                d = int(rec.VALUE[8:10])
-                import datetime
-                value = datetime.date(y,m,d)
-
-            elif rec.DATATYPE == "datetime.datetime":
-                y = int(rec.VALUE[:4])
-                m = int(rec.VALUE[5:7])
-                d = int(rec.VALUE[8:10])
-                hr = int(rec.VALUE[11:13])
-                mn = int(rec.VALUE[14:16])
-                sc = int(rec.VALUE[17:19])
-                import datetime
-                value = datetime.datetime(y,m,d,hr,mn,sc)
-
-            elif rec.DATATYPE == 'bool':
-                value = (rec.VALUE == '1' or rec.VALUE == 'True')
-
-            elif rec.DATATYPE == 'NoneType':
-                value = None
-
-            elif rec.DATATYPE == 'instance':
-                value = long(rec.id)
-
-            else:
-                raise TypeException,'unsupported data type' + repr(rec.__dict__)
-                value = rec.VALUE
-
-            #entities.setdefault(row_id, self.entity_class())[attribute] = value
-            entities.setdefault(row_id, self.entity_class(_id=row_id))[attribute] = value
-
-        #print entities
-
-        if len(keys)>1:
-            result = EntityList()
-            for id in keys: 
-                result.append(entities.get(id))
-        else:
-            if as_list:
-                result = EntityList()
-                result.append(entities.get(keys[0]))
-            else:
-                result = entities.get(keys[0])
-
-        return result
+        if as_list:
+            return result
+        if result:
+            return result[0]
 
 
     def get_attributes(self):
@@ -515,10 +535,8 @@ class EntityStore:
             [<Person {'name': 'Sally', 'age': 25}>, <Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Joe', 'age': 25}>]
 
         """
-        cmd = 'select distinct row_id from attributes where kind="%s"' % (self.kind)
-        rs = self.db(cmd)
-        keys = [rec.ROW_ID for rec in rs]
-        return self.get(keys) or EntityList()
+        cmd = 'select * from attributes where kind="%s"' % (self.kind)
+        return entify(self.db(cmd), self.entity_class)
 
     def zap(self):
         """
