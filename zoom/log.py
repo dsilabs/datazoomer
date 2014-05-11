@@ -32,30 +32,6 @@ class Logger:
             db('drop table log')
         self.setup()
         
-    def setup(self):
-        """Create a log file if it doesn't already exist"""
-        db = system.database
-
-        if not 'log' in [i[0] for i in db('show tables')]:
-            db("""
-                CREATE TABLE `log` (
-                  `id` int(11) NOT NULL AUTO_INCREMENT,
-                  `app` varchar(30) DEFAULT NULL,
-                  `route` varchar(50) DEFAULT NULL,
-                  `status` char(1) DEFAULT NULL,
-                  `user` varchar(30) DEFAULT NULL,
-                  `address` varchar(15) DEFAULT NULL,
-                  `login` varchar(30) DEFAULT NULL,
-                  `server` varchar(60) DEFAULT NULL,
-                  `timestamp` datetime DEFAULT NULL,
-                  `elapsed` int(10) DEFAULT NULL,
-                  `message` text,
-                  PRIMARY KEY (`id`),
-                  KEY `log_status` (`status`),
-                  KEY `log_app` (`app`)
-                ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-            """)
-
     def info(self,message):
         """Log general information about an applicaiton or process."""
         return self.log('I',message)

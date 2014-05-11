@@ -73,7 +73,6 @@ def generate_response(instance_path):
     try:
         try:
             system.setup(instance_path)
-            logger.setup()
             session.load_session()
             user.setup()
             manager.setup()
