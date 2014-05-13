@@ -292,6 +292,83 @@ class Record(Storage):
             return '<%s {%s}>' % (name, ', '.join('%s: %s' % (k,v) for k,v in t))
 
 
+class RecordList(list):
+    """a list of Records"""
+
+    def __str__(self):
+        """
+        represent as a string 
+
+            >>> import datetime
+            >>> class Person(Record): pass
+            >>> class People(RecordList): pass
+            >>> people = People()
+            >>> people.append(Person(id=1, name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
+            >>> people.append(Person(id=2, name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
+            >>> people.append(Person(id=3, name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
+            >>> print people
+            person
+                id  age  name    birthdate   
+            ------- ---- ------- ----------- 
+                 1  20   Joe     1992-05-05  
+                 2  25   Samuel  1992-04-05  
+                 3  35   Sam     1992-03-05  
+            3 records
+
+        """
+        if len(self)==0:
+            return 'Empty list'
+        title=['%s\n    id  ' % kind(self[0])]
+        lines =['------- ']
+        fmtstr = ['%6d  ']
+
+        data_lengths = {}
+        for rec in self:
+            for field in self[0].keys():
+                n = data_lengths.get(field, 0)
+                m = len('%s' % rec.get(field, ''))
+                if n < m:
+                    data_lengths[field] = m
+
+        fields = data_lengths.keys()
+        d = data_lengths
+        fields.sort(lambda a,b:not d[a] and -999 or not d[b] and -999 or d[a]-d[b])
+        if '_id' in fields:
+            fields.remove('_id')
+            fields.insert(0, '_id')
+
+        for field in fields[1:]:
+            width = max(len(field),d[field])+1
+            fmt = '%-' + ('%ds ' % width)
+            fmtstr.append(fmt)
+            title.append(fmt % field)
+            lines.append(('-' * width) + ' ')
+        fmtstr.append('')
+        lines.append('\n')
+        title.append('\n')
+        t = []
+        fmtstr = ''.join(fmtstr)
+
+        for rec in self:
+            values = [rec.get(key) for key in fields]
+            t.append(''.join(fmtstr) % tuple(values))
+        return ''.join(title) + ''.join(lines) + '\n'.join(t) + ('\n%s records' % len(self))
+
+    def __init__(self, *a, **k):
+        list.__init__(self, *a, **k)
+        self._n = 0
+
+    def __iter__(self):
+        self._n = 0
+        return self
+
+    def next(self):
+        if self._n >= len(self):
+            raise StopIteration
+        else:
+            result = self[self._n]
+            self._n += 1
+        return result
 
 if __name__ == '__main__':
     import doctest

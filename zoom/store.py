@@ -4,13 +4,13 @@
 
 import datetime
 import decimal
-from zoom.utils import Record
+from zoom.utils import Record, RecordList, kind
 from zoom.tools import db
 
 class ValidException(Exception): pass
 class TypeException(Exception): pass
 
-def create_tables(db):
+def create_storage(db):
     db("""
     create table if not exists entities (
         id int not null auto_increment,
@@ -30,23 +30,28 @@ def create_tables(db):
         )
     """)
 
-def delete_tables(db):
-    db.autocommit(1)
+def delete_storage(db):
     db('drop table if exists attributes')
     db('drop table if exists entities')
 
+    #def zap_test_tables(db):
+    #    db('delete from attributes')
+    #    db('delete from entities')
 
-def kind(o):
-    """
-    returns the kind of object passed
-    """
-    n = []
-    for c in o.__class__.__name__:
-        if c.isalpha() or c=='_':
-            if c.isupper() and len(n):
-                n.append('_')
-            n.append(c.lower())
-    return ''.join(n)
+def setup_test():
+    import MySQLdb, database
+
+    db = database.Database(
+            MySQLdb.Connect, 
+            host='database',
+            db='test',
+            user='testuser',
+            passwd='password')
+    db.autocommit(1)
+    #zap_test_tables(db)
+    delete_storage(db)
+    create_storage(db)
+    return db
 
 
 class Entity(Record):
@@ -54,88 +59,9 @@ class Entity(Record):
     pass
 
 
-class EntityList(list):
-    """
-    A list with some convenience methods for Entities
-    """
-    def __str__(self):
-        """
-        represent as a string 
-
-            >>> import MySQLdb
-            >>> from database import Database
-            >>> db = Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
-            >>> class Person(Entity): pass
-            >>> class People(EntityStore): pass
-            >>> people = People(db, Person)
-            >>> id = people.put(Person(name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
-            >>> id = people.put(Person(name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
-            >>> id = people.put(Person(name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
-            >>> print people.all()
-            person
-                id  age  name    birthdate   
-            ------- ---- ------- ----------- 
-                 1  20   Joe     1992-05-05  
-                 2  25   Samuel  1992-04-05  
-                 3  35   Sam     1992-03-05  
-            3 records
-
-        """
-        if len(self)==0:
-            return 'Empty list'
-        title=['%s\n    id  ' % kind(self[0])]
-        lines =['------- ']
-        fmtstr = ['%6d  ']
-
-        data_lengths = {}
-        for rec in self:
-            for field in rec.keys():
-                n = data_lengths.get(field, 0)
-                m = len('%s' % rec.get(field, ''))
-                if n < m:
-                    data_lengths[field] = m
-
-        fields = data_lengths.keys()
-        d = data_lengths
-        fields.sort(lambda a,b:not d[a] and -999 or not d[b] and -999 or d[a]-d[b])
-        if '_id' in fields:
-            fields.remove('_id')
-            fields.insert(0, '_id')
-
-        for field in fields[1:]:
-            width = max(len(field),d[field])+1
-            fmt = '%-' + ('%ds ' % width)
-            fmtstr.append(fmt)
-            title.append(fmt % field)
-            lines.append(('-' * width) + ' ')
-        fmtstr.append('')
-        lines.append('\n')
-        title.append('\n')
-        t = []
-        fmtstr = ''.join(fmtstr)
-
-        for rec in self:
-            values = [rec.get(key) for key in fields]
-            t.append(''.join(fmtstr) % tuple(values))
-        return ''.join(title) + ''.join(lines) + '\n'.join(t) + ('\n%s records' % len(self))
-
-    def __init__(self, a=[]):
-        list.__init__(self, a)
-        self._n = 0
-
-    def __iter__(self):
-        self._n = 0
-        return self
-
-    def next(self):
-        if self._n >= len(self):
-            raise StopIteration
-        else:
-            result = self[self._n]
-            self._n += 1
-        return result
+class EntityList(RecordList):
+    """a list of Entities"""
+    pass
 
 
 def entify(rs, klass):
@@ -204,11 +130,7 @@ class EntityStore:
     """
     stores entities
 
-        >>> import MySQLdb
-        >>> from database import Database
-        >>> db = Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-        >>> delete_tables(db)
-        >>> create_tables(db)
+        >>> db = setup_test()
 
         >>> stuff = EntityStore(db)
         >>> stuff.put(dict(name='Joe', age=14))
@@ -229,8 +151,7 @@ class EntityStore:
         2 records
 
 
-        >>> delete_tables(db)
-        >>> create_tables(db)
+        >>> db = setup_test()
         >>> class Person(Entity): pass
         >>> class People(EntityStore): pass
         >>> people = People(db, Person)
@@ -295,10 +216,7 @@ class EntityStore:
         """
         stores an entity
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -324,6 +242,7 @@ class EntityStore:
             2L
             >>> people.get(id)
             <Person {'name': 'James', 'age': 15}>
+            >>> db.close()
 
         """
         def fixval(d):
@@ -376,10 +295,7 @@ class EntityStore:
         """
         retrives entities
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -387,6 +303,7 @@ class EntityStore:
             >>> sam = people.get(id)
             >>> sam
             <Person {'name': 'Sam', 'age': 15, 'salary': Decimal('100.00')}>
+            >>> db.close()
 
         """
         if keys == None: return None
@@ -419,10 +336,7 @@ class EntityStore:
         """
         get complete set of attributes for the entity type
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -432,6 +346,7 @@ class EntityStore:
             >>> id = people.put(sam)
             >>> people.get_attributes()
             ['name', 'age']
+            >>> db.close()
 
         """
         # order by id desc so that newly introduced attributes appear at the end of the keys list
@@ -445,10 +360,7 @@ class EntityStore:
         """
         delete an entity
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -467,6 +379,7 @@ class EntityStore:
             >>> joe
             >>> bool(joe)
             False
+            >>> db.close()
 
         """
         if hasattr(key, 'get'):
@@ -481,10 +394,7 @@ class EntityStore:
         """
         tests for existence of an entity
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -501,6 +411,7 @@ class EntityStore:
             >>> id = people.put(Person(name='Sam', age=25))
             >>> people.exists([1L,2L])
             [True, True]
+            >>> db.close()
 
         """
         if not isinstance(keys, (list, tuple)):
@@ -521,10 +432,7 @@ class EntityStore:
         """
         Retrieves all entities
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -533,6 +441,7 @@ class EntityStore:
             >>> id = people.put(Person(name='Joe', age=25))
             >>> people.all()
             [<Person {'name': 'Sally', 'age': 25}>, <Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Joe', 'age': 25}>]
+            >>> db.close()
 
         """
         cmd = 'select * from attributes where kind="%s"' % (self.kind)
@@ -542,10 +451,7 @@ class EntityStore:
         """
         deletes all entities of the given kind
         
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -557,6 +463,7 @@ class EntityStore:
             >>> people.zap()
             >>> people.all()
             []
+            >>> db.close()
 
         """
         cmd = 'delete from attributes where kind=%s'
@@ -568,10 +475,7 @@ class EntityStore:
         """
         returns number of entities
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -581,6 +485,7 @@ class EntityStore:
             >>> id = people.put(Person(name='Sally', age=25))
             >>> len(people)
             2
+            >>> db.close()
 
         """
         cmd = 'select count(*) n from (select distinct row_id from attributes where kind=%s) a'
@@ -617,10 +522,7 @@ class EntityStore:
         """
         finds entities that meet search criteria
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -629,6 +531,7 @@ class EntityStore:
             >>> id = people.put(Person(name='Bob', age=25))
             >>> people.find(age=25)
             [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+            >>> db.close()
 
         """
         return self.get(self._find(**kv))
@@ -637,10 +540,7 @@ class EntityStore:
         """
         finds the first entity that meet search criteria
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -650,6 +550,7 @@ class EntityStore:
             >>> people.first(age=5)
             >>> people.first(age=25)
             <Person {'name': 'Sam', 'age': 25}>
+            >>> db.close()
 
         """
         r = self._find(**kv)
@@ -661,10 +562,7 @@ class EntityStore:
         """
         finds the last entity that meet search criteria
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -674,6 +572,7 @@ class EntityStore:
             >>> people.last(age=5)
             >>> people.last(age=25)
             <Person {'name': 'Bob', 'age': 25}>
+            >>> db.close()
 
         """
         r = self._find(**kv)
@@ -685,10 +584,7 @@ class EntityStore:
         """
         search for entities that match text
 
-            >>> import MySQLdb, database
-            >>> db = database.Database(MySQLdb.Connect, host='database',db='test',user='testuser',passwd='password')
-            >>> delete_tables(db)
-            >>> create_tables(db)
+            >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
@@ -704,6 +600,7 @@ class EntityStore:
 
             >>> list(people.search('Bill'))
             []
+            >>> db.close()
 
         """
         t = unicode(text).lower()
