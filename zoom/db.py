@@ -126,7 +126,8 @@ class Database(object):
         if cursor.description:
             return Result(cursor)
         else:
-            return cursor.lastrowid
+            self.lastrowid = cursor.lastrowid
+            return self.lastrowid
 
     def execute_many(self, sql, *a):
         cursor = self.cursor()
@@ -142,7 +143,8 @@ class Database(object):
         if cursor.description:
             return Result(cursor)
         else:
-            return cursor.lastrowid
+            self.lastrowid = cursor.lastrowid
+            return self.lastrowid
 
 
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
