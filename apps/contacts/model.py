@@ -7,7 +7,7 @@ def is_manager(a):
 
 def get_url(f):
     if len(route) == 1:
-        return '/contacts/302/photo'
+        return '/static/images/no_photo.png'
     else:
         return '/' + '/'.join(route[:3] + [f.name.lower()])
 
