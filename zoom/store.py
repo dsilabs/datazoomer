@@ -48,7 +48,6 @@ def setup_test():
             user='testuser',
             passwd='password')
     db.autocommit(1)
-    #zap_test_tables(db)
     delete_storage(db)
     create_storage(db)
     return db
