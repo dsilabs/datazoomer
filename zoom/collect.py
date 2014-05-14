@@ -69,7 +69,7 @@ class CollectionView(View):
         record = c.locate(locator)
         if record:
             actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
-            c.fields.update(record)
+            c.fields.initialize(record)
 
             if 'updated' in record and 'updated_by' in record:
                 memo = '<div class="meta" style="float:right"> record updated %(updated)s by %(updated_by)s</div><div style="clear:both"></div>' % record
