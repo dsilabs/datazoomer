@@ -154,4 +154,12 @@ def database(engine='mysql', host='database', db='test', user='testuser', *a, **
         db.autocommit(1)
         return db
 
+def get_mysql_log_state():
+    for rec in db('show variables like "log"'):
+        return rec[1]
+
+def set_mysql_log_state(new_state):
+    if new_state in ['ON','OFF']:
+        db('SET GLOBAL general_log = %s;', new_state)
+
 
