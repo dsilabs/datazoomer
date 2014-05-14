@@ -69,11 +69,7 @@ def entify(rs, klass):
     """
     entities = {}
 
-    for rec in rs:
-        row_id = rec['ROW_ID']
-        attribute = rec['ATTRIBUTE'].lower()
-        datatype = rec['DATATYPE']
-        value = rec['VALUE']
+    for _, _, row_id, attribute, datatype, value in rs.data:
 
         if datatype == 'str':
             pass
