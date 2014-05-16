@@ -198,14 +198,24 @@ class EntityStore:
         >>> misc.get(x)
         {'_id': 4L, 'other': 'this', 'stuff': 'that'}
 
-
+        >>> people = EntityStore(db, 'person')
+        >>> people.klass
+        <type 'dict'>
+        >>> people.kind
+        'person'
+        >>> people.first(name='Sally')
+        {'_id': 2L, 'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 3}
+        >>> Person(people.first(name='Sally'))
+        <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 3}>
+        >>> EntityStore(db, 'person').first(name='Joe')['age']
+        20
 
     """
 
-    def __init__(self, db, entity_class=dict):
+    def __init__(self, db, klass=dict):
         self.db = db
-        self.entity_class = entity_class
-        self.kind = kind(entity_class())
+        self.klass = type(klass) == str and dict or klass
+        self.kind = type(klass) == str and klass or kind(klass())
 
     def put(self, entity):
         """
@@ -319,7 +329,7 @@ class EntityStore:
         cmd = 'select * from attributes where kind=%s and row_id in (%s)' % ('%s',','.join(['%s']*len(keys)))
         rs = self.db(cmd, self.kind, *keys)
 
-        result = entify(rs, self.entity_class)
+        result = entify(rs, self.klass)
 
         if as_list:
             return result
@@ -440,7 +450,7 @@ class EntityStore:
 
         """
         cmd = 'select * from attributes where kind="%s"' % (self.kind)
-        return entify(self.db(cmd), self.entity_class)
+        return entify(self.db(cmd), self.klass)
 
     def zap(self):
         """
