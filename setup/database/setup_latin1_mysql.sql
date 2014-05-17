@@ -1,12 +1,15 @@
 --
--- Zoom Database Structure - utf8
+-- Zoom Database Structure
 --
 
 
 --
 -- Table structure for table `log`
 --
+
 DROP TABLE IF EXISTS `log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `app` varchar(30) DEFAULT NULL,
@@ -22,13 +25,16 @@ CREATE TABLE `log` (
   PRIMARY KEY (`id`),
   KEY `log_status` (`status`),
   KEY `log_app` (`app`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=18042 DEFAULT CHARSET=latin1;
 
 
 --
 -- Table structure for table `auditlog`
 --
+
 DROP TABLE IF EXISTS `audit_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `audit_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `app` varchar(30) DEFAULT NULL,
@@ -41,23 +47,25 @@ CREATE TABLE `audit_log` (
   KEY `auditlog_app` (`app`),
   KEY `auditlog_subject2` (`subject2`),
   KEY `auditlog_subject1` (`subject1`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=18042 DEFAULT CHARSET=latin1;
 
 
 --
 -- Table structure for table `storage_entities`
 --
+
 drop table if exists storage_entities;
 create table if not exists storage_entities (
     id int not null auto_increment,
     kind      varchar(100),
     PRIMARY KEY (id)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+        ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 --
 -- Table structure for table `storage_values`
 --
+
 drop table if exists storage_values;
 create table if not exists storage_values (
     id int not null auto_increment,
@@ -67,7 +75,7 @@ create table if not exists storage_values (
     datatype  varchar(30),
     value     text,
     PRIMARY KEY (id)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 --
@@ -79,7 +87,7 @@ create table if not exists entities (
     kind      varchar(100),
     PRIMARY KEY (id),
     KEY `kind_key` (`kind`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 --
@@ -96,11 +104,12 @@ create table if not exists attributes (
     PRIMARY KEY (id),
     KEY `row_id_key` (`row_id`),
     KEY `kind_key` (`kind`)
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `dz_groups`
 --
+
 DROP TABLE IF EXISTS `dz_groups`;
 CREATE TABLE `dz_groups` (
   `groupid` int(11) NOT NULL auto_increment,
@@ -111,12 +120,34 @@ CREATE TABLE `dz_groups` (
   PRIMARY KEY  (`groupid`),
   UNIQUE KEY `name` (`name`),
   KEY `name_2` (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+
+--
+-- Table structure for table `dz_log`
+--
+
+DROP TABLE IF EXISTS `dz_log`;
+CREATE TABLE `dz_log` (
+  `entryid` int(11) NOT NULL auto_increment,
+  `product` varchar(30) default NULL,
+  `pageid` varchar(50) default NULL,
+  `jobid` varchar(10) default NULL,
+  `status` char(1) default NULL,
+  `user` varchar(30) default NULL,
+  `remoteaddr` varchar(15) default NULL,
+  `machine` varchar(25) default NULL,
+  `date` date default NULL,
+  `time` varchar(8) default NULL,
+  `comment` text,
+  PRIMARY KEY  (`entryid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 --
 -- Table structure for table `dz_members`
 --
+
 DROP TABLE IF EXISTS `dz_members`;
 CREATE TABLE `dz_members` (
   `userid` int(11) default NULL,
@@ -124,24 +155,25 @@ CREATE TABLE `dz_members` (
   UNIQUE KEY `contactid_2` (`userid`,`groupid`),
   KEY `contactid` (`userid`),
   KEY `groupid` (`groupid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 --
 -- Table structure for table `dz_sessions`
 --
+
 CREATE TABLE if not exists `dz_sessions` (
   `sesskey` varchar(32) NOT NULL default '',
   `expiry` int(11) NOT NULL default '0',
   `status` char(1) not null default 'D',
   `value` text NOT NULL,
   PRIMARY KEY  (`sesskey`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `dz_subgroups`
 --
+
 DROP TABLE IF EXISTS `dz_subgroups`;
 CREATE TABLE `dz_subgroups` (
   `groupid` int(11) default NULL,
@@ -149,12 +181,13 @@ CREATE TABLE `dz_subgroups` (
   UNIQUE KEY `groupid_2` (`groupid`,`subgroupid`),
   KEY `groupid` (`groupid`),
   KEY `subgroupid` (`subgroupid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 --
 -- Table structure for table `dz_users`
 --
+
 DROP TABLE IF EXISTS `dz_users`;
 CREATE TABLE `dz_users` (
   `userid` int(5) NOT NULL auto_increment,
@@ -172,13 +205,14 @@ CREATE TABLE `dz_users` (
   UNIQUE KEY `userid` (`loginid`),
   KEY `userid_2` (`loginid`),
   KEY `email` (`email`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
 
 --
 -- Dumping data for table `dz_groups`
 --
+
 LOCK TABLES `dz_groups` WRITE;
 /*!40000 ALTER TABLE `dz_groups` DISABLE KEYS */;
 INSERT INTO `dz_groups` VALUES
