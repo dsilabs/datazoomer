@@ -204,7 +204,8 @@ INSERT INTO `dz_groups` VALUES
     (26,'A','a_groups','Group application group','administrators'),
     (27,'A','a_forgot','Forgot Password','administrators'),
     (28,'A','a_blog','Blog','administrators'),
-    (29,'A','a_flags','Flags','administrators');
+    (29,'A','a_flags','Flags','administrators'),
+    (30,'A','a_settings','Settings','administrators');
 /*!40000 ALTER TABLE `dz_groups` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -221,17 +222,15 @@ INSERT INTO `dz_subgroups` VALUES
     ( 2,1),
     ( 5,1),
     ( 6,1),
-    ( 9,1),
     (12,1),
-    (13,1),
     (14,1),
     (16,1),
     (17,1),
-    (19,1),
     (20,1),
     (21,1),
     (22,1),
     (26,1),
+    (30,1),
 
 -- Users
     ( 4,2),
