@@ -123,7 +123,6 @@ def hbar(data, legend=None, options={}, *a, **k):
                 'barDirection': 'horizontal',
                 }
             },
-        'seriesColors': ['green','blue']
         }
 
     if len(data)>1:  
