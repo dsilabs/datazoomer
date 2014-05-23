@@ -67,15 +67,18 @@ def merge_options(a, b):
 
 PLUGIN = '\"\$\.jqplot\.(.*)"' 
 
-def render_options(options, default_options={}):
+def render_options(default_options, options, k={}):
     """Merges options with default options and inserts plugins"""
-    result = json.dumps(merge_options(default_options, options), sort_keys=True, indent=4)
+    combined = merge_options(merge_options(default_options, options), k)
+    result = json.dumps(combined, sort_keys=True, indent=4)
     return re.sub(PLUGIN, lambda a: '$.jqplot.'+a.group(1), result)
 
 
-def line(data, labels=None, options={}, *a, **k):
+def line(data, legend=None, options={}, *a, **k):
 
     chart_name = uuid.uuid4().hex
+
+    data = zip(*data)
 
     default_options = {
             'highlighter': {
@@ -91,51 +94,56 @@ def line(data, labels=None, options={}, *a, **k):
                 }
             }
 
-    if labels:
-        data = [zip(labels,series) for series in data]
+    if len(data)>1:  
+        labels, data = data[0], data[1:]
+        default_options['axes']['xaxis']['ticks'] = labels
+
+    if legend:
+        default_options['legend'] = dict(show='true', placement='insideGrid')
+        default_options['series'] = [dict(label=label) for label in legend]
 
     v = dict(
         name = chart_name,
         data = json.dumps(data),
-        options = render_options(default_options, options),
+        options = render_options(default_options, options, k),
         )
 
     return chart_tpl % v
 
-def hbar(data, labels=None, legend=None, options={}, *a, **k):
+def hbar(data, legend=None, options={}, *a, **k):
 
     chart_name = uuid.uuid4().hex
 
-    default_options = {
+    data = zip(*data)
 
+    default_options = {
         'seriesDefaults': {
             'renderer': '$.jqplot.BarRenderer',
             'rendererOptions': {
-                'barDirection': 'horizontal'
+                'barDirection': 'horizontal',
                 }
             },
-
-        'axes': {
-            'yaxis': {
-                'renderer': '$.jqplot.CategoryAxisRenderer',
-                'ticks': labels
-                }
-            },
-
+        'seriesColors': ['green','blue']
         }
+
+    if len(data)>1:  
+        labels, data = data[0], data[1:]
+        options['axes'] = dict(
+                yaxis=dict(
+                    renderer='$.jqplot.CategoryAxisRenderer',
+                    ticks=labels,
+                    )
+                )
 
     if legend:
         options['legend'] = dict(show='true', placement='outsideGrid')
         options['series'] = [dict(label=label) for label in legend]
 
-    if labels:
-        data = [zip(labels,series) for series in data]
-
     v = dict (
         name = chart_name,
-        data = data,
-        height = 400,
-        options = render_options(default_options, options),
+        data = json.dumps(data),
+        options = render_options(default_options, options, k),
     )
 
     return chart_tpl % v
+
