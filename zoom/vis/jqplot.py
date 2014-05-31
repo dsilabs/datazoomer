@@ -1,4 +1,5 @@
 
+from zoom import system
 import re
 import json
 import uuid
@@ -7,8 +8,6 @@ import uuid
 css = """
     .chart {
         height:300px; 
-        width:600px;
-        margin: 30px 0;
     }
     .jqplot-axis {
         font-size: 0.8em;
@@ -108,6 +107,9 @@ def line(data, legend=None, options={}, *a, **k):
         options = render_options(default_options, options, k),
         )
 
+    system.head.add(head)
+    system.css.add(css)
+
     return chart_tpl % v
 
 def hbar(data, legend=None, options={}, *a, **k):
@@ -143,6 +145,9 @@ def hbar(data, legend=None, options={}, *a, **k):
         data = json.dumps(data),
         options = render_options(default_options, options, k),
     )
+
+    system.head.add(head)
+    system.css.add(css)
 
     return chart_tpl % v
 
