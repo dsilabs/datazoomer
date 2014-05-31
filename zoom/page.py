@@ -21,6 +21,7 @@ class Page:
         self.theme    = system.theme
         self.js       = ''
         self.head     = ''
+        self.tail     = ''
 
     def render(self):
 
@@ -45,10 +46,19 @@ class Page:
                 self.app_title = name
             return '<!-- %s set to "%s" -->' % (thing, name)
 
+        def render_snippet(system_snippet, page_snippet):
+            return '\n'.join(system_snippet.union(set([page_snippet])))
+
+
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
 
         self.content = fill('<dz:set_','>',self.content,set_setting)
-            
+
+        self.js   = render_snippet(system.js, self.js)
+        self.css  = render_snippet(system.css, self.css)
+        self.head = render_snippet(system.head, self.head)
+        self.tail = render_snippet(system.tail, self.tail)
+
         template_pathname = system.theme_path 
         if template_pathname:
             template_filename = os.path.join(template_pathname, self.template+'.html')

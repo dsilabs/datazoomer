@@ -135,6 +135,11 @@ class System:
         self.errors   = []
         self.messages = []
 
+        self.js       = set()
+        self.css      = set()
+        self.head     = set()
+        self.tail     = set()
+
         self.show_errors = config.get('error','users','0') == '1'
 
         self.profile = config.get('system','profile','0') == '1'
