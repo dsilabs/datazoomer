@@ -74,5 +74,6 @@ div.content p img {
     padding: 0;
     display: block;
     background: #ffc;
+    border: 0;
 }
 
