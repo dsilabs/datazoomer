@@ -100,7 +100,7 @@ class CollectionView(View):
     def delete(self, key, confirm='YES'):
         c = self.collection
         if c.can_edit():
-            if confirm == 'YES':
+            if confirm != 'NO':
                 c = self.collection
                 record = c.locate(key)
                 if record:
@@ -151,7 +151,7 @@ class CollectionController(Controller):
     def delete(self, key, CONFIRM='YES'):
         c = self.collection
         if c.can_edit():
-            if CONFIRM != 'YES':
+            if CONFIRM == 'NO':
                 record = c.locate(key)
                 if record:
                     c.store.delete(record)
