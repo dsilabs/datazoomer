@@ -21,7 +21,7 @@ div.leaflet-map {
 """
 
 tpl = """
-    <div id="%(name)s" class="leaflet-map"></div>
+    <div id="%(name)s" %(klass)s></div>
     <script>
         var map = L.map('%(name)s').setView(%(center)s, %(zoom)s);
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -55,19 +55,23 @@ class Marker(object):
 
 class Map(object):
 
-    def __init__(self, center=CANADA_LL, zoom=3, markers=[]):
+    def __init__(self, center=CANADA_LL, zoom=3, markers=[], klass=None):
         self.center = center
         self.zoom = zoom
         self.markers = markers
+        self.klass = klass
 
     def render(self):
         vis_name = uuid.uuid4().hex
 
+        klass = 'class="%s"' % (self.klass or 'leaflet-map')
+
         system.head.add(head)
         system.css.add(css)
+
         a = []
         a.append(''.join(str(m) for m in self.markers))
-        return tpl % dict(self.__dict__, additions=''.join(a), name=vis_name)
+        return tpl % dict(self.__dict__, additions=''.join(a), name=vis_name, klass=klass)
 
     def __str__(self):
         return self.render()
