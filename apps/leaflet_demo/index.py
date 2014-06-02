@@ -1,11 +1,13 @@
 
 from zoom import * 
-from zoom.vis.leaflet import Marker, Map
+from zoom.vis.leaflet import Marker, Map, Icon
 
 BC_LL = [55,-125]
 CANADA_LL = [55,-95]
 
-VANCOUVER_MARKER = Marker([49.25, -123.1],'Vancouver')
+icon = Icon('orange', '/static/leaflet/images/marker-icon.orange.png')
+
+VANCOUVER_MARKER = Marker([49.25, -123.1],'Vancouver','orange')
 EDMONTON_MARKER = Marker([53.53, -113.5],'Edmonton')
 CALGARY_MARKER = Marker([51.5, -114],'Calgary')
 REGINA_MARKER = Marker([50.5, -104.6],'Regina')
@@ -15,7 +17,7 @@ OTTAWA_MARKER = Marker([45.4, -75.7],'Ottawa')
 
 def view():
 
-    m1 = Map(center=CANADA_LL, zoom=3, 
+    m1 = Map(center=CANADA_LL, zoom=3, icons=[icon],
             markers=[
                 VANCOUVER_MARKER,
                 EDMONTON_MARKER,
@@ -26,7 +28,7 @@ def view():
                 OTTAWA_MARKER,
                 ])
 
-    m2 = Map(center=BC_LL, zoom=4, 
+    m2 = Map(center=BC_LL, zoom=4, icons=[icon],  
             markers=[
                 VANCOUVER_MARKER,
                 ])
