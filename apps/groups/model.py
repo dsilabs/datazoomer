@@ -66,14 +66,11 @@ def audit_log(group):
         where subject2=%s 
         union select * 
         from audit_log 
-        where activity="add group" and subject1=%s 
-        union select * 
-        from audit_log 
-        where activity="remove group" and subject1=%s 
+        where activity in ("add group","remove group","create group","delete group") and subject1=%s 
         order by timestamp desc 
         limit 10
     """
-    return db(query, group, group, group)
+    return db(query, group, group)
 
 
 def get_group_apps(group):
@@ -195,10 +192,12 @@ class Groups:
 
     @classmethod
     def delete(self,id):
+        name = db('select name from dz_groups where groupid=%s', id)[0]['NAME']
         result = db('delete from dz_members where groupid=%s',id)
         result = db('delete from dz_groups where groupid=%s',id)
         result = db('delete from dz_subgroups where groupid=%s',id)
         result = db('delete from dz_subgroups where subgroupid=%s',id)
+        audit('delete group',name,'')
 
     @classmethod
     def update(cls, id, **values):
@@ -215,6 +214,7 @@ class Groups:
         values['NAME'] = values['NAME'].lower()
         table = db.table('dz_groups','GROUPID')
         id = table.insert(values)
+        audit('create group', values['NAME'], '')
         return id
     
 
