@@ -21,6 +21,7 @@ from validators import *
 
 from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown
+from request import route
 
 HINT_TPL = \
         """
@@ -1189,6 +1190,51 @@ class FileField(TextField):
     def assign(self, value):
         if hasattr(value, 'filename'):
             self.value = dict(filename=value.filename, value=value.value)
+
+
+class ImageField(SimpleField):
+    size = maxlength = 40
+    _type = 'file'
+    css_class = 'image_field'
+    no_image_url = '/static/images/no_photo.png'
+
+    def display_value(self):
+        r = route[-1] == 'edit' and route[:-1] or route
+        if self.value:
+            url = '/' + '/'.join(r) + '/image?name=' + self.name.lower()
+        else:
+            url = self.no_image_url
+        return '<img src="%(url)s">' % locals()
+
+    def edit(self):
+        input = tag_for(
+            'input',
+            name = self.name,
+            id = self.id,
+            size = self.size,
+            maxlength=self.maxlength,
+            Type = self._type,
+            Class = self.css_class,
+        )
+        delete_link = '<a href="delete_image?name=%s">delete %s</a>' % (self.name.lower(), self.label.lower())
+        if self.value:
+            input += '<br>' + delete_link + ' <br>' + self.display_value()
+        return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
+
+    def requires_multipart_form(self):
+        return True
+
+    def assign(self, value):
+        try:
+            try:
+                self.value = value.value
+            except AttributeError:
+                self.value = value
+        except AttributeError:
+            self.value = None
+
+    def evaluate(self):
+        return self.value and {self.name: self.value} or {}
 
 
 class Form(Fields):

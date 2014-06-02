@@ -1,59 +1,13 @@
 
-
 from zoom import *
 
 def is_manager(a):
     return user.is_member(['managers'])
 
-def get_url(f):
-    if len(route) == 1:
-        return '/static/images/no_photo.png'
-    else:
-        return '/' + '/'.join(route[:3] + [f.name.lower()])
-
 class MarkdownField(MemoField):
     def display_value(self):
         return markdown(self.value)
     
-class ImageField(SimpleField):
-    size = maxlength = 40
-    _type = 'file'
-    css_class = 'image_field'
-
-    def display_value(self):
-        url = self.url(self)
-        return '<img src="%(url)s">' % locals()
-
-    def edit(self):
-        input = tag_for(
-            'input', 
-            name = self.name,
-            id = self.id,
-            size = self.size,
-            maxlength=self.maxlength,
-            Type = self._type,
-            Class = self.css_class,
-        )
-        delete_link = '<a href="delete_%s">delete %s</a>' % (self.name.lower(), self.label.lower())
-        if self.value:
-            input += '<br>' + delete_link + ' <br>' + self.display_value()
-        return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
-
-    def requires_multipart_form(self):
-        return True
-
-    def assign(self, value):
-        try:
-            try:
-                self.value = value.value
-            except AttributeError:
-                self.value = value
-        except AttributeError:
-            self.value = None
-
-    def evaluate(self):
-        return self.value and {self.name: self.value} or {}
-
 contact_fields = Fields(
         TextField('Name', required, maxlength=80),
         TextField('Title'),
@@ -66,7 +20,7 @@ contact_fields = Fields(
         TextField('Province/State'),
         TextField('Country'),
         MarkdownField('Bio', hint='contact\'s short bio'),
-        ImageField('Photo', url=get_url)
+        ImageField('Photo')
         )
 
 class DefaultRecord(Record):
@@ -85,6 +39,7 @@ class ContactsContact(DefaultRecord):
     linked_name = property(lambda self: is_manager(self.key) and self.link or self.name)
     title_line = property(lambda self: calc_title_line(self))
     mdbio = property(lambda self: markdown(self.bio).encode('utf-8'))
+    photo_img = property(lambda a: '<img alt="%s" src="%s">' % (a.name,a.photo and (a.url+'/image?name=photo') or '/static/images/no_photo.png'))
 
 Contact = ContactsContact
 
@@ -114,7 +69,7 @@ class ContactsCollection(Collection):
     name = 'Contacts'
     item_name = 'Contact'
     labels = 'name', 'title', 'photo'
-    columns = 'linked_name', 'title', 'photo'
+    columns = 'linked_name', 'title', 'photo_img'
     entity = Contact
     store = store(Contact)
     url = url_for_app('contacts')

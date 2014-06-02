@@ -2,6 +2,7 @@
 from os import environ as env
 
 from zoom import *
+from zoom.response import PNGResponse
 
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
@@ -106,6 +107,11 @@ class CollectionView(View):
                 if record:
                     return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
 
+    def image(self, key, name):
+        record = self.collection.locate(key)
+        if record:
+            return PNGResponse(record[name])
+
 
 class CollectionController(Controller):
 
@@ -156,5 +162,12 @@ class CollectionController(Controller):
                 if record:
                     c.store.delete(record)
                     return redirect_to(c.url)
+
+    def delete_image(self, key, name):
+        record = self.collection.locate(key)
+        if record:
+            del record[name]
+            self.collection.store.put(record)
+            return redirect_to(url_for(record.url,'edit'))
 
 
