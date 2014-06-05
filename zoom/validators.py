@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
+import re, imghdr, cgi
 
 class Validator:
     """A content validator."""
@@ -142,6 +142,12 @@ def email_valid(email):
         r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE)  # domain
     return email_re.match(email)
 
+def image_mime_type_valid(s):
+    # check upload file against the more commonly browser supported mime types
+    accept = ['gif','jpeg','png','xbm','bmp']
+    if isinstance(s, cgi.FieldStorage) and s.file and imghdr.what('a',s.file.read()) in accept: return True
+    if not s or isinstance(s, (str,unicode)) and imghdr.what('a',s) in accept: return True
+    return False
 
 # Common Validators
 notnull = Validator("required", bool)
@@ -154,4 +160,4 @@ valid_password = MinimumLength(6)
 valid_new_password = MinimumLength(8)
 valid_url = URLValidator()
 valid_postal_code = PostalCodeValidator()
-
+image_mime_type = Validator("a supported image is required (gif, jpeg, png)", image_mime_type_valid)
