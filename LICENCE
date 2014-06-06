@@ -1,14 +1,14 @@
 
-    Copyright (c) 2005-2011 Dynamic Solutions Inc. (support@dynamic-solutions.com)
+    Copyright (c) 2005-2014 Dynamic Solutions Inc. (support@dynamic-solutions.com)
     
-    This file is part of Zoom.
+    This file is part of DataZoomer.
     
-    Zoom is free software; you can redistribute it and/or modify
+    DataZoomer is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
     
-    Zoom is distributed in the hope that it will be useful,
+    DataZoomer is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -16,4 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
+Note
+====
+
+DataZoomer is sometimes packaged directly with other software (listed
+in requirements.txt) to make it easy to deploy and maintain in some 
+circumstances.
+
+In these caes, copyright title to all 3rd party software distributed with 
+DataZoomer remains with the respective copyright holders as noted in those
+files.  Users are asked to read the 3rd Party Licenses referenced with those 
+assets.
+
 
