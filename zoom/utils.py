@@ -303,9 +303,9 @@ class RecordList(list):
             >>> class Person(Record): pass
             >>> class People(RecordList): pass
             >>> people = People()
-            >>> people.append(Person(id=1, name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
-            >>> people.append(Person(id=2, name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
-            >>> people.append(Person(id=3, name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
+            >>> people.append(Person(_id=1, name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
+            >>> people.append(Person(_id=2, name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
+            >>> people.append(Person(_id=3, name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
             >>> print people
             person
                 id  age  name    birthdate   
@@ -315,12 +315,23 @@ class RecordList(list):
                  3  35   Sam     1992-03-05  
             3 records
 
+            >>> people = People()
+            >>> people.append(Person(userid=1, name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
+            >>> people.append(Person(userid=2, name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
+            >>> people.append(Person(userid=3, name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
+            >>> print people
+            person
+            userid  age  name    birthdate   
+            ------- ---- ------- ----------- 
+            1       20   Joe     1992-05-05  
+            2       25   Samuel  1992-04-05  
+            3       35   Sam     1992-03-05  
+            3 records
+
         """
         if len(self)==0:
             return 'Empty list'
-        title=['%s\n    id  ' % kind(self[0])]
-        lines =['------- ']
-        fmtstr = ['%6d  ']
+        title=['%s\n' % kind(self[0])]
 
         data_lengths = {}
         for rec in self:
@@ -333,11 +344,21 @@ class RecordList(list):
         fields = data_lengths.keys()
         d = data_lengths
         fields.sort(lambda a,b:not d[a] and -999 or not d[b] and -999 or d[a]-d[b])
+
+        lines  = []
+        fmtstr = []
+
         if '_id' in fields:
             fields.remove('_id')
             fields.insert(0, '_id')
+            title.append('    id  ')
+            lines.append('------- ')
+            fmtstr.append('%6d  ')
+            ofields = fields[1:]
+        else:
+            ofields = fields
 
-        for field in fields[1:]:
+        for field in ofields:
             width = max(len(field),d[field])+1
             fmt = '%-' + ('%ds ' % width)
             fmtstr.append(fmt)
