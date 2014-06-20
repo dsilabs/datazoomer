@@ -56,15 +56,16 @@ def query(cmd, *a, **k):
 class MyView(View): 
 
     def index(self):
+        actions = 'System Messages', 'Choose Theme'
         form1 = my_form.edit()
         form2 = my_form.show()
         form3 = small_form.edit()
         name = 'a value'
         data = browse(query('select userid id, loginid username, email, phone from dz_users limit 10'))
-        return page(tpl, callback=locals().get)
+        return page(tpl, callback=locals().get, actions=actions)
 
-    def choose(self):
-        return page('Themes\n====\nSomeday that button might enable you to choose a theme to view the sample page with.\n\n [back](/sample)')
+    def choose_theme(self):
+        return page(markdown('Themes\n====\nSomeday that button might enable you to choose a theme to view the sample page with.\n\n [back](/sample)'))
 
     def information(self):
         message('This is an informational messsage')
@@ -78,7 +79,7 @@ class MyView(View):
         error('This is an error messsage')
         return home('messages')
 
-    def messages(self, **data):
+    def system_messages(self, **data):
         msg = \
 """
 System Messages

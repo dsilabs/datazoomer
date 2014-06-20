@@ -1,9 +1,10 @@
 
-from zoom import page
+from zoom import App
 
-def app():
-
-    t = 'system settings'
-    
-    return page(t, title='Settings')
+app = App()
+#def app():
+#
+    #t = 'system settings'
+    ##
+    #return page(t, title='Settings')
     

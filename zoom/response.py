@@ -90,6 +90,13 @@ class FileResponse(Response):
         self.headers['Content-Disposition'] = 'attachment; filename="%s"' % fileonly
         self.headers['Cache-Control'] = 'no-cache'
 
+class PDFResponse(FileResponse):
+    def __init__(self, filename, content=None):
+        FileResponse.__init__(self, filename, content)
+        self.headers['Content-type']  = 'application/pdf'
+        del self.headers['Content-Disposition']
+
+
 
 if __name__=='__main__':
     import doctest

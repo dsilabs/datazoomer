@@ -17,19 +17,25 @@
 
 import ConfigParser, os.path
 
-def p(path,*a):
-    return os.path.abspath(os.path.join(path,*a))
 
 class Config:
     def __init__(self, dz_conf_path, server_name):
 
+        def p(path, *a):
+            return os.path.abspath(os.path.join(path,*a))
+
+        def get_config(*a):
+            pathname = os.path.join(*a)
+            if os.path.exists(pathname):
+                config = ConfigParser.ConfigParser()
+                config.read(pathname)
+                return config
+
         # read the system config file - one per instance
         self.instance_path = p(dz_conf_path)
-        self.system_config = ConfigParser.ConfigParser()
-        self.system_config_pathname =os.path.join(self.instance_path, 'dz.conf')
-        if not os.path.exists(self.system_config_pathname):
+        self.system_config = get_config(self.instance_path, 'dz.conf')
+        if not self.system_config:
             raise Exception('Config file missing %s' % self.system_config_pathname)
-        self.system_config.read(self.system_config_pathname)
         try:
             sites_path = self.system_config.get('sites', 'path', 'sites')
             self.sites_path = os.path.join(self.instance_path, sites_path)
@@ -38,28 +44,29 @@ class Config:
             raise            
 
         # read the default config file - one per environment
-        self.default_config_pathname = os.path.join(self.sites_path, 'default', 'site.ini')
-        if not os.path.exists(self.default_config_pathname): # legacy location
-            self.default_config_pathname = os.path.join(self.sites_path, 'default.conf')
-        self.config = ConfigParser.ConfigParser()
-        self.config.read(self.default_config_pathname)
+        self.config = get_config(sites_path, 'default', 'site.ini')
+        if not self.config:
+            # legacy location
+            self.config = get_config(sites_path, 'default.conf')
+
+        if server_name:
+            self.site_config = get_config(sites_path, server_name, 'site.ini')
+            if not self.site_config:
+                # legacy location
+                self.site_config = get_config(sites_path, server_name, 'site.conf')
 
         # read the site config file - one per site
         self.site_path = os.path.join(self.sites_path, server_name)
-        self.site_config_pathname = os.path.join(self.site_path, 'site.ini')
-        if not os.path.exists(self.site_config_pathname):
-            self.site_config_pathname = os.path.join(self.site_path, 'site.conf')
-        self.site_config = ConfigParser.ConfigParser()
-        self.site_config.read(self.site_config_pathname)
+
 
     def get(self, section, option, default=None):
 
         def missing_report(section, option):
-            raise Exception('Unable to read [%s]%s from configs:\n%s\n%s\n%s' % (
+            raise Exception('Unable to read [%s]%s from configs:\n%s\n%s' % (
                 section, option,
-                self.system_config_pathname,
-                os.path.join(self.sites_path, 'default.conf'),
-                os.path.join(self.site_path, 'site.conf')))
+                #self.system_config_pathname,
+                os.path.join(self.sites_path, 'default.ini'),
+                os.path.join(self.site_path, 'site.ini')))
 
         try:
             return self.site_config.get(section, option)
@@ -72,6 +79,7 @@ class Config:
                     return default
                 else:
                     missing_report(section, option)
+
 
     def __str__(self):
         return '<Config: %s>' % repr([self.default_config_pathname, self.site_config_pathname])

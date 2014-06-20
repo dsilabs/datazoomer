@@ -1,4 +1,4 @@
-Sample  <a class="action" href="sample/messages">System Messages</a><a class="action" href="sample/choose">Choose Theme</a >
+Sample  
 ====
 This application displays a sample of (almost) all of the widgets and application elements that the Zoom platform offers.
 
@@ -120,7 +120,7 @@ I wish SmartyPants used named entities like `&mdash;`
 instead of decimal-encoded entites like `&#8212;`.
 
 
-f you want your page to validate under XHTML 1.0 Strict,
+If you want your page to validate under XHTML 1.0 Strict,
 you've got to put paragraph tags in your blockquotes:
 
     <blockquote>

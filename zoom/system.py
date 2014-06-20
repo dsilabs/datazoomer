@@ -7,6 +7,7 @@ import sys
 import timeit
 
 import database
+import db
 from request import request
 import config as cfg
 
@@ -100,14 +101,32 @@ class System:
         self.index = config.get('apps', 'index', 'index')
         self.home  = config.get('apps', 'home', 'home')
 
-        # connect to the database
+        # connect to the database and stores
+        db_engine = config.get('database','engine','mysql')
+        db_host   = config.get('database','dbhost','database')
+        db_name   = config.get('database','dbname','zoomdev')
+        db_user   = config.get('database','dbuser','testuser')
+        db_pass   = config.get('database','dbpass','password')
+
+        # legacy database module
         self.database = database.database(
-            config.get('database','engine','mysql'),
-            config.get('database','dbhost','database'),
-            config.get('database','dbname','zoomdev'),
-            config.get('database','dbuser','testuser'),
-            config.get('database','dbpass','password'),
-            )
+                db_engine,
+                db_host,
+                db_name,
+                db_user,
+                db_pass,
+                )
+
+        # new (experimental) database module
+        db_params = dict(
+                engine = db_engine,
+                host = db_host,
+                db = db_name,
+                user = db_user,
+                )
+        if db_pass:
+            db_params['password'] = db_pass
+        self.db = db.database(**db_params)
             
         # email settings
         self.from_addr = system.config.get('mail','from_addr')
