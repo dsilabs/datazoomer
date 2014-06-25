@@ -15,7 +15,7 @@ class Page:
     def __init__(self,content='',callback=None,css=''):
 
         self.content  = tools.load_content(content) or content
-        self.template = 'default'
+        self.template = system.default_template
         self.callback = callback
         self.css      = css
         self.theme    = system.theme
@@ -87,7 +87,7 @@ def render(content='', items=None):
         t = content
     return t
 
-def page(content='', template='default', callback=None, css=None, js=None, title=None, search=None, actions=None, items=None, head=''):
+def page(content='', template=None, callback=None, css=None, js=None, title=None, search=None, actions=None, items=None, head=''):
 
     def render_search(value):
         if value == None: 
@@ -126,7 +126,7 @@ def page(content='', template='default', callback=None, css=None, js=None, title
     page.css = css or ''
     page.js = js or ''
     page.callback = callback
-    page.template = template
+    page.template = template or system.default_template
     page.head = head
     return page
 

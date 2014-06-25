@@ -136,6 +136,7 @@ class System:
         self.theme = self.themes_path and config.get('theme','name','default')
         self.theme_path = existing(self.themes_path, self.theme)
         self.default_theme_path = existing(self.themes_path, 'default')
+        self.default_template = config.get('theme', 'template', 'default')
 
         # templates
         self.template_path = existing(self.theme_path, 'templates')
