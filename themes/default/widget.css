@@ -302,6 +302,9 @@
         vertical-align:top;
         text-transform:capitalize;
     }
+    .baselist table tbody > tr > td:first-child {
+        white-space:nowrap;
+    }
 
     .baselist tr { line-height: 25px; }
     .baselist tr p { line-height: 1em; }
