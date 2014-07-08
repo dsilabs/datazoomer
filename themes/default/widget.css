@@ -193,7 +193,6 @@
         margin-right: 2px;
     }
 
-
 /* Flags, likes, etc.
 ==========================*/
 .flag {
@@ -379,6 +378,9 @@
             to(#000));
         color: #fff;
         border-color: #000;
+    }
+    div.baselist img {
+        width: 120px;
     }
 
 /* Login
