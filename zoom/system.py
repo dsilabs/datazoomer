@@ -10,13 +10,9 @@ import database
 import db
 from request import request
 import config as cfg
+from users import UserStore
 
 env = os.environ
-
-class User:
-    def __init__(self):
-        self.groups = ''
-        self.is_admin = '' 
 
 class NoApp:
     name  = 'noapp'
@@ -127,6 +123,9 @@ class System:
         if db_pass:
             db_params['passwd'] = db_pass
         self.db = db.database(**db_params)
+
+        # users (experimental)
+        self.users = UserStore(self.db)
             
         # email settings
         self.from_addr = system.config.get('mail','from_addr')
