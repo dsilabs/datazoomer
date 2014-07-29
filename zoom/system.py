@@ -125,7 +125,7 @@ class System:
                 user = db_user,
                 )
         if db_pass:
-            db_params['password'] = db_pass
+            db_params['passwd'] = db_pass
         self.db = db.database(**db_params)
             
         # email settings
