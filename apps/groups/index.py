@@ -145,7 +145,7 @@ class CollectionView(View):
             group.descr,
             group.admin or '',
             ) for group in Groups.user_groups(not user.is_admin and user.groups)]
-        content =  browse(items, labels=self.labels)
+        content =  browse(items, labels=self.labels, footer='%d groups' % len(items))
 
         # render content separately because markdown is slow for long tables
         p = page('<page_content>', title=self.collection_name, actions=actions)
