@@ -140,9 +140,14 @@ class CollectionView(View):
 
     def index(self):
         actions = 'New',
+
+        cmd = 'select groupid, count(*) from dz_members a, dz_users b where a.userid=b.userid group by groupid'
+        user_counts = dict(system.db(cmd))
+
         items = [(
             link_to(group.name or 'missing','/groups/%s'%group.groupid),
             group.descr,
+            user_counts.get(group.groupid,''),
             group.admin or '',
             ) for group in Groups.user_groups(not user.is_admin and user.groups)]
         content =  browse(items, labels=self.labels, footer='%d groups' % len(items))
@@ -253,7 +258,7 @@ class GroupView(CollectionView):
     collection_name = 'Groups'
     collection_fields = group_fields
     item_name = 'Group'
-    labels = 'Group Name','Description','Administrators'
+    labels = 'Group Name','Description','User Count','Administrators'
 
 class GroupController(CollectionController): pass
 
