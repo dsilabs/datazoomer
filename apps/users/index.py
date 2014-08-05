@@ -69,7 +69,12 @@ class CollectionView(View):
 
     def index(self, q='', showall=''):
 
-        many_records = db('select count(*) cnt from dz_users')[0].CNT > 50
+        def match(r, text):
+            texts = [t for t in r.as_dict().values() if type(t)==str]
+            return any(text.lower() in t for t in texts)
+
+        many_records = len(system.users) > 5
+
         options = Storage(index_recent=many_records)
         actions = []
 
@@ -89,20 +94,30 @@ class CollectionView(View):
 
         items = []
         for user in users:
-            item = dict(
-                    username = link_to(user.loginid or user.userid,'/users/%s'%user.userid),
-                    sort_by = user.loginid and user.loginid.lower(),
-                    name = (user.firstname or '') +' '+ (user.lastname or ''),
-                    email = user.email,
-                    phone = user.phone,
-                    registered = user.dtadd,
-                    last_seen = how_long_ago(user.timestamp)
-                    )
-            if not q or q.lower() in repr(item).lower():
+            if not q or match(user, q):
+                item = dict(
+                        username = link_to(user.loginid or user.userid,'/users/%s'%user.userid),
+                        sort_by = user.loginid and user.loginid.lower(),
+                        name = (user.firstname or '') +' '+ (user.lastname or ''),
+                        email = user.email,
+                        phone = user.phone,
+                        registered = user.dtadd,
+                        last_seen = how_long_ago(user.timestamp)
+                        )
                 items.append(item)
 
+        user_count = len(items)
+        if q:
+            footer = '%s users found' % user_count
+        elif user_count <> len(system.users):
+            footer = '%s most recent users of %s total users' % (user_count, len(system.users))
+        else:
+            footer = '%s users' % user_count
+        #user_count = q and len(items) or len(system.users)
+            #footer = user_count==1 and '1 user' or ('%d users' % user_count) + (q and ' found' or '')
+
         labels= self.labels
-        return page(browse(items, labels=labels), title=title, search=q, actions=actions)
+        return page(browse(items, labels=labels, footer=footer), title=title, search=q, actions=actions)
         
     def clear(self):
         return redirect_to('/%s' % system.app.name)
