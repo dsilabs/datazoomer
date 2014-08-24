@@ -1,6 +1,6 @@
 """
 
-    Database
+    Database (deprecated)
 
     Some of this code is based on the Lazy DB code by John B. Dell'Aquila found
     in the Python Cookbook.

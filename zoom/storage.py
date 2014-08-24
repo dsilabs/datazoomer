@@ -1,3 +1,6 @@
+"""
+    entity storage (deprecated)
+"""
 # Copyright (c) 2005-2011 Dynamic Solutions Inc. (support@dynamic-solutions.com)
 #
 # This file is part of DataZoomer.
