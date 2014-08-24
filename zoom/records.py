@@ -196,7 +196,7 @@ class RecordStore(object):
             <Person {'name': 'Sam', 'age': 15}>
             >>> people.put(Person(name='Jim',age=21))
             2L
-            >>> people
+            >>> print people
             person
                 id  age  name  
             ------- ---- ----- 
@@ -513,9 +513,9 @@ class RecordStore(object):
         """
         return self.all()[n]
 
-    def __repr__(self):
+    def __str__(self):
         """
-        representation of records
+        format for people
 
             >>> db = setup_test()
             >>> class Person(Record): pass
@@ -524,7 +524,7 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Sally', age=55))
             >>> id = people.put(Person(name='Bob', age=25))
-            >>> print repr(people)
+            >>> print people
             person
                 id  age  name   
             ------- ---- ------ 
@@ -532,9 +532,32 @@ class RecordStore(object):
                  2  55   Sally  
                  3  25   Bob    
             3 records
+            >>> people.zap()
+            >>> print people
+            Empty list
 
         """
         return str(self.all())
+
+    def __repr__(self):
+        """
+        unabiguous representation
+
+            >>> db = setup_test()
+            >>> class Person(Record): pass
+            >>> class People(RecordStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam', age=25))
+            >>> id = people.put(Person(name='Sally', age=55))
+            >>> id = people.put(Person(name='Bob', age=25))
+            >>> people
+            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Sally', 'age': 55}>, <Person {'name': 'Bob', 'age': 25}>]
+            >>> people.zap()
+            >>> people
+            []
+
+        """
+        return repr(self.all())
 
 def records(klass=dict):
     return RecordStore(db, klass)
