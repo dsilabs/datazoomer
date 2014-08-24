@@ -625,6 +625,9 @@ class EntityStore:
             return self.get(rs[0].ROW_ID)
 
     def __repr__(self):
+        return repr(self.all())
+
+    def __str__(self):
         return str(self.all())
 
 Store = EntityStore
