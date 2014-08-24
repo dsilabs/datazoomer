@@ -1,7 +1,5 @@
 """
-    db
-
-    a database module that does less
+    a database that does less
 """
 
 import MySQLdb
@@ -28,7 +26,19 @@ class Result(object):
     def __len__(self):
         return self.cursor.rowcount
 
+    def __str__(self):
+        """nice for humans"""
+        labels = [' %s '%i[0] for i in self.cursor.description]
+        values = [[' %s ' % i for i in r] for r in self]
+        allnum = [all(v[i][1:-1].translate(None,'.').isdigit() for v in values) for i in range(len(labels))]
+        widths = [max(len(v[i]) for v in [labels] + values) for i in range(len(labels))]
+        fmt    = ' ' + ' '.join(['%' + (not allnum[i] and '-' or '') + '%ds' % w for i,w in enumerate(widths)])
+        lines  = ['-' * (w) for w in widths]
+        result = '\n'.join(fmt%tuple(i) for i in [labels] + [lines] + values)
+        return result
+
     def __repr__(self):
+        """useful and unabiguous"""
         return repr(list(self))
 
     def first(self):
