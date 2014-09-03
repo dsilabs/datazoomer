@@ -13,7 +13,7 @@
 
 	<Directory /work/web/www/>
 
-		Options Indexes FollowSymLinks MultiViews +ExecCGI
+		Options Indexes FollowSymLinks MultiViews ExecCGI
 
         AcceptPathInfo On
 
