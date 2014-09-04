@@ -7,8 +7,11 @@
 	DocumentRoot /work/web/www
 	<Directory />
 		AllowOverride None
+                # 2.2, but not a syntax error in 2.4
 		Order allow,deny
 		allow from all
+                # 2.4
+                Require all granted
 	</Directory>
 
 	<Directory /work/web/www/>
