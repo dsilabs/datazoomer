@@ -292,6 +292,25 @@ class Record(Storage):
             return '<%s {%s}>' % (name, ', '.join('%s: %s' % (k,v) for k,v in t))
 
 
+class DefaultRecord(Record):
+    """
+    A Record with default values
+
+        >>> class Foo(DefaultRecord): pass
+        >>> foo = Foo(name='Sam')
+        >>> foo.name
+        'Sam'
+        >>> foo.phone
+        ''
+    """
+
+    def __getitem__(self, name):
+        try:
+            return Record.__getitem__(self, name)
+        except KeyError:
+            return ''
+
+
 class RecordList(list):
     """a list of Records"""
 
