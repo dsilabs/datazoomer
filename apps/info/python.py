@@ -2,6 +2,7 @@
 from zoom import *
 import sys
 import markdown
+import platform
 
 def view():
 
@@ -18,6 +19,7 @@ def view():
 
     items['path'] = '<br>'.join(sys.path)
     items['platform'] = sys.platform
+    items['node'] = platform.node()
     
     fmt = '<tr><td><pre>%-20s</pre></td><td><pre>%s</pre></td></tr>\n'
     x = [(fmt % (k,v)) for k,v in items.items()]
