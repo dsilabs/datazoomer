@@ -46,14 +46,23 @@ class System:
             if pathname and os.path.exists(pathname):
                 return pathname
 
+        self.debugging = True
         self.start_time  = timeit.default_timer()
         self.lib_path = os.path.split(os.path.abspath(__file__))[0]
+
+        if not os.path.exists(os.path.join(instance_path, 'dz.conf')):
+            raise Exception('instance missing %s' % os.path.abspath(instance_path))
         self.instance_path = os.path.abspath(instance_path)
 
         if '.' not in sys.path:
             sys.path.insert(0, '.')
 
         self.config = config = cfg.Config(instance_path,request.server)
+
+        if not os.path.exists(config.sites_path):
+            raise Exception('sites missing %s' % config.sites_path)
+
+        self.debugging = config.get('errors','debugging','0') == '1'
 
         self.request = request
         self.server_name = request.server  #env.get('SERVER_NAME','localhost')
@@ -166,6 +175,7 @@ class System:
         self.webhook = config.get('webhook','url','')
 
         self.logging = config.get('log', 'logging', True) not in ['0','False','off','no',False]
+
 
     def setup_test(self):
         # connect to the database

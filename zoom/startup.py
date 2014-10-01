@@ -49,6 +49,8 @@ The <dz:site_name> Team.<br>
 
 STANDARD_ERROR_MESSAGE = '<H1>Whoops!</H1><pre>%(message)s</pre>'
 
+SYSTEM_ERROR_MESSAGE = '<H1>System Error</H1><pre>%(message)s</pre>'
+
 SESSION_EXPIRED_MESSAGE = 'Your session has expired.  Please <a href="/login">login</a>.'
 
 RESTRICTED_ACCESS_MESSAGE = "<H1>Restricted Access</H1>This site is for authorized users only.  Please contact <dz:owner_name> for more information."
@@ -132,12 +134,22 @@ def generate_response(instance_path):
         except:
             t = traceback.format_exc()
             logger.error(t)
-            if system.show_errors or user.is_developer or user.is_administrator:
-                msg = load_template('system_application_error_developer', STANDARD_ERROR_MESSAGE)
-                response = Page(msg % dict(message=t)).render()
+            if system.debugging or system.show_errors or user.is_developer or user.is_administrator:
+                try:
+                    tpl = load_template('system_application_error_developer', STANDARD_ERROR_MESSAGE)
+                    msg = tpl % dict(message=t)
+                except:
+                    msg = SYSTEM_ERROR_MESSAGE % dict(message=t)
             else:
-                msg = load_template('system_application_error_user', FRIENDLY_ERROR_MESSAGE)
+                try:
+                    msg = load_template('system_application_error_user', FRIENDLY_ERROR_MESSAGE)
+                except:
+                    msg = FRIENDLY_ERROR_MESSAGE
+
+            try:
                 response = Page(msg).render()
+            except:
+                response = HTMLResponse(msg)
 
         if profiler:
             stats_s = StringIO.StringIO()
