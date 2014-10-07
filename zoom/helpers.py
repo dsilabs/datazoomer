@@ -176,7 +176,7 @@ def h(html_code):
 
 def title():
     """Returns application title."""
-    return system.app.title
+    return site_name() + ' ' + system.app.title
 
 def removal_icon(url):
     """Generates a removal icon"""
