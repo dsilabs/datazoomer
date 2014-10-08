@@ -241,8 +241,22 @@
 
 /* Message Boxes
 ==========================*/
-    .content div.errors ul, div.warnings ul, div.messages ul { padding: 0.5em; border-style:solid; border-width:medium; margin:0; }
-    .content div.errors li, div.warnings li, div.messages li { list-style-type:none; padding: 0.25em; margin:0; }
+    .content div.errors ul,
+    .content div.warnings ul,
+    .content div.messages ul {
+        padding: 0.5em;
+        border-style: solid;
+        border-width:medium;
+        margin:0;
+        margin-top: 5px;
+    }
+    .content div.errors li,
+    .content div.warnings li,
+    .content div.messages li {
+        list-style-type: none;
+        padding: 0.25em;
+        margin:0;
+    }
 
     .messages { color: green; background-color: #ddeedd; }
     .warnings { color: #A66E00; background-color: #FFEA73; }
