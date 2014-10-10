@@ -87,7 +87,7 @@ def render(content='', items=None):
         t = content
     return t
 
-def page(content='', template=None, callback=None, css=None, js=None, title=None, search=None, actions=None, items=None, head=''):
+def page(content='', template=None, callback=None, css=None, js=None, title=None, subtitle=None, search=None, actions=None, items=None, head=''):
 
     def render_search(value):
         if value == None: 
@@ -103,6 +103,7 @@ def page(content='', template=None, callback=None, css=None, js=None, title=None
 <table id="title_bar"><tr>
 <td id="title_bar_left">
 <H1>%(title)s</H1>
+%(subtitle)s
 </td>
 <td id="title_bar_right">
 %(actions)s
@@ -118,7 +119,11 @@ def page(content='', template=None, callback=None, css=None, js=None, title=None
 
     system.result = page = Page()
     if title or actions:
-        page_header = header_layout % dict(title=title or '', search=render_search(search), actions=as_actions(actions))
+        page_header = header_layout % dict(
+                title=title or '', 
+                subtitle=subtitle or '',
+                search=render_search(search), 
+                actions=as_actions(actions))
     else:
         page_header = ''
 
