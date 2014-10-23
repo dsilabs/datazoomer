@@ -1,19 +1,20 @@
 
-Zoom 
+DataZoomer
 ====
 The python web platform that does less.
 
-Zoom is a simple application platform for building dynamic web sites quickly.
+DataZoomer is a simple application platform for building dynamic web sites quickly.
 
+http://www.datazoomer.com
 
 License
 ----
-Zoom is free software; you can redistribute it and/or modify
+DataZoomer is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
-Zoom is distributed in the hope that it will be useful,
+DataZoomer is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
