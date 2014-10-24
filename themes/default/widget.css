@@ -99,9 +99,16 @@
     div input { padding-right: 5px; padding-left: 5px; }
     div textarea { padding: 5px; }
     
-    input.radio { height: 1em; position:relative; top:2px; border:0; }
-    span.radio { margin-right:10px; }
-    span.radio input { height: 1em; position:relative; top:2px; border:0; margin:2px; }
+    span.radio { margin-right:10px; display: inline; padding: 0; }
+    .content span.radio input[type="radio"] { 
+        display: inline; 
+        float: none; 
+        height: 1em; 
+        border: 0; 
+        margin: 2px; 
+        vertical-align: middle;
+    }
+
     select.pulldown { height: 29px; line-height:2em; font-size:14px; }
 
     div.content .action,
