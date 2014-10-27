@@ -867,6 +867,26 @@ class MultiselectField(TextField):
         content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
         return layout_field(self.label, content)
 
+class ChosenMultiselectField(MultiselectField):
+
+    def widget(self):
+        current_labels = self._scan(self.value or self.default, lambda a: a[0])
+        result = []
+        name = self.name
+        result.append('<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="%s" id="%s">\n'%(name,name))
+        for option in self.options:
+            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+                label, value = option
+            else:
+                label, value = option, option
+            if label in current_labels:
+                result.append('<option value="%s" selected>%s</option>' % (value,label))
+            else:
+                result.append('<option value="%s">%s</option>' % (value,label))
+        result.append('</select>')
+        return ''.join(result)
+
+
 class Button(Field):
     """
     Button field.

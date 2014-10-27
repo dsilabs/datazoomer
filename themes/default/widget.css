@@ -5,9 +5,9 @@
 
 /* Input
 ==========================*/
-    .field       { overflow: auto; padding: 2px 0; line-height: 2em; display:block; width:100%; font-size: 14px; }
+    .field       { overflow: visible; padding: 2px 0; line-height: 2em; min-height: 2em; display:block; width:100%; font-size: 14px; }
     .field_label { float:left; text-align:right; padding-right:10px; line-height:2em; min-width:25%; width:25%; color: #666; }
-    .field_edit, .field_show { float:left; width:70%; line-height:2em; min-height:2em; }
+    .field_edit, .field_show { float:left; width:70%; line-height:2em; min-height:2em; margin-bottom: 0.25em; }
 
     .text_field { height: 2em; border: 1px solid #aaaaaa; }
     textarea.memo_field { border: 1px solid #aaaaaa; }
@@ -19,6 +19,7 @@
     .field_edit .memo_field  { border: 1px solid #aaaaaa; cols:60; min-height:8em; }
     .field_edit .multiselect { border: 1px solid #aaaaaa; min-height:8em; min-width:180px; background: white; }
     .field_edit .pulldown    { height: 2em; min-width: 10em; }
+    .field_edit .chosen-container { margin-right: 5px; }
 
     /* checkbox */
     .field_edit input.checkbox_field {
@@ -84,7 +85,7 @@
     { margin-right: 0.5em; }
 
     div.content div.field_show p { margin: 0; padding: 0; }
-    div.content div.field_edit ul { margin: 0; padding: 0; }
+    div.content div.field_edit ul { margin: 0; }
     div.content form { margin: 0; padding: 0 }
 
     input, textarea {

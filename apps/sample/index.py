@@ -17,6 +17,7 @@ my_form = Fields(
             PhoneField('Phone',value='123-456-7890'),
             PulldownField('Province',value='Alberta',options=provinces,hint=large_hint),
             CheckboxesField('Provinces',value=['Alberta','Quebec'],values=provinces, hint=large_hint * 4),
+            ChosenMultiselectField('Places',value=['Victoria','Vancouver'], options=cities, hint='Uses the chosen widget'),
             MultiselectField('Cities',value=['Victoria','Vancouver'], options=cities, hint=large_hint * 4),
             CheckboxField('Notify Me', hint='this is a hint'),
             CheckboxField('Save Prefereces', value=True, hint='this is another hint'),
@@ -106,8 +107,7 @@ class MyController(Controller):
     def save_button(self, **data):
         if my_form.validate(data):
             message('looks good!')
-            return page('Form Variables\n====\nThe following data was posted\n\n<code>%s</code>\n\n[Return to Main Page](/sample)' % data)
-            return redirect_to(url)
+            return page(markdown('Form Variables\n====\nThe following data was posted\n\n<code>%s</code>\n\n[Return to Main Page](/sample)' % data))
         else:
             warning('please try again')
             error('missing data?')
