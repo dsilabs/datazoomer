@@ -13,15 +13,19 @@ class TableRecord(Record):
 def view(table_name=None):
 
     if table_name:
-        def rec_count(table_name):
-            d = db('select count(*) from %s' % table_name)
-            return d[0][0]
 
         data = db('describe %s'%table_name)
         labels = ['Field','Type','Null','Key','Default','Extra']
         items = [(i.FIELD,i.TYPE,i.NULL,i.KEY,i.DEFAULT,i.EXTRA) for i in data]
-        content = browse(items, labels=labels)
-        return page('<H2>%s</H2>%s' % (table_name, content), title='Tables')
+        description = browse(items, labels=labels, title='Fields')
+
+        data = db('show index in %s'%table_name)
+        items = data
+        indices = browse(items, title='Indices')
+
+        content = description + indices
+
+        return page(content, title=table_name.capitalize() + ' Table')
 
         
     else:
