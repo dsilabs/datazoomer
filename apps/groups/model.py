@@ -1,6 +1,7 @@
 
 from zoom import *
 import datetime
+from zoom.log import audit
 
 db = system.database
 
@@ -48,15 +49,6 @@ def last_group_update(name):
         if not latest or entry.timestamp > latest:
             latest = entry.timestamp
     return latest and how_long_ago(latest) or ''
-
-def audit(action, subject1, subject2):
-    """Place an entry in the audit log"""
-    query = """
-        insert into audit_log 
-        (app,user,activity,subject1,subject2,timestamp) 
-        values (%s,%s,%s,%s,%s,%s)
-        """
-    db(query, 'groups', user.login_id, action, subject1, subject2, now)
 
 def audit_log(group):
     """Retreive the most recent entries from the audit log"""
@@ -197,7 +189,7 @@ class Groups:
         result = db('delete from dz_groups where groupid=%s',id)
         result = db('delete from dz_subgroups where groupid=%s',id)
         result = db('delete from dz_subgroups where subgroupid=%s',id)
-        audit('delete group',name,'')
+        audit('delete group', name, '')
 
     @classmethod
     def update(cls, id, **values):

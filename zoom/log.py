@@ -87,6 +87,17 @@ class Logger:
         result = db(cmd,*values)
         
         return result
+
+def audit(action, subject1, subject2):
+    """Place an entry in the audit log"""
+    now = datetime.datetime.now()
+    query = """
+        insert into audit_log 
+        (app,user,activity,subject1,subject2,timestamp) 
+        values (%s,%s,%s,%s,%s,%s)
+        """
+    system.database(query, system.app.name, user.login_id, action, subject1, subject2, now)
+
                         
 logger = Logger()
 

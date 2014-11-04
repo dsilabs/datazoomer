@@ -4,6 +4,7 @@ import uuid
 from zoom import *
 from zoom.user import activate_user, deactivate_user, add_user, get_username, User as ZoomUser
 from zoom.fill import viewfill
+from zoom.log import audit
 
 db = system.database
 
@@ -61,9 +62,11 @@ class User:
 
     def activate(self):
         logger.log('I','user activated by %s' % user.username, username=self.username)
+        audit('activate user account', self.username, '')
         return activate_user(self.username)
         
     def deactivate(self):
+        audit('deactivate user account', self.username, '')
         return deactivate_user(self.username)
         
 class Users:
