@@ -58,6 +58,9 @@ class User:
         return '%(first_name)s %(last_name)s' % self
 
     def delete(self):
+        msg = '<a href="/users/%s">%s</a> deleted user %s' 
+        logger.activity('users', msg % (user.id, user.username, self.username))
+        audit('delete user account', self.username, '')
         return Users.delete(self.id) 
 
     def activate(self):
