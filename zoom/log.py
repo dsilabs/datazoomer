@@ -88,7 +88,7 @@ class Logger:
         
         return result
 
-def audit(action, subject1, subject2):
+def audit(action, subject1, subject2=''):
     """Place an entry in the audit log"""
     now = datetime.datetime.now()
     query = """

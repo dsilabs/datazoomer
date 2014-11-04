@@ -44,6 +44,7 @@ class CollectionController(Controller):
                 username = get_username(id)
                 user = ZoomUser(username)
                 user.set_password(password)
+                audit('set user password', username)
                 if password_fields.evaluate()['RESEND_INVITATION'] == True:
                     recipients = [user.email]
                     tpl = load('welcome.md')
