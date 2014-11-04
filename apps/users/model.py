@@ -4,7 +4,7 @@ import uuid
 from zoom import *
 from zoom.user import activate_user, deactivate_user, add_user, get_username, User as ZoomUser
 from zoom.fill import viewfill
-from zoom.log import audit
+from zoom.log import audit, logger
 
 db = system.database
 
@@ -132,8 +132,12 @@ class Users:
         db('delete from dz_members where userid=%s', id) # make sure new users have no memberships
         add_user(values['LOGINID'], 'users')
 
-        user = ZoomUser(username)
-        user.set_password(password)
+        new_user = ZoomUser(username)
+        new_user.set_password(password)
+
+        msg = '<a href="/users/%s">%s</a> added new user <a href="/users/%s">%s</a>' 
+        logger.activity('users', msg % (user.id, user.username, new_user.id, new_user.username))
+        audit('created user account', new_user.username)
 
         if values['SEND_INVITATION'] == True:
             recipients = [values['EMAIL']]
