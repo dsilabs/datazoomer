@@ -12,8 +12,9 @@ class DzUsers(Record):
     key = property(lambda a: a.userid)
     first_name = property(lambda a: a.firstname)
     last_name = property(lambda a: a.lastname)
-    full_name = property(lambda a: a.firstname + a.lastname)
+    full_name = property(lambda a: a.firstname + ' ' + a.lastname)
     username = property(lambda a: a.loginid)
+
 
 User = DzUsers
 
