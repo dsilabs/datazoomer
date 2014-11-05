@@ -190,7 +190,7 @@ def SendMail(fromaddr,toaddr,subject,body,mailtype='plain',attachments=[]):
     server  = SMTP(smtp_host,smtp_port)
     if smtp_user and smtp_passwd:
         server.login(smtp_user,smtp_passwd)
-    server.sendmail(email_address(fromaddr), email_address(toaddr), message.as_string())
+    server.sendmail(email_address(fromaddr), [email_address(to) for to in toaddr], message.as_string())
     server.quit()
 
 class Attachment:
