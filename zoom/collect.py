@@ -3,6 +3,7 @@ from os import environ as env
 
 from zoom import *
 from zoom.response import PNGResponse
+from zoom.log import logger
 
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
@@ -42,6 +43,9 @@ class CollectionView(View):
         c = self.collection
         f = self.collection.fields
         actions = c.can_edit() and ['New'] or []
+
+        if q:
+            logger.activity(system.app.name, '%s searched %s with %r' % (user.link, c.name.lower(), q))
 
         items = sorted((i for i in c.store if not q or matches(i,q)), key=c.order)
 
@@ -118,14 +122,6 @@ class CollectionController(Controller):
     def __init__(self, collection):
         self.collection = collection
 
-    #def __init__(self, view):
-    #    if type(view) == CollectionView:
-    #        Controller.__init__(self, view)
-    #        self.collection = view.collection
-    #        self.view = view
-    #    else:
-    #        self.collection = view
-
     def create_button(self, *a, **data):
         c = self.collection
         if c.can_edit():
@@ -145,6 +141,7 @@ class CollectionController(Controller):
                     record.created_by = user.username
                     record.updated_by = user.username
                     c.store.put(record)
+                    logger.activity(system.app.name, '%s added %s %s' % (user.link, c.item_name.lower(), record.linked_name))
                     return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
@@ -160,13 +157,7 @@ class CollectionController(Controller):
                         record.updated = now
                         record.updated_by = user.username
                         c.store.put(record)
-
-                        #log.activity('{} edited {}'.format(user.link, record.link))
-                        #username = user.username
-                        #user_id = user.id
-                        #msg = '<a href="/users/%(user_id)s">%(username)s</a> logged in' % locals()
-                        #logger.activity('user %s successfully logged in' % USERNAME)
-
+                        logger.activity(system.app.name, '%s edited %s %s' % (user.link, c.item_name.lower(), record.linked_name))
                         return redirect_to(record.url)
 
     def delete(self, key, CONFIRM='YES'):
@@ -176,6 +167,7 @@ class CollectionController(Controller):
                 record = c.locate(key)
                 if record:
                     c.store.delete(record)
+                    logger.activity(system.app.name, '%s deleted %s %s' % (user.link, c.item_name.lower(), record.linked_name))
                     return redirect_to(c.url)
 
     def delete_image(self, key, name):

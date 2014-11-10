@@ -96,6 +96,17 @@ class Users:
                 status=result[0].status,
                 id=result[0].userid)
             return user
+        result = db('select * from dz_users where loginid=%s',id)
+        if result:
+            user = User(
+                first_name=result[0].firstname,
+                last_name=result[0].lastname,
+                email=result[0].email,
+                phone=result[0].phone,
+                username=result[0].loginid,
+                status=result[0].status,
+                id=result[0].userid)
+            return user
 
     @classmethod
     def delete(self,id):

@@ -140,6 +140,8 @@ def is_member(user, groups):
     return bool(set(items).intersection(user.groups))
 
 class User:
+    link = property(lambda a: '<a href="/users/%s">%s</a>' % (a.username,a.username))
+
     def __init__(self, login_id=None):
         if login_id:
             self.initialize(login_id)
