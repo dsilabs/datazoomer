@@ -118,6 +118,14 @@ class CollectionController(Controller):
     def __init__(self, collection):
         self.collection = collection
 
+    #def __init__(self, view):
+    #    if type(view) == CollectionView:
+    #        Controller.__init__(self, view)
+    #        self.collection = view.collection
+    #        self.view = view
+    #    else:
+    #        self.collection = view
+
     def create_button(self, *a, **data):
         c = self.collection
         if c.can_edit():
@@ -152,6 +160,13 @@ class CollectionController(Controller):
                         record.updated = now
                         record.updated_by = user.username
                         c.store.put(record)
+
+                        #log.activity('{} edited {}'.format(user.link, record.link))
+                        #username = user.username
+                        #user_id = user.id
+                        #msg = '<a href="/users/%(user_id)s">%(username)s</a> logged in' % locals()
+                        #logger.activity('user %s successfully logged in' % USERNAME)
+
                         return redirect_to(record.url)
 
     def delete(self, key, CONFIRM='YES'):

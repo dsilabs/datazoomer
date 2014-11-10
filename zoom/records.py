@@ -456,6 +456,54 @@ class RecordStore(object):
             return self.get(r[-1])
         return None
 
+    def search(self, text):
+        """
+        finds records that match search text
+
+            >>> db = setup_test()
+            >>> class Person(Record): pass
+            >>> class People(RecordStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam Adam Jones', age=25))
+            >>> id = people.put(Person(name='Sally Mary Smith', age=55))
+            >>> id = people.put(Person(name='Bob Marvin Smith', age=25))
+            >>> list(people.search('smi'))
+            [<Person {'name': 'Sally Mary Smith', 'age': 55}>, <Person {'name': 'Bob Marvin Smith', 'age': 25}>]
+            >>> list(people.search('bo smi'))
+            [<Person {'name': 'Bob Marvin Smith', 'age': 25}>]
+            >>> list(people.search('smi 55'))
+            [<Person {'name': 'Sally Mary Smith', 'age': 55}>]
+
+        """
+        def matches(item, terms):
+            v = [str(i).lower() for i in item.values()]
+            return all(any(t in s for s in v) for t in terms)
+        search_terms = list(set([i.lower() for i in text.strip().split()]))
+        for rec in self:
+            if matches(rec, search_terms):
+                yield rec
+
+    def filter(self, function):
+        """
+        finds records that match search text
+
+            >>> db = setup_test()
+            >>> class Person(Record): pass
+            >>> class People(RecordStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam Adam Jones', age=25))
+            >>> id = people.put(Person(name='Sally Mary Smith', age=55))
+            >>> id = people.put(Person(name='Bob Marvin Smith', age=25))
+            >>> list(people.filter(lambda a: 'Mary' in a.name))
+            [<Person {'name': 'Sally Mary Smith', 'age': 55}>]
+            >>> list(people.filter(lambda a: a.age < 40))
+            [<Person {'name': 'Sam Adam Jones', 'age': 25}>, <Person {'name': 'Bob Marvin Smith', 'age': 25}>]
+
+        """
+        for rec in self:
+            if function(rec):
+                yield rec
+
     def __iter__(self):
         """
         interates through records
