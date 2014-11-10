@@ -485,7 +485,7 @@ class RecordStore(object):
 
     def filter(self, function):
         """
-        finds records that match search text
+        finds records that satisfiy filter
 
             >>> db = setup_test()
             >>> class Person(Record): pass
