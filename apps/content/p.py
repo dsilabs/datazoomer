@@ -38,9 +38,16 @@ class PageController(Controller):
             new_name = make_page_name(new_page_name)
             if len(new_name) < 2:
                 error('page name needs be at least 2 characters long')
-            else:    
+            else:
+                old_pages = list_pages()
                 new_page_name = save_page(new_name,**k)
-                return redirect_to(url_for('/'+new_page_name+'.html'))
+                url = url_for('/'+new_page_name+'.html')
+                page_link = '<a href="%s">%s</a>' % (url,new_page_name+'.html')
+                if not new_page_name+'.html' in old_pages:
+                    logger.activity(system.app.name, '%s created page %s' % (user.link, page_link))
+                else:
+                    logger.activity(system.app.name, '%s edited page %s' % (user.link, page_link))
+                return redirect_to(url)
 
     def delete_button(self,*a,**k):
         confirm = k.get('confirm',True)
@@ -48,6 +55,7 @@ class PageController(Controller):
             page_name = '/'.join(a[:-1])
             message('<b>%s</b> deleted' % page_name)
             delete_page(page_name)
+            logger.activity(system.app.name, '%s deleted page %s.html' % (user.link, page_name))
             return redirect_to(url_for(app,'p'))
 
 
