@@ -11,6 +11,7 @@ import db
 from request import request
 import config as cfg
 from users import UserStore
+import session
 
 env = os.environ
 
@@ -176,10 +177,16 @@ class System:
 
         self.logging = config.get('log', 'logging', True) not in ['0','False','off','no',False]
 
+        self.session = session.Session(self)
+        self.session.load_session()
+
 
     def setup_test(self):
         # connect to the database
         self.database = database.database('mysql', 'database', 'test', 'testuser', 'password')
+
+        # create session
+        self.session = session.Session(self)
 
     def dump(self,name,*items):
         """Prints whatever is passed to it with escaped '<' and '>' characters"""

@@ -26,9 +26,7 @@ import os
 import Cookie
 import uuid
 
-from system import system
 from request import request, webvars
-from tools import db
 
 SESSION_COOKIE_NAME = 'dz4sid'
 SUBJECT_COOKIE_NAME = 'dz4sub'
@@ -55,27 +53,11 @@ def get_cookie(name):
         value = None
     return value
 
-def set_session_cookie(response, sid, host, lifespan, secure=True):
-    cookie = Cookie.SimpleCookie()
-
-    cookie[SESSION_COOKIE_NAME] = sid
-    cookie[SESSION_COOKIE_NAME]['httponly'] = True
-    cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
-
-    cookie[SUBJECT_COOKIE_NAME] = system.subject
-    cookie[SUBJECT_COOKIE_NAME]['httponly'] = True
-    cookie[SUBJECT_COOKIE_NAME]['expires'] = 365 * 24 * 60 * 60
-
-    if secure:
-        cookie[SESSION_COOKIE_NAME]['secure'] = True
-        cookie[SUBJECT_COOKIE_NAME]['secure'] = True
-
-    k,v = str(cookie).split(':',1)
-    response.headers[k] = v
-
-class Session:
+class Session(object):
     tablename = 'dz_sessions'
 
+    def __init__(self, system):
+        self._system = system
 
     def __repr__(self):
         return ', '.join(['%s="%s"' % (k,v) for (k,v) in zip(self.__dict__,self.__dict__.values()) if k[0]!='_'])
@@ -83,6 +65,25 @@ class Session:
 
     def __str__(self):
         return repr(self)
+
+
+    def set_session_cookie(self, response, sid, host, lifespan, secure=True):
+        cookie = Cookie.SimpleCookie()
+
+        cookie[SESSION_COOKIE_NAME] = sid
+        cookie[SESSION_COOKIE_NAME]['httponly'] = True
+        cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
+
+        cookie[SUBJECT_COOKIE_NAME] = self._system.subject
+        cookie[SUBJECT_COOKIE_NAME]['httponly'] = True
+        cookie[SUBJECT_COOKIE_NAME]['expires'] = 365 * 24 * 60 * 60
+
+        if secure:
+            cookie[SESSION_COOKIE_NAME]['secure'] = True
+            cookie[SUBJECT_COOKIE_NAME]['secure'] = True
+
+        k,v = str(cookie).split(':',1)
+        response.headers[k] = v
 
 
     def create_session_database(self):
@@ -99,13 +100,15 @@ class Session:
 
 
     def gc(self):
-        if system.config.get('session', 'destroy', True):
+        if self._system.config.get('session', 'destroy', True):
             cmd = 'DELETE FROM %s WHERE (expiry < %s) or (status="D")' % (self.tablename,'%s')
+            db = self._system.database
             db(cmd,time.time())
 
 
     def new_session(self,timeout=sessionLife):
         def trysid(sid):
+            db = self._system.database
             cmd = "INSERT INTO %s VALUES (%s,%s,'A','')" % (self.tablename,'%s','%s')
             try:
                 db(cmd,newsid,expiry)
@@ -140,6 +143,7 @@ class Session:
     def load_session(self):
 
         def load_existing(sid):
+            db = self._system.database
             cmd = "SELECT * FROM %s WHERE sesskey=%s AND expiry>%s and status='A'" %(self.tablename,'%s','%s')
             curs = db(cmd, sid, time.time())
             if len(curs):
@@ -158,7 +162,7 @@ class Session:
             self.new_session()
 
 
-    def save_session(self,response, sid=None, timeout=sessionLife):
+    def save_session(self, response, sid=None, timeout=sessionLife):
         sid = sid or self.sid
         expiry = time.time() + timeout * 60
         values = {}
@@ -167,15 +171,21 @@ class Session:
                 values[key] = self.__dict__[key]
         value = pickle.dumps(values)
         cmd = 'UPDATE %s SET expiry=%s, value=%s WHERE sesskey=%s' % (self.tablename,'%s','%s','%s')
+        db = self._system.database
         curs = db(cmd,expiry,value,sid)
-        set_session_cookie(response, session.sid, request.host, sessionLife, system.secure_cookies)
+        self.set_session_cookie(response, self.sid, request.host, sessionLife, self._system.secure_cookies)
 
 
     def destroy_session(self, sid=None):
         sid = sid or self.sid
+
+        system = self._system
         self.__dict__.clear()
+        self._system = system
+
+        db = self._system.database
         
-        if system.config.get('sessions', 'destroy', True):
+        if self._system.config.get('sessions', 'destroy', True):
             cmd = 'delete from %s where sesskey=%s' % (self.tablename, '%s')
             db(cmd, sid)
         else:
@@ -188,8 +198,6 @@ class Session:
             return self.__dict__[name]
         else:
             return None
-
-session = Session()
 
 if __name__ == '__main__':
     import unittest

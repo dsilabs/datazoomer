@@ -16,7 +16,7 @@ from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import session, SessionExpiredException, get_subject
+from session import SessionExpiredException, get_subject
 from request import request, data
 from user import user
 from manager import manager
@@ -75,7 +75,8 @@ def generate_response(instance_path):
     try:
         try:
             system.setup(instance_path)
-            session.load_session()
+            session = system.session
+
             user.setup()
             manager.setup()
 

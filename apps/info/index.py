@@ -18,7 +18,7 @@ def status_info():
         'now..............: %s' % tools.now,
         'route............: %s' % route,
         'webvars..........: %s' % webvars,
-        'session..........: %s' % session,
+        'session..........: %s' % system.session,
         'authentication...: %s' % system.authentication,
         'user.is_anonymous: %s' % user.is_anonymous,
         'user.is_authenticated: %s' % user.is_authenticated,

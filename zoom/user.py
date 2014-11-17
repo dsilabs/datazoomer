@@ -18,13 +18,12 @@
 import os
 import datetime
 
-from session import session
 from system import system
 
 def get_current_username():
     return \
         system.config.get('users','override','') or \
-        session.login_id or \
+        system.session.login_id or \
         os.environ.get('REMOTE_USER',None) or \
         system.guest or \
         None
@@ -150,12 +149,12 @@ class User:
 
     def login(self,login_id,password):
         if authenticate(login_id,password):
-            session.login_id = login_id
+            system.session.login_id = login_id
             self.initialize(login_id)
             return True
             
     def logout(self):
-        session.destroy_session()
+        system.session.destroy_session()
         return self.initialize()
             
     def set_password(self, password):

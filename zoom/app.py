@@ -19,7 +19,7 @@ def app():
     info.append(('data', request.data))
     info.append(('request', request))
     info.append(('user', user))
-    info.append(('session', session))
+    info.append(('session', system.session))
     info.append(('system', system))
     info.append(('config', system.config.__dict__))
     info.append(('ctx', web.ctx))

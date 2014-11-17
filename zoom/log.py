@@ -76,7 +76,7 @@ class Logger:
             system.app.name,
             feed or '/'.join(route),
             status,
-            username or user.login_id,
+            username or user.__dict__.get('login_id','unknown'),
             os.environ.get('REMOTE_ADDR',''),
             os.environ.get('LOGNAME',''),
             system.request.server,

@@ -4,7 +4,6 @@ from system import system
 from manager import manager
 import tools
 from request import request, webvars, route
-from session import session
 from user import user
 import html
 from zoom.utils import *
@@ -18,41 +17,41 @@ def elapsed(fmt='%f'):
 
 def warning(*text):
     """Adds one or more warnings to list of warnings to be displayed on next generated page."""
-    if not session.system_warnings:
-        session.system_warnings = []
+    if not system.session.system_warnings:
+        system.session.system_warnings = []
     for item in text:
-        session.system_warnings.append(item)
+        system.session.system_warnings.append(item)
 
 def error(*text):
     """Adds one or more errors to list of errors to be displayed on next generated page."""
-    if not session.system_errors:
-        session.system_errors = []
+    if not system.session.system_errors:
+        system.session.system_errors = []
     for item in text:
-        session.system_errors.append(item)
+        system.session.system_errors.append(item)
 
 def message(*text):
     """Adds one or more messages to list of messages to be displayed on next generated page."""
-    if not session.system_messages:
-        session.system_messages = []
+    if not system.session.system_messages:
+        system.session.system_messages = []
     for item in text:
-        session.system_messages.append(item)
+        system.session.system_messages.append(item)
 
 def warnings():
     """Returns an unordered list of warnings in HTML and clears the warning list."""
-    result = session.system_warnings and html.ul(session.system_warnings) or ''
-    session.system_warnings = []
+    result = system.session.system_warnings and html.ul(system.session.system_warnings) or ''
+    system.session.system_warnings = []
     return result
 
 def errors():
     """Returns an unordered list of errors in HTML and clears the errors list."""
-    result = session.system_errors and html.ul(session.system_errors) or ''
-    session.system_errors = []
+    result = system.session.system_errors and html.ul(system.session.system_errors) or ''
+    system.session.system_errors = []
     return result
 
 def messages():
     """Returns an unordered list of messages in HTML and clears the messages list."""
-    result = session.system_messages and html.ul(session.system_messages) or ''
-    session.system_messages = []
+    result = system.session.system_messages and html.ul(system.session.system_messages) or ''
+    system.session.system_messages = []
     return result
 
 def alerts():
@@ -221,7 +220,7 @@ def year():
 
 def session_id():
     """Returns the session ID."""
-    return str(session.sid)
+    return str(system.session.sid)
 
 def user_id():
     """Returns the user id."""
@@ -501,10 +500,10 @@ def select_field(label='',*args,**keywords):
     return format_field(label,select_input(*args,**keywords))
         
 def csrf_token():
-    if not session.csrf_token:
+    if not system.session.csrf_token:
         from uuid import uuid4
-        session.csrf_token = uuid4().hex
-    return session.csrf_token
+        system.session.csrf_token = uuid4().hex
+    return system.session.csrf_token
 
 def form(action='/'+'/'.join(route),*args,**keywords):
     """Returns a form tag."""
