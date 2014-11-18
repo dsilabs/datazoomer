@@ -5,7 +5,16 @@
 
 /* Input
 ==========================*/
-    .field       { overflow: visible; padding: 2px 0; line-height: 2em; min-height: 2em; display:block; width:100%; font-size: 14px; }
+    .field {
+        overflow: visible;
+        padding: 2px 0;
+        line-height: 2em;
+        min-height: 2em;
+        display:block;
+        width:100%;
+        font-size: 14px;
+        clear: both;
+    }
     .field_label { float:left; text-align:right; padding-right:10px; line-height:2em; min-width:25%; width:25%; color: #666; }
     .field_edit, .field_show { float:left; width:70%; line-height:2em; min-height:2em; margin-bottom: 0.25em; }
 
