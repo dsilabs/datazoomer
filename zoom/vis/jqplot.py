@@ -112,6 +112,44 @@ def line(data, legend=None, options={}, *a, **k):
 
     return chart_tpl % v
 
+def bar(data, legend=None, options={}, *a, **k):
+
+    chart_name = uuid.uuid4().hex
+
+    data = zip(*data)
+
+    default_options = {
+        'seriesDefaults': {
+            'renderer': '$.jqplot.BarRenderer',
+            'rendererOptions': { 'fillToZero': True, 'useNegativeColors': False }
+            },
+        }
+
+    if len(data)>1:  
+        labels, data = data[0], data[1:]
+        options['axes'] = dict(
+                xaxis=dict(
+                    renderer='$.jqplot.CategoryAxisRenderer',
+                    ticks=labels,
+                    )
+                )
+
+    if legend:
+        options['legend'] = dict(show='true', placement='outsideGrid')
+        options['series'] = [dict(label=label) for label in legend]
+
+    v = dict (
+        name = chart_name,
+        data = json.dumps(data),
+        options = render_options(default_options, options, k),
+    )
+
+    system.head.add(head)
+    system.css.add(css)
+
+    return chart_tpl % v
+
+
 def hbar(data, legend=None, options={}, *a, **k):
 
     chart_name = uuid.uuid4().hex
