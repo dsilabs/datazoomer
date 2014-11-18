@@ -20,6 +20,8 @@ import datetime
 
 from system import system
 
+TWO_WEEKS = 14 * 24 * 60 * 60
+
 def get_current_username():
     return \
         system.config.get('users','override','') or \
@@ -147,9 +149,11 @@ class User:
         self.is_developer = False
         self.is_administrator = False
 
-    def login(self,login_id,password):
-        if authenticate(login_id,password):
+    def login(self, login_id, password, remember_me=False):
+        if authenticate(login_id, password):
             system.session.login_id = login_id
+            if remember_me:
+                system.session.lifetime = TWO_WEEKS
             self.initialize(login_id)
             return True
             

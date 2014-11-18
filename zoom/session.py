@@ -164,7 +164,7 @@ class Session(object):
 
     def save_session(self, response, sid=None, timeout=sessionLife):
         sid = sid or self.sid
-        expiry = time.time() + timeout * 60
+        expiry = time.time() + self.__dict__.get('lifetime', timeout * 60)
         values = {}
         for key in self.__dict__.keys():
             if key[0] != '_':

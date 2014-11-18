@@ -15,7 +15,11 @@ def potential_attack(username):
     return len(security_issues) >= 5
 
 class LoginController(Controller):
-    def POST(self, USERNAME, PASSWORD, LOGIN_BUTTON='', url=''):
+    def POST(self, USERNAME, PASSWORD, LOGIN_BUTTON='', remember_me="", url=''):
+    #def POST(self, *a, **k):
+    #    print a, k
+        #print locals()
+        #return page('test')
         
         if LOGIN_BUTTON:
             if user_exists(USERNAME):
@@ -24,7 +28,7 @@ class LoginController(Controller):
                     deactivate_user(USERNAME)
                     logger.security('user account deactivated')
 
-                elif user.login(USERNAME, PASSWORD):
+                elif user.login(USERNAME, PASSWORD, bool(remember_me)):
                     username = user.username
                     user_id = user.id
                     msg = '<a href="/users/%(user_id)s">%(username)s</a> logged in' % locals()
