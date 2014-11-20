@@ -164,7 +164,8 @@ class Session(object):
 
     def save_session(self, response, sid=None, timeout=sessionLife):
         sid = sid or self.sid
-        expiry = time.time() + self.__dict__.get('lifetime', timeout * 60)
+        timeout_in_seconds = self.__dict__.get('lifetime', timeout * 60)
+        expiry = time.time() + timeout_in_seconds
         values = {}
         for key in self.__dict__.keys():
             if key[0] != '_':
@@ -173,7 +174,7 @@ class Session(object):
         cmd = 'UPDATE %s SET expiry=%s, value=%s WHERE sesskey=%s' % (self.tablename,'%s','%s','%s')
         db = self._system.database
         curs = db(cmd,expiry,value,sid)
-        self.set_session_cookie(response, self.sid, request.host, sessionLife, self._system.secure_cookies)
+        self.set_session_cookie(response, self.sid, request.host, timeout_in_seconds / 60, self._system.secure_cookies)
 
 
     def destroy_session(self, sid=None):
