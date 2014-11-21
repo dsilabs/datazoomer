@@ -12,6 +12,7 @@ from request import request
 import config as cfg
 from users import UserStore
 import session
+import settings
 
 env = os.environ
 
@@ -58,7 +59,39 @@ class System:
         if '.' not in sys.path:
             sys.path.insert(0, '.')
 
+        # system config file
         self.config = config = cfg.Config(instance_path,request.server)
+
+        # connect to the database and stores
+        db_engine = config.get('database','engine','mysql')
+        db_host   = config.get('database','dbhost','database')
+        db_name   = config.get('database','dbname','zoomdev')
+        db_user   = config.get('database','dbuser','testuser')
+        db_pass   = config.get('database','dbpass','password')
+
+        # legacy database module
+        self.database = database.database(
+                db_engine,
+                db_host,
+                db_name,
+                db_user,
+                db_pass,
+                )
+
+        # database module
+        db_params = dict(
+                engine = db_engine,
+                host = db_host,
+                db = db_name,
+                user = db_user,
+                )
+        if db_pass:
+            db_params['passwd'] = db_pass
+        self.db = db.database(**db_params)
+
+        from store import EntityStore
+        settings_store = EntityStore(self.database, settings.SystemSettings)
+        self.settings = settings.Settings(settings_store, 'system')
 
         if not os.path.exists(config.sites_path):
             raise Exception('sites missing %s' % config.sites_path)
@@ -106,33 +139,6 @@ class System:
         # apps
         self.index = config.get('apps', 'index', 'index')
         self.home  = config.get('apps', 'home', 'home')
-
-        # connect to the database and stores
-        db_engine = config.get('database','engine','mysql')
-        db_host   = config.get('database','dbhost','database')
-        db_name   = config.get('database','dbname','zoomdev')
-        db_user   = config.get('database','dbuser','testuser')
-        db_pass   = config.get('database','dbpass','password')
-
-        # legacy database module
-        self.database = database.database(
-                db_engine,
-                db_host,
-                db_name,
-                db_user,
-                db_pass,
-                )
-
-        # new (experimental) database module
-        db_params = dict(
-                engine = db_engine,
-                host = db_host,
-                db = db_name,
-                user = db_user,
-                )
-        if db_pass:
-            db_params['passwd'] = db_pass
-        self.db = db.database(**db_params)
 
         # users (experimental)
         self.users = UserStore(self.db)
@@ -184,6 +190,7 @@ class System:
     def setup_test(self):
         # connect to the database
         self.database = database.database('mysql', 'database', 'test', 'testuser', 'password')
+        self.db = db.database('mysql', 'database', 'test', 'testuser', passwd='password')
 
         # create session
         self.session = session.Session(self)

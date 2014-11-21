@@ -268,7 +268,7 @@ def upper(text):
     
 def site_name():
     """Returns the site name."""
-    return system.config.get('site','name','Your Site')
+    return system.settings.get('site_name')#, 'Your Site')
         
 def site(option,default=''):
     """Returns the site name."""
