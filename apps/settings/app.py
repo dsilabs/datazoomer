@@ -1,10 +1,9 @@
 
-from zoom import App
+import zoom
 
-app = App()
-#def app():
-#
-    #t = 'system settings'
-    ##
-    #return page(t, title='Settings')
-    
+app = zoom.App()
+
+zoom.system.app.menu = [
+    ('', 'System', ''),
+    ('', 'List', 'list'),
+]
