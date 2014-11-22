@@ -34,7 +34,7 @@ system_settings_form = Form(
 system_settings_form
 
 def get_defaults():
-    return system.settings.defaults()
+    return system.settings.defaults
 
 def initialize():
     # put field values back to what is in the system config files
