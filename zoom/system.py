@@ -91,7 +91,7 @@ class System:
 
         from store import EntityStore
         settings_store = EntityStore(self.database, settings.SystemSettings)
-        self.settings = settings.Settings(settings_store, 'system')
+        self.settings = settings.Settings(settings_store, config, 'system')
 
         if not os.path.exists(config.sites_path):
             raise Exception('sites missing %s' % config.sites_path)
@@ -188,6 +188,10 @@ class System:
 
 
     def setup_test(self):
+        # setup config
+        path = os.path.join(os.path.dirname(__file__),'../config')
+        self.config = config = cfg.Config(path, 'localhost')
+
         # connect to the database
         self.database = database.database('mysql', 'database', 'test', 'testuser', 'password')
         self.db = db.database('mysql', 'database', 'test', 'testuser', passwd='password')

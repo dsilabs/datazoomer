@@ -33,6 +33,7 @@ class Config:
 
         # read the system config file - one per instance
         self.instance_path = p(dz_conf_path)
+        self.system_config_pathname = os.path.join(self.instance_path, 'dz.conf')
         self.system_config = get_config(self.instance_path, 'dz.conf')
         if not self.system_config:
             raise Exception('Config file missing %s' % self.system_config_pathname)

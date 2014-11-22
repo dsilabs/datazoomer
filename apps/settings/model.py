@@ -34,20 +34,7 @@ system_settings_form = Form(
 system_settings_form
 
 def get_defaults():
-    return dict(
-        site_name     = system.config.get('site','name'),
-        site_slogan   = system.config.get('site','slogan'),
-        owner_name    = system.config.get('site','owner_name'),
-        owner_email   = system.config.get('site','owner_email'),
-        admin_email   = system.config.get('site','admin_email'),
-        smtp_host     = system.config.get('mail','smtp_host'),
-        smtp_port     = system.config.get('mail','smtp_port'),
-        smtp_user     = system.config.get('mail','smtp_user'),
-        smtp_password = system.config.get('mail','smtp_passwd'),
-        from_address  = system.config.get('mail','from_addr'),
-        logo_url      = system.config.get('mail','logo'),
-        gnugp_home    = system.config.get('mail','gnugp_home',''),
-        )
+    return system.settings.defaults()
 
 def initialize():
     # put field values back to what is in the system config files

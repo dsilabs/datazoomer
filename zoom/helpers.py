@@ -268,7 +268,7 @@ def upper(text):
     
 def site_name():
     """Returns the site name."""
-    return system.settings.get('site_name')#, 'Your Site')
+    return system.settings.get('site_name')
         
 def site(option,default=''):
     """Returns the site name."""
@@ -276,7 +276,7 @@ def site(option,default=''):
     
 def owner_name():
     """Returns the name of the site owner."""
-    return system.config.get('site','owner_name','Awesome Sites Inc.')
+    return system.settings.get('owner_name')
         
 def owner_url():
     """Returns the URL of the site owner."""
