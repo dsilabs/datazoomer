@@ -18,6 +18,16 @@ css = """
     .jqplot-yaxis {
         padding-right: 10px;
     }
+    .content .jqplot-table-legend {
+        border: none; 
+        padding: 0.4em 1.0em;
+    }
+    .content td.jqplot-table-legend-label {
+        padding: 0;
+    }
+    div.jqplot-table-legend-swatch-outline {
+        padding: 0;
+    }
 """
 css = css
 
@@ -177,6 +187,38 @@ def hbar(data, legend=None, options={}, *a, **k):
     if legend:
         options['legend'] = dict(show='true', placement='outsideGrid')
         options['series'] = [dict(label=label) for label in legend]
+
+    v = dict (
+        name = chart_name,
+        data = json.dumps(data),
+        options = render_options(default_options, options, k),
+    )
+
+    system.head.add(head)
+    system.css.add(css)
+
+    return chart_tpl % v
+
+
+def pie(data, legend=None, options={}, *a, **k):
+
+    chart_name = uuid.uuid4().hex
+
+    data = [[row[:2] for row in data]] # can only handle one series right now
+
+    default_options = {
+        'seriesDefaults': {
+            'renderer': '$.jqplot.PieRenderer',
+            'rendererOptions': {
+                'showDataLabels': True,
+                'sliceMargin': 5,
+                'shadow': False,
+                }
+            },
+        }
+
+    if legend:
+        options['legend'] = dict(show='true', location='e')
 
     v = dict (
         name = chart_name,
