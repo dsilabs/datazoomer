@@ -231,3 +231,41 @@ def pie(data, legend=None, options={}, *a, **k):
 
     return chart_tpl % v
 
+
+def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a, **k):
+
+    chart_name = uuid.uuid4().hex
+
+    data = [[data]];
+
+    default_options = {
+        'seriesDefaults': {
+            'renderer': '$.jqplot.MeterGaugeRenderer',
+            'rendererOptions': {
+                'min': 0,
+                'max': 5,
+                }
+            },
+        }
+
+    if label:
+        default_options['seriesDefaults']['rendererOptions']['label'] = label
+
+    if intervals:
+        default_options['seriesDefaults']['rendererOptions']['intervals'] = intervals
+        default_options['seriesDefaults']['rendererOptions']['labelPosition'] = 'bottom'
+
+    if interval_colors:
+        default_options['seriesDefaults']['rendererOptions']['intervalColors'] = interval_colors
+
+    v = dict (
+        name = chart_name,
+        data = json.dumps(data),
+        options = render_options(default_options, options, k),
+    )
+
+    system.head.add(head)
+    system.css.add(css)
+
+    return chart_tpl % v
+
