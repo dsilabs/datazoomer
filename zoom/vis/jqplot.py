@@ -269,3 +269,44 @@ def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a
 
     return chart_tpl % v
 
+
+def time_series(data, legend=None, time_format='%b %e', options={}, *a, **k):
+
+    chart_name = uuid.uuid4().hex
+
+    data = [[[r[0].strftime('%m/%d/%Y %H:%M:%S')]+list(r[n+1:n+2]) for r in data] for n in range(len(data[0])-1)]
+    min_date = min(r[0] for r in data[0])
+    max_date = max(r[0] for r in data[0])
+
+    default_options = {
+            'highlighter': {
+                'show': True,
+                'sizeAdjust': 2.5,
+                'tooltipSeparator': ' - ',
+                'tooltipAxes': 'y',
+                },
+            'axes': {
+                'xaxis': {
+                    'renderer': '$.jqplot.DateAxisRenderer',
+                    'tickOptions': { 'formatString': time_format },
+                    'min': min_date,
+                    'max': max_date,
+                    }
+                }
+            }
+
+    if legend:
+        default_options['legend'] = dict(show='true', placement='insideGrid')
+        default_options['series'] = [dict(label=label) for label in legend]
+
+    v = dict(
+        name = chart_name,
+        data = json.dumps(data),
+        options = render_options(default_options, options, k),
+        )
+
+    system.head.add(head)
+    system.css.add(css)
+
+    return chart_tpl % v
+
