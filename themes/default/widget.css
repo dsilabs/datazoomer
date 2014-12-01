@@ -117,6 +117,7 @@
         border: 0; 
         margin: 2px; 
         vertical-align: middle;
+        position: relative;
     }
 
     select.pulldown { height: 29px; line-height:2em; font-size:14px; }
