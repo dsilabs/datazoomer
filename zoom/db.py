@@ -24,13 +24,14 @@ class Result(object):
         return ResultIter(self.cursor)
 
     def __len__(self):
-        return self.cursor.rowcount
+        c = self.cursor.rowcount
+        return c > 0 and c or 0
 
     def __str__(self):
         """nice for humans"""
         labels = [' %s '%i[0] for i in self.cursor.description]
         values = [[' %s ' % i for i in r] for r in self]
-        allnum = [all(v[i][1:-1].translate(None,'.').isdigit() for v in values) for i in range(len(labels))]
+        allnum = [all(str(v[i][1:-1]).translate(None,'.').isdigit() for v in values) for i in range(len(labels))]
         widths = [max(len(v[i]) for v in [labels] + values) for i in range(len(labels))]
         fmt    = ' ' + ' '.join(['%' + (not allnum[i] and '-' or '') + '%ds' % w for i,w in enumerate(widths)])
         lines  = ['-' * (w) for w in widths]
@@ -78,6 +79,11 @@ class Database(object):
 
         >>> db('select * from person')
         [(1L, 'Joe', 32, None, None, None)]
+
+        >>> print db('select * from person')
+          id   name   age   kids   birthdate   salary 
+         ---- ------ ----- ------ ----------- --------
+           1   Joe     32   None   None        None   
 
         >>> from decimal import Decimal
         >>> amt = Decimal('1234.56')
