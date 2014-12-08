@@ -228,7 +228,7 @@ def user_id():
 
 def username():
     """Returns the username."""
-    return user.login_id
+    return user.username <> system.guest and user.username or ''
 
 def user_full_name():
     """Returns the username."""
