@@ -60,7 +60,7 @@ class Logger:
     
     def activity(self,feed,message):
         """Log system error."""
-        return self.log('A',message,feed)
+        return self.log('A',message,feed=feed)
 
     def log(self, status, message, username=None, feed=None):
         """Insert an entry into the system log."""

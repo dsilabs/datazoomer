@@ -27,7 +27,7 @@ def view(id='', status=None):
         i.status,
         i.elapsed,
         '<span title="%s">%s</span>' % (i.timestamp, how_long_ago(i.timestamp)),
-        i.message[:30]
+        i.message[:50]
         ) for i in data]
     content = browse(items,labels=labels)
     return page(content, title='System Log')
