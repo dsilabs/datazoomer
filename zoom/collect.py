@@ -26,6 +26,14 @@ def delete_form(name, key):
             Button('Yes, I''m sure.  Please delete.', name='DELETE_BUTTON', cancel='/'+'/'.join(route[:-1]))
             ).edit()
 
+def locate(c, key):
+    def scan(store, key):
+        for rec in store:
+            if rec.key == key:
+                return rec
+    return key.isdigit() and c.store.get(key) or \
+            c.store.first(key=key) or \
+            scan(c.store,key)
 
 class CollectionView(View):
     def __init__(self, collection):
@@ -71,7 +79,7 @@ class CollectionView(View):
             return [action_for(r, n) for n in names]
 
         c = self.collection
-        record = c.locate(locator)
+        record = locate(c, locator)
         if record:
             actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
             c.fields.initialize(record)
@@ -93,7 +101,7 @@ class CollectionView(View):
     def edit(self, key, **data):
         c = self.collection
         if c.can_edit():
-            record = c.locate(key)
+            record = locate(c, key)
             if record:
                 c.fields.update(record)
                 c.fields.update(data)
@@ -107,7 +115,7 @@ class CollectionView(View):
         if c.can_edit():
             if confirm != 'NO':
                 c = self.collection
-                record = c.locate(key)
+                record = locate(c, key)
                 if record:
                     return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
 
@@ -128,11 +136,12 @@ class CollectionController(Controller):
             if c.fields.validate(data):
                 record = c.entity()
                 record.update(c.fields)
+                record.pop('key',None)
                 try:
                     key = record.key
                 except AttributeError:
                     key = None
-                if key and c.locate(record.key) is not None:
+                if key and locate(c, record.key) is not None:
                     error(duplicate_key_msg)
                 else:
                     record.created = now
@@ -140,6 +149,10 @@ class CollectionController(Controller):
                     record.owner = user.username
                     record.created_by = user.username
                     record.updated_by = user.username
+                    try:
+                        record.key = record.key # property to attribute for storage
+                    except AttributeError:
+                        pass # can happen when key depends on database auto-increment value
                     c.store.put(record)
                     logger.activity(system.app.name, '%s added %s %s' % (user.link, c.item_name.lower(), record.linked_name))
                     return redirect_to(c.url)
@@ -148,14 +161,16 @@ class CollectionController(Controller):
         c = self.collection
         if c.can_edit():
             if c.fields.validate(data):
-                record = c.locate(key)
+                record = locate(c, key)
                 if record:
                     record.update(c.fields)
-                    if record.key <> key and c.locate(record.key):
+                    record.pop('key',None)
+                    if record.key <> key and locate(c, record.key):
                         error(duplicate_key_msg)
                     else:
                         record.updated = now
                         record.updated_by = user.username
+                        record.key = record.key # property to attribute for storage
                         c.store.put(record)
                         logger.activity(system.app.name, '%s edited %s %s' % (user.link, c.item_name.lower(), record.linked_name))
                         return redirect_to(record.url)
@@ -164,7 +179,7 @@ class CollectionController(Controller):
         c = self.collection
         if c.can_edit():
             if CONFIRM == 'NO':
-                record = c.locate(key)
+                record = locate(c, key)
                 if record:
                     c.store.delete(record)
                     logger.activity(system.app.name, '%s deleted %s %s' % (user.link, c.item_name.lower(), record.linked_name))
