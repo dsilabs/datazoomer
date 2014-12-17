@@ -169,6 +169,73 @@ def app_menu():
 def app_title():
     return system.app.title
 
+def app_side_nav(default='no apps'):
+
+    link_tpl = """
+                    <!-- begin %(name)s LINK -->
+                    <li>
+                        <a class="active" href="%(url)s">
+                            <i class="fa %(fa_icon)s"></i> %(label)s
+                        </a>
+                    </li>
+                    <!-- end %(name)s LINK -->
+    """
+
+    panel_tpl = """
+                    <!-- begin %(name)s DROPDOWN -->
+                    <li class="panel">
+                        <a href="javascript:;" data-parent="#side" data-toggle="collapse" class="accordion-toggle" data-target="#%(id)s">
+                            <i class="fa %(fa_icon)s"></i> %(label)s <i class="fa fa-caret-down"></i>
+                        </a>
+                        <ul class="collapse nav %(expand)s" id="%(id)s">
+                            %(items)s
+                        </ul>
+                    </li>
+                    <!-- end %(name)s DROPDOWN -->
+
+    """
+
+    item_tpl = """
+                            <li>
+                                <a %(active)s href="%(url)s">
+                                    <i class="fa %(fa_icon)s"></i> %(label)s
+                                </a>
+                            </li>
+    """
+
+
+    MISC = 'Miscellaneous'
+    apps = manager.apps
+    categories = sorted(set([MISC] + [i for s in [apps[a].categories for a in apps] for i in s]))
+
+    category_apps = {}
+    for app in apps.values():
+        app_categories = app.categories or [MISC]
+        for category in app_categories:
+            category_apps.setdefault(category, []).append(dict(
+                url = '/' + app.name,
+                fa_icon = 'fa-chart',
+                label = app.title,
+                active = app.name != 'home' and app.name == route[0] and 'class="active"' or '',
+                ))
+
+    items = []
+    for c in categories:
+        expand = any(app['active'] for app in category_apps[c]) and 'in' or ''
+        items.append(dict( 
+            fa_icon = '', #'fa-dashboard',
+            name = c.upper(),
+            label = c,
+            url = url_for(c),
+            id = id_for(c),
+            items = ''.join(item_tpl % app for app in category_apps[c]),
+            expand = expand,
+            ))
+
+    return ''.join(panel_tpl % i for i in items)
+
+    return html.li(link_to(c) for c in categories)
+
 def h(html_code):
     """Returns HTML with less than and greater than characters converted so it can be rendered as displayable content."""
     return html_code.replace('<','&lt;').replace('>','&gt')
@@ -548,7 +615,7 @@ def construct_url(root,route,a,k):
             uri = root #+ '/'#.join(list(a)[1:])
         else:
             uri = '/'
-    elif a[0].startswith('http://') or a[0].startswith('https://'):
+    elif a and (a[0].startswith('http://') or a[0].startswith('https://')):
         uri = a[0]
     else:
         uri = '/'.join([root] + list(route[:1]+route[1:-1]) + list(a))
