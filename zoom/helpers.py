@@ -171,6 +171,8 @@ def app_title():
 
 def app_side_nav(default='no apps'):
 
+    if user.username == system.guest: return ''
+
     link_tpl = """
                     <!-- begin %(name)s LINK -->
                     <li>
@@ -205,11 +207,12 @@ def app_side_nav(default='no apps'):
 
 
     MISC = 'Miscellaneous'
-    apps = manager.apps
-    categories = sorted(set([MISC] + [i for s in [apps[a].categories for a in apps] for i in s]))
+
+    apps = list(a for a in manager.apps.values() if a.visible and a.name in user.apps)
+    categories = sorted(set([MISC] + [i for s in [a.categories for a in apps] for i in s]))
 
     category_apps = {}
-    for app in apps.values():
+    for app in apps:
         app_categories = app.categories or [MISC]
         for category in app_categories:
             category_apps.setdefault(category, []).append(dict(
@@ -220,8 +223,8 @@ def app_side_nav(default='no apps'):
                 ))
 
     items = []
-    for c in categories:
-        expand = any(app['active'] for app in category_apps[c]) and 'in' or ''
+    for c in sorted(category_apps):
+        expand = any(bool(app['active']) for app in category_apps[c]) and 'in' or ''
         items.append(dict( 
             fa_icon = '', #'fa-dashboard',
             name = c.upper(),
@@ -233,8 +236,6 @@ def app_side_nav(default='no apps'):
             ))
 
     return ''.join(panel_tpl % i for i in items)
-
-    return html.li(link_to(c) for c in categories)
 
 def h(html_code):
     """Returns HTML with less than and greater than characters converted so it can be rendered as displayable content."""
