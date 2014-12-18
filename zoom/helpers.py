@@ -173,6 +173,44 @@ def app_side_nav(default='no apps'):
 
     if user.username == system.guest: return ''
 
+    head_tpl = """
+        <nav class="navbar-side " role="navigation">
+            <div class="navbar-collapse sidebar-collapse collapse">
+                <ul id="side" class="nav navbar-nav side-nav">
+    """
+
+    tail_tpl = """
+                </ul>
+                <!-- /.side-nav -->
+            </div>
+            <!-- /.navbar-collapse -->
+        </nav>
+        <!-- end side navbar -->
+    """
+
+    search_tpl = """
+                   <!-- begin SIDE NAV SEARCH -->
+                    <li class="nav-search">
+                        <form role="form">
+                            <input type="search" class="form-control" placeholder="Search...">
+                            <button class="btn">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </form>
+                    </li>
+                    <!-- end SIDE NAV SEARCH -->
+    """
+
+    dash_tpl = """
+                    <!-- begin DASHBOARD LINK -->
+                    <li>
+                        <a %(active)s href="/dashboard">
+                            <i class="fa fa-dashboard"></i> Dashboard
+                        </a>
+                    </li>
+                    <!-- end DASHBOARD LINK -->
+    """
+
     link_tpl = """
                     <!-- begin %(name)s LINK -->
                     <li>
@@ -205,11 +243,18 @@ def app_side_nav(default='no apps'):
                             </li>
     """
 
+    result = [head_tpl]
 
     MISC = 'Miscellaneous'
 
     apps = list(a for a in manager.apps.values() if a.visible and a.name in user.apps)
     categories = sorted(set([MISC] + [i for s in [a.categories for a in apps] for i in s]))
+
+    if 'dashboard' in [a.name for a in apps]:
+        result.append(dash_tpl % 
+                dict(
+                    active=route[0]=='dashboard' and 'class="active"' or ''
+                    ))
 
     category_apps = {}
     for app in apps:
@@ -235,7 +280,17 @@ def app_side_nav(default='no apps'):
             expand = expand,
             ))
 
-    return ''.join(panel_tpl % i for i in items)
+    system.js.add("""
+      $(function() {
+          $( "#side" ).sortable();
+      });
+
+    """)
+
+    result.extend(panel_tpl % i for i in items)
+    result.append(tail_tpl)
+    return '\n'.join(result)
+
 
 def h(html_code):
     """Returns HTML with less than and greater than characters converted so it can be rendered as displayable content."""
