@@ -385,6 +385,58 @@ class IntegerField(TextField):
     def assign(self, value):
         self.value = int(value)
 
+class FloatField(TextField):
+    """
+    Float Field
+
+        >>> FloatField('Count',value=2.1).show()
+        u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
+
+        >>> FloatField('Count').edit()
+        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
+ 
+        >>> n = FloatField('Size')
+        >>> n.assign(2.1)
+        >>> n.value
+        2.1
+
+        >>> n.assign(0)
+        >>> n.value
+        0.0
+
+        >>> n.assign('0')
+        >>> n.value
+        0.0
+
+        >>> n.assign('2.1')
+        >>> n.value
+        2.1
+
+        >>> n.assign('')
+        >>> n.evaluate()
+        {'SIZE': None}
+    """
+
+    size = maxlength = 10
+    css_class = 'float_field'
+    value = 0
+
+    def assign(self, value):
+        if value == '':
+            self.value = None
+        else:
+            self.value = float(value)
+
+    def evaluate(self):
+        return {self.name: self.value}
+
+    #def evaluate(self):
+        #if value == None:
+            #return {self.name: self.value}
+        #else:
+            #return {self.name: self.value}
+
+
 
 class DateField(SimpleField):
     """

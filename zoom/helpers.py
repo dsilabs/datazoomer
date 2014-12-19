@@ -266,6 +266,7 @@ def app_side_nav(default='no apps'):
                 label = app.title,
                 active = app.name != 'home' and app.name == route[0] and 'class="active"' or '',
                 ))
+            category_apps[category].sort(key=lambda a: a['label'])
 
     items = []
     for c in sorted(category_apps):
