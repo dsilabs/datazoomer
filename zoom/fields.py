@@ -1064,6 +1064,17 @@ class MemoField(Field):
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and layout_field(self.label,'<div class="textarea">%s</div>' % self.display_value(), edit=False) or ''
 
+class MarkdownField(MemoField):
+    """
+    MarkdownField
+
+        >>> f = MarkdownField('Notes', value='test **one** 23')
+        >>> f.display_value()
+        u'<p>test <strong>one</strong> 23</p>'
+
+    """
+    def display_value(self):
+        return markdown(self.value)
 
 class EditField(Field):
     """Large textedit."""
