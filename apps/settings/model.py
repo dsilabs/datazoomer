@@ -29,6 +29,9 @@ system_settings_form = Form(
         URLField('Logo URL'),
         TextField('GNUPG Home'),
     ]),
+    Section('Monitoring',[
+        CheckboxField('Application Database Log', options=['on','off']),
+    ]),
     Buttons(['Save', 'Set to Defaults'], cancel='/settings'),
     )
 
@@ -46,7 +49,7 @@ def load():
     system_settings_form.update(system.settings.load())
 
 def save(values):
-    values = dict((k.lower(),v) for k,v in values if v)
+    values = dict((k.lower(),v) for k,v in values if v <> None)
     system.settings.save(values)
 
 

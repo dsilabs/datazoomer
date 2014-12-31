@@ -78,7 +78,7 @@ class Settings(object):
 
     def save(self, settings):
         for key, value in settings.items():
-            if value:
+            if value <> None:
                 self.set(key, value)
 
     def load(self):

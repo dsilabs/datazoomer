@@ -106,7 +106,12 @@ def generate_response(instance_path):
                 if profiler:
                     profiler.enable()
 
+                if system.settings.get('application_database_log'):
+                    system.db('SET GLOBAL general_log = "ON"')
+
                 response = system.app.run()
+
+                system.db('SET GLOBAL general_log = "OFF"')
 
                 if profiler:
                     profiler.disable()

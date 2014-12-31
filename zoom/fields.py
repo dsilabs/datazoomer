@@ -578,6 +578,14 @@ class CheckboxField(TextField):
         >>> f.evaluate()
         {'DONE': True}
 
+        >>> f = CheckboxField('Done', options=['yep','nope'])
+        >>> f.evaluate()
+        {'DONE': None}
+        >>> f.validate(**{'OTHERDATA': 'some value'})
+        True
+        >>> f.evaluate()
+        {'DONE': False}
+
         >>> CheckboxField('Done', options=['yep','nope']).display_value()
         'nope'
 
@@ -625,6 +633,14 @@ class CheckboxField(TextField):
 
     def show(self):
         return layout_field(self.label, self.display_value(), False)
+
+    def update(self,**values):
+        for value in values:
+            if value.lower() == self.name.lower():
+                self.assign(values[value])
+                return
+        if values:
+            self.assign(False)
 
     def evaluate(self):
         if self.value in [True,'yes','on']:
