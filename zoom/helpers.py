@@ -404,7 +404,7 @@ def owner_name():
         
 def owner_url():
     """Returns the URL of the site owner."""
-    return system.config.get('site','owner_url','')
+    return system.settings.get('owner_url')
 
 def owner_link():
     """Returns a link for the site owner."""
@@ -418,12 +418,11 @@ def owner_link():
     return name
 
 def owner_email():
-    """Returns the email address of the site owner as defined in the site.conf file."""
-    return system.config.get('site','owner_email','info@dynamic-solutions.com')
+    return system.settings.get('owner_email')
         
 def admin_email():
     """Returns the email address of the site owner as defined in the site.conf file."""
-    return system.config.get('site','admin_email','support@dynamic-solutions.com')
+    return system.settings.get('admin_email')
 
 def uri():
     """Returns the site URI."""

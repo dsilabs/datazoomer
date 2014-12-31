@@ -10,8 +10,9 @@ system_settings_form = Form(
         TextField('Site Name', required),
         TextField('Site Slogan'),
         TextField('Owner Name', required),
+        URLField('Owner URL'),
+        EmailField('Owner Email', required),
         EmailField('Admin Email', required),
-        EmailField('Register Email'),
     ]),
     #Section('Users',[
     #    TextField('Default', default='guest'),

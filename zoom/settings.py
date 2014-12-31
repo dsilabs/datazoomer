@@ -40,6 +40,7 @@ class Settings(object):
             site_slogan   = config.get('site','slogan','Ridiculously Rapid Application Development'),
             owner_name    = config.get('site','owner_name','Your Company'),
             owner_email   = config.get('site','owner_email','owner@yourcompany.com'),
+            owner_url     = config.get('site','owner_url','http://www.yourcompanysite.com'),
             admin_email   = config.get('site','admin_email','admin@yourcompany.com'),
 
             smtp_host     = config.get('mail','smtp_host','mail.yourcompany.com'),

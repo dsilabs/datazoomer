@@ -175,6 +175,21 @@ Missing App Variable: **{{notaname}}**
 Missing App Variable with Default: **{{notaname "a default value"}}**
 
 
+Helpers
+----
+&lt;dz:site_name&gt; : "<dz:site_name>"
+
+&lt;dz:slogan&gt; : "<dz:slogan>"
+
+&lt;dz:owner_name&gt; : "<dz:owner_name>"
+
+&lt;dz:owner_name&gt; : "<dz:owner_url>"
+
+&lt;dz:owner_email&gt; : "<dz:owner_email>"
+
+&lt;dz:admin_email&gt; : "<dz:admin_email>"
+
+
 
 Missing Substitutions
 ----
