@@ -11,9 +11,6 @@ class SystemSettings(Record): pass
 class Settings(object):
     """manage settings
         
-        #>>> from zoom.store import set_mysql_log_state
-        #>>> set_mysql_log_state(
-
         >>> from system import system
         >>> from store import EntityStore
 
@@ -23,7 +20,10 @@ class Settings(object):
 
         >>> settings.reset('site_name')
         >>> settings.get('site_name', 'no_site')
-        'no_site'
+        'Zoom'
+        
+        >>> settings.get('no_such_setting', 'no_setting')
+        'no_setting'
         
         >>> settings.set('site_name', 'datazoomer.com')
         >>> settings.get('site_name', 'no_site')
@@ -34,6 +34,12 @@ class Settings(object):
         self.store = store
         self.context = context
         self.config = config
+        self.refresh()
+
+    def refresh(self):
+
+        config = self.config
+
         self.defaults = dict(
 
             site_name     = config.get('site','name','Your Site'),
@@ -53,6 +59,7 @@ class Settings(object):
 
             )
 
+        self.values = dict((r['key'],r['value']) for r in self.store)
 
     def set(self, key, value):
         k = '.'.join((self.context,key))
@@ -61,13 +68,11 @@ class Settings(object):
             r = SystemSettings(key=k)
         r['value'] = value
         self.store.put(r)
+        self.values[k] = value
 
     def get(self, key, default=None):
         k = '.'.join((self.context,key))
-        r = self.store.first(key=k)
-        if r:
-            return r['value']
-        return default or self.defaults.get(key, None)
+        return self.values.get(k, self.defaults.get(key, default))
 
     def defaults(self):
         return self.defaults
@@ -75,6 +80,7 @@ class Settings(object):
     def reset(self, key):
         k = '.'.join((self.context,key))
         self.store.delete(self.store.first(key=k))
+        self.refresh()
 
     def save(self, settings):
         for key, value in settings.items():
