@@ -11,7 +11,7 @@ import hashlib
 
 
 DEFAULT_CACHE_LIFE = 3600 # one hour expiry
-debugging = True
+debugging = False
 
 class CacheEntry(Entity): pass
 Entry = CacheEntry
