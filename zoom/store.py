@@ -388,7 +388,7 @@ class EntityStore:
 
         """
         if hasattr(key, 'get'):
-            key = key._id
+            key = key['_id']
         cmd = 'delete from attributes where row_id=%s'
         self.db(cmd, key)
         cmd = 'delete from entities where id=%s'
