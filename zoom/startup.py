@@ -117,10 +117,16 @@ def generate_response(instance_path):
                     profiler.disable()
 
             elif not requested_app_name:
-                system.app = manager.get_app(default_app_name)
+                app = manager.get_app(default_app_name)
+                if app:
+                    system.app = app
+                else:
+                    raise Exception(default_app_name + ' app missing')
                 response = system.app.run()
+
             elif manager.can_run(default_app_name):
                 response = redirect_to('/')
+
             else:
                 response = Page('<H1>Page Missing</H1>Page not found').render()
                 response.status = '404'

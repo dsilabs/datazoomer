@@ -35,13 +35,13 @@ def get_apps(app_paths):
     return apps
 
 class Manager:
-    #def __init__(self):
-    #    return self.setup()
 
     def setup(self):
         self.app_path  = system.config.get('apps','path')
         self.app_paths = [os.path.abspath(path) for path in self.app_path.split(';') if os.path.isdir(path)]
         self.apps = get_apps(self.app_paths)
+        if not self.apps:
+            raise Exception('Applications Missing')
         
     def get_app(self,name):
         return self.apps.get(name,None)
