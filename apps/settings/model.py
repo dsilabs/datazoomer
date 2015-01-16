@@ -8,7 +8,7 @@ class MyModel(Record):
 system_settings_form = Form(
     Section('Site',[
         TextField('Site Name', required),
-        TextField('Site Slogan'),
+        TextField('Site Slogan', size=60, maxlength=80),
         TextField('Owner Name', required),
         URLField('Owner URL'),
         EmailField('Owner Email', required),
