@@ -13,6 +13,7 @@ import config as cfg
 from users import UserStore
 import session
 import settings
+from utils import OrderedSet
 
 env = os.environ
 
@@ -170,10 +171,10 @@ class System:
         self.errors   = []
         self.messages = []
 
-        self.js       = set()
-        self.css      = set()
-        self.head     = set()
-        self.tail     = set()
+        self.js       = OrderedSet()
+        self.css      = OrderedSet()
+        self.head     = OrderedSet()
+        self.tail     = OrderedSet()
 
         self.show_errors = config.get('error','users','0') == '1'
 

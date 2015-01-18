@@ -2,7 +2,7 @@
 from fill import fill
 from request import route
 from response import HTMLResponse
-from utils import id_for
+from utils import id_for, OrderedSet
 from helpers import form_for, link_to, url_for
 from tools import as_actions, unisafe
 from html import ul
@@ -47,7 +47,7 @@ class Page:
             return '<!-- %s set to "%s" -->' % (thing, name)
 
         def render_snippet(system_snippet, page_snippet):
-            return '\n'.join(system_snippet.union(set([page_snippet])))
+            return '\n'.join(system_snippet | OrderedSet([page_snippet]))
 
 
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
