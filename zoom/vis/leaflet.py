@@ -4,11 +4,11 @@ import json
 import uuid
 
 head = """
-<link rel="stylesheet" href="/static/leaflet/leaflet.css" />
+<link rel="stylesheet" href="/static/dz/leaflet/leaflet.css" />
 <!--[if lte IE 8]>
-    <link rel="stylesheet" href="/static/leaflet/leaflet.ie.css" />
+    <link rel="stylesheet" href="/static/dz/leaflet/leaflet.ie.css" />
 <![endif]-->
-<script src="/static/leaflet/leaflet.js"></script>
+<script src="/static/dz/leaflet/leaflet.js"></script>
 """
 
 css = """
@@ -26,7 +26,7 @@ tpl = """
         var bIcon = L.Icon.Default;
         %(icons)s
         var map = L.map('%(name)s').setView(%(center)s, %(zoom)s);
-        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        L.tileLayer('<dz:protocol>://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
         %(additions)s
