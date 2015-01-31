@@ -189,6 +189,8 @@ Helpers
 
 &lt;dz:admin_email&gt; : "<dz:admin_email>"
 
+&lt;dz:protocol&gt; : "<dz:protocol>"
+
 
 
 Missing Substitutions

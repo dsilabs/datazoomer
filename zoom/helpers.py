@@ -95,6 +95,9 @@ def theme():
     """Returns the system theme name."""
     return system.theme        
     
+def protocol():
+    return request.protocol
+
 def include(name):
     """Includes another template into the current template."""
     return tools.load_template(name)

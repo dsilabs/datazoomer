@@ -46,6 +46,7 @@ class Request:
             script = env.get('SCRIPT_FILENAME'),
             agent  = env.get('HTTP_USER_AGENT'),
             method = env.get('REQUEST_METHOD'),
+            protocol = env.get('HTTPS','off') == 'on' and 'https' or 'http',
             referrer = env.get('HTTP_REFERER'),
             route = route,
             )
