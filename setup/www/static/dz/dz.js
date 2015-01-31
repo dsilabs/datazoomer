@@ -13,7 +13,7 @@
 
         $('.birthdate_field').datepicker({ dateFormat: 'M d, yy', changeMonth: true, changeYear: true, yearRange: '-120:+00' });
 
-        $('.chosen').chosen();
+        if ( $('.chosen').length > 0 ) { $('.chosen').chosen(); };
 
         $('.flag').click(toggle_flag);
 
