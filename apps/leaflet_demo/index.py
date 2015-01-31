@@ -5,7 +5,7 @@ from zoom.vis.leaflet import Marker, Map, Icon
 BC_LL = [55,-125]
 CANADA_LL = [55,-95]
 
-icon = Icon('orange', '/static/leaflet/images/marker-icon.orange.png')
+icon = Icon('orange', '/static/dz/leaflet/images/marker-icon.orange.png')
 
 VANCOUVER_MARKER = Marker([49.25, -123.1],'Vancouver','orange')
 EDMONTON_MARKER = Marker([53.53, -113.5],'Edmonton')
