@@ -16,16 +16,14 @@ feature support:
         control options (collapsable)
 
 TODO:
-    i. dz to support "order" on head (use list, then set for unique in correct order...)
     i. refactor to try and use __dict__ for string replacement of html
-    i. ensure js/css head loads are only injected for those objects used (e.g. heatmap)
-    i. consider security of using kwargs to inject into js objects
     i. support collections
     i. support "exceptions" lists automatically (+ ability to disable)
     i. consider support match/search or require the object passed in to support it
         collections for example, if a collection does not support it should we
     i. consider http://leaflet-extras.github.io/leaflet-providers/preview/
         for available tile sets
+    i. rename set_tiles to basemap?
 
 NOTES:
     BC Environment GIS Working Group has chosen a standard projection and datum for all spatial data stored in ARC/INFO.
@@ -51,7 +49,7 @@ available_tilesets = {
     'World Topographic': ['http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'],
     'Terrain Imagery': ['http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'],
     'Stamen Watercolor': ['http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png', 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',],
-    
+
   }
 
 leaflet_head = """
@@ -59,14 +57,6 @@ leaflet_head = """
 
     <link rel="stylesheet" href="/static/dz/leaflet/leaflet.css" />
     <script src="/static/dz/leaflet/leaflet.js"></script>
-
-    <link href="/static/dz/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <script src="/static/dz/bootstrap/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/static/dz/leaflet/leaflet.awesome-markers.css">
-    <script src="/static/dz/leaflet/leaflet.awesome-markers.min.js"></script>
-
-    <script src="/static/dz/heatmap.js/heatmap.min.js"></script>
-    <script src="/static/dz/heatmap.js/leaflet-heatmap.js"></script>
 """
 
 def var_for(s):
@@ -97,28 +87,26 @@ def leaflet_bind(e, addbind=None, popup=None):
 class JS(object):
     """Base calss for rendering a given object in javascript"""
     _inline_ = "%s"
+    _declare_ = 'var %s = %s;'
+    name = property(lambda self: '%s_%s' % (self.__class__.__name__, id(self)))
+    ref = property(lambda self: '%s' % self.name, doc="the reference to the object")
     def __init__(self):
         self.description = None
-    def name(self):
-        """TODO: consider human readable (debug) vs. guaranteed unique"""
-        return '%s_%s' % (self.__class__.__name__, id(self))
-    def ref(self):
-        """the reference to the object"""
-        return '%s' % self.name()
-    def title(self):
-        return self.description and self.description or self.__doc__
+    def set_title(self, title):
+        self.description = title
+    title = property(lambda self: self.description and self.description or self.__doc__, fset=set_title, doc="title for an object, often displayed to the user")
     def inline(self):
         """declare the object "inline"""
         return self._inline_ % self
     def declare(self):
         """standard/full declaration"""
-        return 'var %s = %s;' % (self.ref(), self.inline())
+        return self._declare_ % (self.ref, self.inline())
     def render(self):
         return self.declare()
     def __str__(self):
         return self.render()
 
-class Leaflet:
+class Leaflet(JS):
     """A leaflet map object
 
     http://leafletjs.com/
@@ -144,7 +132,6 @@ class Leaflet:
         self.zoom = zoom
         self.height = height
         self.width = width
-        self.id = self.__class__.__name__.lower()
         self.markers = []
         self.control = control or {'collapsed': False}
         self._overlays = []
@@ -158,14 +145,14 @@ class Leaflet:
         return self.html()
 
     def html(self):
-        id = self.id
+        id = self.ref
         icons, layers, overlays, tails, show_layers = {}, [], [], [], [var_for(self.tiles[0])]
         for l in self._overlays:
-            show_layers.append(l.name())
+            show_layers.append(l.name)
             for i in l.layers:
                 if hasattr(i, 'icon') and i.icon not in icons: icons[str(i.icon)] = None
             layers.append( str(l) )
-            overlays.append( "'%s': %s" % (l.title(),l.name()) )
+            overlays.append( "'%s': %s" % (l.title,l.name) )
             if hasattr(l,'tail'): tails.append(l.tail())
         map_props = "{center: %s, zoom: %s, layers: [%s]}" % ( self.centroid, self.zoom, ','.join('%s' % l for l in show_layers) )
         icons = '\n'.join( icons.keys() )
@@ -207,7 +194,7 @@ class Leaflet:
 
     def css(self, custom=''):
         """return the css for the map"""
-        id = self.id
+        id = self.ref
         height = self.height
         width = self.width
         css = self.default_css % locals()
@@ -218,14 +205,14 @@ class Leaflet:
         tpl = 'var marker%s = L.marker([%s, %s]).addTo(%s);'
         marks, addto = [], []
         icons = {}
-        id = self.id
+        id = self.ref
         for i,mark in enumerate(filter(lambda m: valid_mark(m), self.markers)):
             if hasattr(mark,'render'):
                 marks.append(str(mark))
             if hasattr(mark,'icon'):
                 icons[str(mark.icon)] = None
-            else: marks.append(tpl % (i, mark[0], mark[1], self.id))
-            if hasattr(mark,'inline'): addto.append('%s.addTo(%s);' % (mark.name(), id))
+            else: marks.append(tpl % (i, mark[0], mark[1], self.ref))
+            if hasattr(mark,'inline'): addto.append('%s.addTo(%s);' % (mark.name, id))
         content = '%s\n%s\n%s' % (
             '\n'.join(icons.keys()),
             '\n'.join(marks),
@@ -235,7 +222,7 @@ class Leaflet:
 
     def addtomap(self):
         """return the js string for adding the default items to the map"""
-        return '%s.addTo(%s);' % ( var_for(self.tiles[0]), self.id )
+        return '%s.addTo(%s);' % ( var_for(self.tiles[0]), self.ref )
 
     def set_tiles(self, tiles):
         t=[]
@@ -270,7 +257,7 @@ class Icon(JS):
         JS.__init__(self)
         self.kwargs = kwargs
     def declare(self):
-        name = self.ref()
+        name = self.ref
         properties = repr(self.kwargs)
         return self._declare_ % locals()
 
@@ -302,12 +289,46 @@ class Marker(JS):
         self.icon = icon
     def declare(self):
         ll = list(self.ll)
-        icon = self.icon is not None and ', {icon: %s}' % self.icon.name() or ''
+        icon = self.icon is not None and ', {icon: %s}' % self.icon.name or ''
         text = self.text and self.text.replace('"','\\"')
-        var = self.ref()
+        var = self.ref
         popup = text and self._popup_ % text or ''
         return self._declare_ % locals()
 
+class Circle(Marker):
+    """Map circles"""
+    _declare_ = 'var %(var)s = L.circle(%(ll)s, %(radius)s, %(options)s)%(popup)s;'
+    def __init__(self, ll, radius_meters, options={}, text=None):
+        JS.__init__(self)
+        self.ll = list(ll)
+        self.radius = radius_meters
+        self.options = options
+        self.text = text
+    def declare(self):
+        ll = list(self.ll)
+        radius = self.radius
+        options = json.dumps(self.options)
+        text = self.text and self.text.replace('"','\\"')
+        var = self.ref
+        popup = text and self._popup_ % text or ''
+        return self._declare_ % locals()
+
+class Polygon(Marker):
+    """Map Polygon"""
+    _declare_ = 'var %(var)s = L.polygon(%(ll)s)%(popup)s;'
+    def __init__(self, ll, options={}, text=None):
+        JS.__init__(self)
+        self.ll = list(ll)
+        self.options = options
+        self.text = text
+    def declare(self):
+        ll = list(self.ll)
+        options = json.dumps(self.options)
+        text = self.text and self.text.replace('"','\\"')
+        var = self.ref
+        popup = text and self._popup_ % text or ''
+        return self._declare_ % locals()
+    
 class LayerGroup(JS):
     """Layer Group"""
     _inline_ = "L.layerGroup([%s])"
@@ -317,7 +338,7 @@ class LayerGroup(JS):
     def inline(self):
         c = (
             ', '.join( [
-                hasattr(l,'name') and ( callable(l.name) and l.name() or l.name ) or str(l) for l in self.layers] )
+                hasattr(l,'name') and ( callable(l.name) and l.name or l.name ) or str(l) for l in self.layers] )
           ).replace(';','')
         return self._inline_ % c
     def declare(self):
@@ -339,14 +360,14 @@ class HeatLayer(LayerGroup):
     def inline(self):
         return None
     def declare(self):
-        var = self.ref()
+        var = self.ref
         inline = self._inline_
         return self._declare_ % locals()
     def tail(self):
-        var = self.ref()
+        var = self.ref
         pins_layergroup =', '.join([self._data_ % l for l in self.layers])
         return self._tail_ % locals()
-        
+
 
 # Handlers and map operations need access to the variable names (e.g. border and lookup)
 class ThematicLayer(LayerGroup):
@@ -354,7 +375,6 @@ class ThematicLayer(LayerGroup):
     _inline_ = 'L.geoJson(%s_border, %s)'
     _declare_ = """
     var %(var)s_border = %(geojson_boundary)s;
-    var %(var)s_lookup = %(lookup)s;
 
     %(handlers)s
 
@@ -363,13 +383,12 @@ class ThematicLayer(LayerGroup):
     def __init__(self, layers):
         LayerGroup.__init__(self, layers=layers)
         self.handlers = ''
-        self.bind, self.props = {}, {}
+        self.props = {}
     def inline(self):
-        return self._inline_ % (self.ref(),self.props)
+        return self._inline_ % (self.ref,self.props)
     def declare(self):
-        var = self.ref()
+        var = self.ref
         inline = self.inline()
         geojson_boundary = self.layers
         handlers = self.handlers
-        lookup = json.dumps(self.bind)
         return self._declare_ % locals()
