@@ -39,15 +39,15 @@ NOTES:
 """
 
 import json
-from zoom import id_for, request, system
+from zoom import id_for, system
 
 available_tilesets = {
     # (service, attribution)
-    'DeLorme': ['http://server.arcgisonline.com/ArcGIS/rest/services/Specialty/DeLorme_World_Base_Map/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Copyright: &copy;2012 DeLorme'],
-    'Open Street Map': ['http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'],
-    'Open Street Map BW': ['http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'],
-    'World Topographic': ['http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'],
-    'Terrain Imagery': ['http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'],
+    'DeLorme': ['<dz:protocol>://server.arcgisonline.com/ArcGIS/rest/services/Specialty/DeLorme_World_Base_Map/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Copyright: &copy;2012 DeLorme'],
+    'Open Street Map': ['<dz:protocol>://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'],
+    'Open Street Map BW': ['<dz:protocol>://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'],
+    'World Topographic': ['<dz:protocol>://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'],
+    'Terrain Imagery': ['<dz:protocol>://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'],
     'Stamen Watercolor': ['http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png', 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',],
 
   }
@@ -65,10 +65,7 @@ def var_for(s):
 
 def tile_for(provider):
     """Lookup the given provider within available_tilesets"""
-    p = available_tilesets.get(provider,'Open Street Map')
-    if 'Stamen' not in provider and request.port == '443':
-        p[0] = p[0].replace('http://','https://')
-    return p
+    return available_tilesets.get(provider,'Open Street Map')
 
 def valid_mark(mark):
     """given a mark, does it appear to be valid"""
@@ -328,7 +325,7 @@ class Polygon(Marker):
         var = self.ref
         popup = text and self._popup_ % text or ''
         return self._declare_ % locals()
-    
+
 class LayerGroup(JS):
     """Layer Group"""
     _inline_ = "L.layerGroup([%s])"
