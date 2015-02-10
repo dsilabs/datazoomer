@@ -6,14 +6,14 @@
 
 from zoom import system
 
-css = """
-    sparkline { width: 200px; }
-"""
+scripts = [
+    "/static/dz/jquery/jquery-migrate-1.2.1.min.js",
+    "/static/jqsparkline/jquery.sparkline.js",
+        ]
 
-head = """
-    <script type="text/javascript" src="/static/jqsparkline/jquery.sparkline.js"></script>
-    <script type="text/javascript">
-    $(function() {
+js = """
+    $(function(){
+
         /** This code runs when everything has been loaded on the page */
         /* Inline sparklines take their values from the contents of the tag */
         $('.inlinesparkline').sparkline();
@@ -22,17 +22,18 @@ head = """
         to a sparkline with data in the tag */
         $('.inlinebar').sparkline('html', {type: 'bar', barColor: 'red'} );
     
-        $.fn.sparkline.defaults.common.width = 200;
     });
-    </script>
 """
 
+def chart(selector, data):
+    system.libs = system.libs | scripts
+    system.js.add(js)
+    return '<span class="{}">{}</span>'.format(selector, repr(data)[1:-1])
+
 def line(data):
-    system.head.add(head)
-    system.css.add(css)
-    return '<span class="inlinesparkline">%s</span>' % repr(data)[1:-1]
+    selector = 'inlinesparkline'
+    return chart(selector, data)
     
 def bar(data):
-    system.head.add(head)
-    system.css.add(css)
-    return '<span class="inlinebar">%s</span>' % repr(data)[1:-1]
+    return chart('inlinebar', data)
+

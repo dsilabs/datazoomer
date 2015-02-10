@@ -171,8 +171,10 @@ class System:
         self.errors   = []
         self.messages = []
 
-        self.js       = OrderedSet()
+        self.styles   = OrderedSet()
         self.css      = OrderedSet()
+        self.libs     = OrderedSet()
+        self.js       = OrderedSet()
         self.head     = OrderedSet()
         self.tail     = OrderedSet()
 

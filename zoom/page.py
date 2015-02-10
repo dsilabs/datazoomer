@@ -39,6 +39,8 @@ class Page:
         self.subtitle = ''
         self.search   = None
         self.actions  = None
+        self.libs     = OrderedSet()
+        self.styles   = OrderedSet()
 
 
     def render_header(self):
@@ -95,15 +97,30 @@ class Page:
         def render_snippet(system_snippet, page_snippet):
             return '\n'.join(system_snippet | OrderedSet([page_snippet]))
 
+        def render_script_tags(system_scripts, page_scripts):
+            scripts = system_scripts | page_scripts
+            h = scripts and '\n        <!-- Page Specific Scripts -->\n' or ''
+            c = '\n'.join('        <script type="text/javascript" src="{}"></script>'.format(t) for t in scripts)
+            t = scripts and '\n\n' or ''
+            return h + c + t
+
+        def render_style_sheets(system_style_sheets, page_style_sheets):
+            sheets = system_style_sheets | page_style_sheets
+            h = sheets and '\n        <!-- Page Specific Styles -->\n' or ''
+            c = '\n'.join('        <link rel="stylesheet" type="text/css" href="{}">'.format(t) for t in sheets)
+            t = sheets and '\n\n' or ''
+            return h + c + t
 
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
 
         self.content = fill('<dz:set_','>', self.content, set_setting)
 
-        self.js   = render_snippet(system.js, self.js)
-        self.css  = render_snippet(system.css, self.css)
-        self.head = render_snippet(system.head, self.head)
-        self.tail = render_snippet(system.tail, self.tail)
+        self.styles = render_style_sheets(system.styles, self.styles)
+        self.css    = render_snippet(system.css, self.css)
+        self.libs   = render_script_tags(system.libs, self.libs)
+        self.js     = render_snippet(system.js, self.js)
+        self.head   = render_snippet(system.head, self.head)
+        self.tail   = render_snippet(system.tail, self.tail)
 
         if len(route)>1:
             breadcrumb = link_to(system.app.title,'/'+system.app.name)

@@ -31,6 +31,24 @@ css = """
 """
 css = css
 
+scripts = [
+    "/static/excanvas.js",
+    "/static/jqplot/jquery.jqplot.min.js",
+    "/static/jqplot/plugins/jqplot.highlighter.min.js",
+    "/static/jqplot/plugins/jqplot.cursor.min.js",
+    "/static/jqplot/plugins/jqplot.dateAxisRenderer.min.js",
+    "/static/jqplot/plugins/jqplot.canvasTextRenderer.min.js",
+    "/static/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js",
+    "/static/jqplot/plugins/jqplot.barRenderer.min.js",
+    "/static/jqplot/plugins/jqplot.categoryAxisRenderer.min.js",
+    "/static/jqplot/plugins/jqplot.pointLabels.min.js",
+    "/static/jqplot/plugins/jqplot.pieRenderer.min.js",
+    "/static/jqplot/plugins/jqplot.meterGaugeRenderer.min.js",
+        ]
+
+styles = [
+    "/static/jqplot/jquery.jqplot.min.css"
+        ]
 
 head = """
     <link rel="stylesheet" type="text/css" href="/static/jqplot/jquery.jqplot.min.css" />
@@ -59,6 +77,18 @@ chart_tpl = """
     </script>
 """
 
+chart_tpl = """
+    <div id="chart_%(name)s" class="chart"></div>
+"""
+
+chart_js = """
+        $(document).ready(function(){
+            var data = %(data)s;
+            var options = %(options)s;
+            var plot1 = $.jqplot('chart_%(name)s', data, options);
+          });
+"""
+
 def merge_options(a, b):
     """Merges two sets of options"""
     if hasattr(a,'keys') and hasattr(b,'keys'):
@@ -81,6 +111,15 @@ def render_options(default_options, options, k={}):
     combined = merge_options(merge_options(default_options, options), k)
     result = json.dumps(combined, sort_keys=True, indent=4)
     return re.sub(PLUGIN, lambda a: '$.jqplot.'+a.group(1), result)
+
+
+def chart(v):
+    system.libs = system.libs | scripts
+    system.styles = system.styles | styles
+    #system.head.add(head)
+    system.js.add(chart_js % v)
+    system.css.add(css)
+    return chart_tpl % v
 
 
 def line(data, legend=None, options={}, *a, **k):
@@ -117,10 +156,8 @@ def line(data, legend=None, options={}, *a, **k):
         options = render_options(default_options, options, k),
         )
 
-    system.head.add(head)
-    system.css.add(css)
+    return chart(v)
 
-    return chart_tpl % v
 
 def bar(data, legend=None, options={}, *a, **k):
 
@@ -154,10 +191,7 @@ def bar(data, legend=None, options={}, *a, **k):
         options = render_options(default_options, options, k),
     )
 
-    system.head.add(head)
-    system.css.add(css)
-
-    return chart_tpl % v
+    return chart(v)
 
 
 def hbar(data, legend=None, options={}, *a, **k):
@@ -194,10 +228,7 @@ def hbar(data, legend=None, options={}, *a, **k):
         options = render_options(default_options, options, k),
     )
 
-    system.head.add(head)
-    system.css.add(css)
-
-    return chart_tpl % v
+    return chart(v)
 
 
 def pie(data, legend=None, options={}, *a, **k):
@@ -226,10 +257,7 @@ def pie(data, legend=None, options={}, *a, **k):
         options = render_options(default_options, options, k),
     )
 
-    system.head.add(head)
-    system.css.add(css)
-
-    return chart_tpl % v
+    return chart(v)
 
 
 def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a, **k):
@@ -264,10 +292,7 @@ def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a
         options = render_options(default_options, options, k),
     )
 
-    system.head.add(head)
-    system.css.add(css)
-
-    return chart_tpl % v
+    return chart(v)
 
 
 def time_series(data, legend=None, time_format='%b %e', options={}, *a, **k):
@@ -305,8 +330,6 @@ def time_series(data, legend=None, time_format='%b %e', options={}, *a, **k):
         options = render_options(default_options, options, k),
         )
 
-    system.head.add(head)
-    system.css.add(css)
+    return chart(v)
 
-    return chart_tpl % v
 
