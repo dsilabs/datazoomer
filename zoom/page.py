@@ -11,6 +11,19 @@ from system import system
 import os
 import log
 
+HEADER_LAYOUT = """
+<table id="title_bar"><tr>
+<td id="title_bar_left">
+<H1>%(title)s</H1>
+%(subtitle)s
+</td>
+<td id="title_bar_right">
+%(actions)s
+%(search)s
+</td>
+</tr></table>
+"""
+
 class Page:
     def __init__(self,content='',callback=None,css=''):
 
@@ -22,6 +35,39 @@ class Page:
         self.js       = ''
         self.head     = ''
         self.tail     = ''
+        self.title    = ''
+        self.subtitle = ''
+        self.search   = None
+        self.actions  = None
+
+
+    def render_header(self):
+
+        def render_search(value):
+            CLEAR_LAYOUT  = '<span class="clear"><a href="%s"><img src="/static/images/remove_filter.png"></a></span>'
+            SEARCH_FIELDS = '<input type="text" class="text_field" id="search_text" name="q" value="%s">%s<input class="search_button" type=submit value="Search">'
+            SEARCH_BUTTON = '<input class="search_button" type=submit value="Search">'
+            SEARCH_LAYOUT = '<div class="search">%s</div>'
+
+            if value == None:
+                return ''
+            elif value == '':
+                clear = '<span class="clear"></span>'
+            else:
+                clear = CLEAR_LAYOUT % ('/'.join([''] + route + ['clear']))
+            return  SEARCH_LAYOUT % form_for(SEARCH_FIELDS % (value,clear), method='GET')
+
+        def render_actions(items):
+            return as_actions(items)
+
+        header_required = self.title or self.subtitle or self.search or self.actions
+        if not header_required: return ''
+        return unisafe(HEADER_LAYOUT % dict(
+                title=self.title,
+                subtitle=self.subtitle,
+                search=render_search(self.search),
+                actions=as_actions(self.actions)))
+
 
     def render(self):
 
@@ -52,12 +98,17 @@ class Page:
 
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
 
-        self.content = fill('<dz:set_','>',self.content,set_setting)
+        self.content = fill('<dz:set_','>', self.content, set_setting)
 
         self.js   = render_snippet(system.js, self.js)
         self.css  = render_snippet(system.css, self.css)
         self.head = render_snippet(system.head, self.head)
         self.tail = render_snippet(system.tail, self.tail)
+
+        if len(route)>1:
+            breadcrumb = link_to(system.app.title,'/'+system.app.name)
+        else:
+            breadcrumb = ''
 
         template_pathname = system.theme_path 
         if template_pathname:
@@ -68,71 +119,43 @@ class Page:
                 template_filename = os.path.join(template_pathname, 'default.html')
         self.tpl = template_pathname and tools.load(template_filename) or tools.load(DEFAULT_TEMPLATE)
 
-        content = fill('<dz:','>',self.tpl,handle)
+        save_content = self.content
+        self.content = self.render_header() + self.content
+        content = fill('<dz:','>', self.tpl, handle)
+        self.content = save_content
         if self.callback:
-            content = fill('{{','}}',content,self.callback)
+            content = fill('{{','}}', content, self.callback)
 
         return HTMLResponse(content)
 
-def render(content='', items=None):
-    """Render some content"""
+def page(content='', template=None, callback=None, css='', js='', title='', subtitle='', search=None, actions=None, items=None, head=''):
 
-    if items != None:
-        if hasattr(items,'keys'):
-            t = content % items
+    def render(content='', items=None):
+        """Render some content"""
+        if items != None:
+            content = unisafe(content)
+            if hasattr(items,'keys'):
+                t = content % items
+            else:
+                t = ''.join(content % item for item in items)
         else:
-            t = ''.join(content % item for item in items)
-
-    else:
-        t = content
-    return t
-
-def page(content='', template=None, callback=None, css=None, js=None, title=None, subtitle=None, search=None, actions=None, items=None, head=''):
-
-    def render_search(value):
-        if value == None: 
-            return ''
-        elif value == '':
-            clear = '<span class="clear"></span>'
-        else:
-            clear = '<span class="clear"><a href="%s"><img src="/static/images/remove_filter.png"></a></span>' % ('/'.join([''] + route + ['clear']))
-        return '<div class="search">%s</div>' % form_for('<input type="text" class="text_field" id="search_text" name="q" value="%s">%s<input class="search_button" type=submit value="Search">' % (value,clear), method='GET')
-
-
-    header_layout = """
-<table id="title_bar"><tr>
-<td id="title_bar_left">
-<H1>%(title)s</H1>
-%(subtitle)s
-</td>
-<td id="title_bar_right">
-%(actions)s
-%(search)s
-</td>
-</tr></table>
-
-"""
-    if len(route)>1:
-        breadcrumb = link_to(system.app.title,'/'+system.app.name)
-    else:
-        breadcrumb = ''
+            t = content
+        return unisafe(t)
 
     system.result = page = Page()
-    if title or actions:
-        page_header = header_layout % dict(
-                title=title or '', 
-                subtitle=subtitle or '',
-                search=render_search(search), 
-                actions=as_actions(actions))
-    else:
-        page_header = ''
 
-    page.content = unisafe(page_header) + unisafe(render(unisafe(content), items))
-    page.css = css or ''
-    page.js = js or ''
+    page.css = css
+    page.js = js
+    page.title = title
+    page.subtitle = subtitle
+    page.search  = search
+    page.actions = actions
     page.callback = callback
     page.template = template or system.default_template
     page.head = head
+
+    page.content = render(content, items)
+
     return page
 
 
