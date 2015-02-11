@@ -1,51 +1,45 @@
 
-    <!-- STANDARD STUFF -->
-    <meta charset="utf-8">
-    <title><dz:title></title>
-    <meta name="keywords" content="<dz:keywords>" />
-    <meta name="description" content="<dz:description>" />
-    <meta name="author" content="<dz:owner_name>" />
-    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
-
-    <!-- JQUERY -->
-    <link href="<dz:uri>/static/jquery/css/smoothness/jquery-ui-1.8.8.custom.css" rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="<dz:uri>/static/jquery/js/jquery-1.7.1.js"></script>
-    <script type="text/javascript" src="<dz:uri>/static/jquery/js/jquery-ui-1.8.8.custom.min.js"></script>
-
-    <!-- chosen -->
-    <link rel="stylesheet" href="/static/chosen/chosen.css"> 
-    <script type="text/javascript" src="<dz:uri>/static/chosen/chosen.jquery.js"></script>
-
-    <!-- MODERNIZR HTML5 polyfill for IE -->
-    <script type="text/javascript" src="<dz:uri>/static/modernizr/modernizr-latest.js"></script>
-
-    <!-- DATAZOOMER default scripts  -->
-    <script type="text/javascript" src="<dz:uri>/static/dz/dz.js"></script>
-
-    <!-- DATAZOOMER defailt style sheets (remove/override whichever ones you want!) -->
-    <link href="/themes/default/layout/contained.css" rel="stylesheet" type="text/css">
-    <link href="/themes/default/navigation.css" rel="stylesheet" type="text/css">
-    <link href="/themes/default/content.css" rel="stylesheet" type="text/css">
-    <link href="/themes/default/widget.css" rel="stylesheet" type="text/css">
-    <link href="/themes/default/style.css" rel="stylesheet" type="text/css">
-    <link href="/themes/default/color.css" rel="stylesheet" type="text/css">
-    <link href="/themes/default/print.css" rel="stylesheet" type="text/css" media="print">
-
-    <!-- Theme Specific CSS (do what you want here too!) -->
-    <style type="text/css">
-    </style>        
-
-    <!-- App Specific CSS and JS -->
-    <dz:head>
-    <style type="text/css"><dz:css></style>
-    <script type="text/javascript"><dz:js></script>
-
-    <!-- Workarounds for bugs in Microsoft software -->
-    <!--[if IE]>
-    <style>
-        form input { line-height: 25px; }
-    </style>
-    <![endif]-->
-
-
+        <meta charset="utf-8">
+  
+        <title><dz:title></title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="keywords" content="<dz:keywords>" />
+        <meta name="description" content="<dz:description>" />
+        <meta name="author" content="<dz:owner_name>" />
+        <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+  
+        <!-- CSS 
+        ================================================== -->
+        <link href="<dz:theme_uri>/content.css" rel="stylesheet" type="text/css">
+        <link href="<dz:theme_uri>/widget.css" rel="stylesheet" type="text/css">
+        <link href="<dz:theme_uri>/navigation.css" rel="stylesheet" type="text/css">
+        <link href="<dz:theme_uri>/print.css" rel="stylesheet" type="text/css" media="print">
+        <link href="/static/dz/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="<dz:theme_uri>/style.css" rel="stylesheet" type="text/css" >
+        <link href="/static/dz/jquery-ui-themes/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+        <link href="/static/dz/chosen/chosen.css" rel="stylesheet" type="text/css" > 
+        <dz:styles>
+        <style type="text/css"><dz:css></style>
+  
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <script src="../../assets/js/html5shiv.js"></script>
+          <script src="../../assets/js/respond.min.js"></script>
+        <![endif]-->
+  
+        <!-- JavaScript 
+        ================================================== -->
+        <!-- 
+        Not placed at the end of the document because some legacy apps still 
+        embed code in the page which won't run if the libraries are not already
+        included.  Expect this to change. 
+        -->
+        <script src="/static/dz/jquery/jquery-1.11.2.min.js"></script>
+        <script src="/static/dz/jquery-ui/jquery-ui.min.js"></script>
+        <script src="/static/dz/bootstrap/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/static/dz/chosen/chosen.jquery.js"></script>
+        <script type="text/javascript" src="/static/dz/dz.js"></script>
+        <dz:libs>
+        <script type="text/javascript"><dz:js></script>
+  
+        <dz:head>

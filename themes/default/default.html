@@ -1,76 +1,59 @@
-<!doctype HTML>
-<html>
-<head>
-    <dz:include head>
-</head>
-<body>
-    <div class=wrapper>
+<!doctype html>
+<html lang="en">
+    <head>
+        <dz:include head>
+        <dz:tracker>
+    </head>
 
-        <div class=header>
-            <div class=container>
-                <div class=vpad>
-                    <div class=header_left>
-                        <p><span class=site_header_text><a href="/"><dz:site_name></a></span></p>
+    <body>
+        <div class="wrapper">
+            <div class="container">
+
+                <!-- Static navbar -->
+                <div class="navbar navbar-default">
+                  <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/"><dz:site_name></a>
+                  </div>
+
+                  <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                      <dz:main_menu_items>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                      <dz:system_menu_items>
+                    </ul>
+                    <div class="user-info">
+                        <span class="user_info"><dz:username></span>
                     </div>
-                    <div class=header_right>
-                        <span class=user_info><dz:login_id></span>
-                        <div class=system_menu>
-                            <dz:system_menu>
-                        </div>
-                    </div>
+                  </div><!--/.nav-collapse -->
                 </div>
-                <div style="clear:both"></div>
-            </div>
-            
-            <div class=main_menu>
-                <div class=container>
-                    <dz:main_menu>
+
+                <div class="nav2">
+                  <div class="app-menu"><dz:app_menu></div>
                 </div>
-            </div>
 
-            <div class=app_menu>
-                <div class=container>
-                    <dz:app_menu>
-                </div>                    
-            </div>
-        </div>
-
-        <div class=content>
-            <div class=container>
+                <div class="content">
                     <div class="printed_output"><pre><dz:printed_output></pre></div>
                     <div class="messages"><dz:messages></div>
                     <div class="warnings"><dz:warnings></div>
                     <div class="errors"><dz:errors></div>
                     <dz:content>
-            </div>
-        </div>
-        <div class=push></div>
-    </div>
-    <style>
-        div.footer { position: relative; }
-    </style>
-    <div class=footer>
-        <div class=container>
-                <div class=footer_left>
-                  <ul>
-                      <li><dz:link_to "privacy policy" "/privacy.html"></li>
-                      <li><dz:link_to "terms of use" "/terms.html"></li>
-                      <li><dz:link_to "contact us" "/contact.html"></li>
-                  </ul>
-                </div>
+                </div> <!-- /content -->
 
-                <div class=footer_right>
-        		  <dz:owner_name>
-                </div>
+            </div> <!-- /container -->
+            <div class="push"></div>
+        </div> <!-- /wrapper -->
 
-                <style>
-                    div.social-small { float:right; margin:15px 30px 0 0; }
-                </style>
-                <div class=social-small>
-                  <dz:include social>
-                </div>
-        </div>
-    </div>    
-    <dz:tracker>
-</body>
+        <div class="container">
+            <!-- Site footer -->
+            <dz:include footer>
+        </div> <!-- /container -->
+    </body>
+
+    <dz:tail>
 </html>

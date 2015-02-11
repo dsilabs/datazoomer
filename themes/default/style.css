@@ -1,63 +1,126 @@
 
-/* Resets and Overrides
-==========================*/
+html, body {
+    height: 100%;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding: 0;
+    margin: 0;
+}
+div.printed_output pre {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
 
-    * {
-        margin: 0;
-    }
-    html, body {
-        height: 100%;
-    }
-    .wrapper {
-        min-height: 100%;
-        height: auto !important;
-        height: 100%;
-        margin: 0 auto -50px;
-    }
-    .bottom, .push {
-        height: 50px;
-    }
+/*
+ * content
+ */
+.content ul, .content ol { 
+    margin: 0; 
+    padding-left: 2em;
+}
+x.content input[type="checkbox"] {
+    margin: 0 6px 0 0;
+}
 
-    body { background: #eee; text-align:center; }
-    body, ul { margin:0; padding:0; }
-    body, table, input { font-family:helvetica,arial,freesans,clean,sans-serif; font-size:14px; }
-
-    div.pad { padding: 5px 20px 5px 20px; }
-    div.hpad { padding: 0px 20px 0px 20px; }
-    div.vpad { padding: 5px 0px 5px 0px; }
-
-/* Header and Footer
-==========================*/
-    div.bottom { text-align: center; width:100%; background:black; }
-    div.top, div.top a { color: black; }
-
-    div.header {
-        overflow: hidden;
-        position: relative;
+/*
+ * app-menu
+ */
+.main_menu { float: left; }
+.system_menu { line-height: 40px; }
+div.app-menu {
+    padding: 0px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    font-weight: 200;
+    line-height: 40px;
+    color: inherit;
+    background-color: #eee;
+    -webkit-border-radius: 6px;
+       -moz-border-radius: 6px;
+            border-radius: 6px;
+}
+@media (max-width: 979px) {
+    div.app-menu {
+        margin-top: 0px;
     }
-    div.header_right { float: right; }
-    div.header_left  { float: left; }
-    div.header { background: black; color: white; }
-    span.site_header_text, span.site_header_text a, span.site_header_text a:visited {
-      font-family: 'Arial', serif;
-      font-size: 40px;
-      font-style: normal;
-      font-weight: 400;
-      text-shadow: none;
-      text-decoration: none;
-      text-transform: none;
-      letter-spacing: 0em;
-      word-spacing: 0em;
-      line-height: 40px;
-      color: #ccc;
-    }
-    span.site_header_text a:hover {
-        color: white;
-    }
+}
+div.app-menu ul {
+    padding: 0 5px;
+}
+div.app-menu li {
+    display: inline;
+}
+div.app-menu li a {
+    padding: 9px;
+    color: black;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+div.app-menu li a:hover {
+    background: #ccc;
+    text-decoration: none;
+}
 
-    div.footer, div.footer a { background: black; color: grey; text-decoration: none; }
-    div.footer { height: 50px; line-height: 50px; }
-    div.footer_right { line-height: 50px; float: right; font-size:0.8em; }
-    div.footer_left  { line-height: 50px; float: left; font-size:0.8em; }
-    div.footer li { display: inline; margin-right:10px; }
+
+/*
+ * navbar
+ */
+.navbar-fixed-top {
+    margin-bottom: 10px;
+}
+.navbar-fixed-top .navbar-inner {
+    padding: 0;
+}
+.navbar .brand {
+    padding: 12px 20px;
+}
+.navbar {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+
+/*
+ * Bottom and footer
+ */
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -50px;
+}
+.bottom, .push {
+    height: 50px;
+}
+.bottom {
+    background: #eee;
+    line-height: 50px;
+    margin: 0;
+}
+.bottom p {
+    margin: 0;
+}
+div.footer { height: 50px; line-height: 50px; padding: 0 15px; }
+div.footer_right { line-height: 50px; float: right; font-size:0.8em; }
+div.footer_left  { line-height: 50px; float: left; font-size:0.8em; }
+div.footer ul { padding: 0; }
+div.footer li { display: inline; margin-right:10px; }
+
+
+/*
+ * misc
+ */
+legend {
+    width: auto;
+    border-bottom: none;
+}
+
+
+div.user-info {
+    float: right;
+    padding-right: 20px;
+    line-height: 50px;
+}
 
