@@ -9,7 +9,7 @@ def view(id='', status=None):
         if len(data) == 1:
             result = []
             for field in data[0].column_names():
-                 result.append((field, '<pre>%s</pre>' % data[0].value_by_name(field)),)
+                 result.append((field, '<pre>%s</pre>' % websafe(data[0].value_by_name(field))),)
             labels = ['Column', 'Value']
             return Page('<H1>Errors</H1>%s' % browse(result, labels=labels))
 
@@ -23,11 +23,11 @@ def view(id='', status=None):
         link_to(i.id, route[-1], i.id),
         i.user,
         i.address,
-        i.route,
+        websafe(i.route),
         i.status,
         i.elapsed,
         '<span title="%s">%s</span>' % (i.timestamp, how_long_ago(i.timestamp)),
-        i.message[:30]
+        websafe(i.message[:30]),
         ) for i in data]
     content = browse(items,labels=labels)
     return page(content, title='Errors')
