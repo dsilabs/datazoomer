@@ -495,7 +495,7 @@ class EntityStore:
         """
         cmd = 'select count(*) n from (select distinct row_id from attributes where kind=%s) a'
         r = self.db(cmd, self.kind)
-        return int(r[0].N)
+        return int(list(r)[0][0])
 
     def _find(self, **kv):
         """
