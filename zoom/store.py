@@ -357,7 +357,7 @@ class EntityStore:
         # order by id desc so that newly introduced attributes appear at the end of the keys list
         cmd = 'select distinct attribute from attributes where kind=%s order by id desc'
         rs = self.db(cmd, self.kind)
-        values = [rec.ATTRIBUTE for rec in rs]
+        values = [rec[0] for rec in rs]
         return values
 
 
@@ -425,7 +425,7 @@ class EntityStore:
         cmd = 'select distinct row_id from attributes where row_id in (%s)' % slots
         rs = self.db(cmd, *keys)
 
-        found_keys = [rec.ROW_ID for rec in rs]
+        found_keys = [rec[0] for rec in rs]
         if len(keys)>1:
             result = [(key in found_keys) for key in keys]
         else:
@@ -514,7 +514,7 @@ class EntityStore:
                     v = value
                 cmd = 'select distinct row_id from attributes where kind=%s and attribute=%s and '+wc
                 rs = db(cmd, self.kind, field_name.lower(), *v)
-                all_keys.append([rec.ROW_ID for rec in rs])
+                all_keys.append([rec[0] for rec in rs])
         answer = set(all_keys[0])
         for keys in all_keys[1:]:
             answer = set(keys) & answer
