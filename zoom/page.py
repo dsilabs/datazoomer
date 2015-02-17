@@ -24,7 +24,7 @@ HEADER_LAYOUT = """
 </tr></table>
 """
 
-class Page:
+class Page(object):
     def __init__(self,content='',callback=None,css=''):
 
         self.content  = tools.load_content(content) or content
