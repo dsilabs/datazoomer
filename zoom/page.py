@@ -145,19 +145,19 @@ class Page(object):
 
         return HTMLResponse(content)
 
-def page(content='', template=None, callback=None, css='', js='', title='', subtitle='', search=None, actions=None, items=None, head=''):
-
-    def render(content='', items=None):
-        """Render some content"""
-        if items != None:
-            content = unisafe(content)
-            if hasattr(items,'keys'):
-                t = content % items
-            else:
-                t = ''.join(content % item for item in items)
+def render(content='', items=None):
+    """Render some content"""
+    if items != None:
+        content = unisafe(content)
+        if hasattr(items,'keys'):
+            t = content % items
         else:
-            t = content
-        return unisafe(t)
+            t = ''.join(content % item for item in items)
+    else:
+        t = content
+    return unisafe(t)
+
+def page(content='', template=None, callback=None, css='', js='', title='', subtitle='', search=None, actions=None, items=None, head=''):
 
     system.result = page = Page()
 
