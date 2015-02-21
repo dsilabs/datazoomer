@@ -5,7 +5,7 @@ __all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse',
 def render_headers(headers):
     return (''.join(["%s: %s\n" % (header, value) for header, value in headers.items()]))
 
-class Response:
+class Response(object):
     def __init__(self,content):
         self.status = '200 OK'
         self.headers = {}
