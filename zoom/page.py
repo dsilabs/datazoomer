@@ -136,9 +136,13 @@ class Page(object):
                 template_filename = os.path.join(template_pathname, 'default.html')
         self.tpl = template_pathname and tools.load(template_filename) or tools.load(DEFAULT_TEMPLATE)
 
+        page_header = self.render_header()
         save_content = self.content
-        self.content = self.render_header() + self.content
+        self.content = page_header + self.content
+        save_title = self.title
+        del self.title
         content = fill('<dz:','>', self.tpl, handle)
+        self.title = save_title
         self.content = save_content
         if self.callback:
             content = fill('{{','}}', content, self.callback)

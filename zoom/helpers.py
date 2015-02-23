@@ -302,7 +302,7 @@ def h(html_code):
 
 def title():
     """Returns application title."""
-    return site_name() + ' ' + system.app.title
+    return ' | '.join([system.app.title, site_name()])
 
 def removal_icon(url):
     """Generates a removal icon"""
