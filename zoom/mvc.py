@@ -1,6 +1,7 @@
 
 from request import data
 from user import user
+from page import page
 
 __all__ = ['View','Controller','authorize']
 
@@ -48,7 +49,7 @@ def authorize(*roles):
         return authorize_and_call
     return wrapper
 
-class View:
+class View(object):
     """
 
         View a model
@@ -56,7 +57,7 @@ class View:
     """
     def __call__(self, *a, **k):
         
-        buttons, inputs = remove_buttons(data)
+        buttons, inputs = remove_buttons(k)
 
         if len(a):
 
@@ -89,6 +90,15 @@ class View:
         if result:
             return result
 
+    def show(self, *a, **k):
+        content = """
+        <div class="jumbotron">
+            <h1>Page Not Found</h1>
+            <p>The page you requested could not be found.  Please contact the administrator or try again.<p>
+        </div>
+        """
+        return page(content)
+
 
 class Controller:
     """
@@ -101,7 +111,9 @@ class Controller:
 
         result = None
 
-        buttons, inputs = remove_buttons(data)
+        buttons, inputs = remove_buttons(k)
+
+        #print a, buttons, inputs
 
         # Buttons
         if buttons:
