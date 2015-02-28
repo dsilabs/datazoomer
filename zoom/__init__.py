@@ -36,7 +36,7 @@ import jsonz as json
 from mvc import *
 from browse import browse
 
-ITEM_MISSING_ERROR = '<H1>Error</H1>Unable to locate page %s.'
+ITEM_MISSING_ERROR = '<H1>Not Found</H1>Unable to locate page.'
 
 import warnings
 warnings.filterwarnings('ignore', 
@@ -76,5 +76,5 @@ class App:
 
         response = controller and callable(controller) and controller(*a,**data) or view and callable(view) and view(*a,**data) 
 
-        return response or system.result or load_page(module, filler) or Page(ITEM_MISSING_ERROR % request.uri)
+        return response or system.result or load_page(module, filler) or Page(ITEM_MISSING_ERROR)
     
