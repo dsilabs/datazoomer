@@ -4,7 +4,7 @@ from request import route
 from response import HTMLResponse
 from utils import id_for, OrderedSet
 from helpers import form_for, link_to, url_for
-from tools import as_actions, unisafe
+from tools import as_actions, unisafe, websafe
 from html import ul
 import helpers, tools
 from system import system
@@ -57,7 +57,7 @@ class Page(object):
                 clear = '<span class="clear"></span>'
             else:
                 clear = CLEAR_LAYOUT % ('/'.join([''] + route + ['clear']))
-            return  SEARCH_LAYOUT % form_for(SEARCH_FIELDS % (value,clear), method='GET')
+            return  SEARCH_LAYOUT % form_for(SEARCH_FIELDS % (websafe(value),clear), method='GET')
 
         def render_actions(items):
             return as_actions(items)
