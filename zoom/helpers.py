@@ -10,6 +10,7 @@ from zoom.utils import *
 import flags
 from snippets import snippet
 import goals
+from urllib import quote
 
 def elapsed(fmt='%f'):
     """Returns time it took to generate current page."""
@@ -680,7 +681,7 @@ def construct_url(root,route,a,k):
         uri = '/'.join([root] + list(route[:1]+route[1:-1]) + list(a))
         
     if k:
-        params = '&'.join(['%s=%s' % (name,k[name]) for name in k])
+        params = '&'.join([quote('%s=%s' % (name,k[name]),safe='/=') for name in k])
         return '%s?%s' % (uri,params)
     else:
         return uri
@@ -696,6 +697,10 @@ def url_for(*a,**k):
         >>> system.uri = 'https://localhost'
         >>> url_for('test')
         'https://localhost/test'
+
+        >>> system.uri = 'http://localhost'
+        >>> url_for('test',status='"><script>alert(2)</script>')
+        'http://localhost/test?status=%22%3E%3Cscript%3Ealert%282%29%3C/script%3E'
 
         >>> system.uri = 'http://localhost'
         >>> route.append('main')
