@@ -3,7 +3,7 @@ import os
 from system import system
 from manager import manager
 import tools
-from request import request, webvars, route
+from request import request, route
 from user import user
 import html
 from zoom.utils import *

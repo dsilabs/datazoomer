@@ -33,14 +33,13 @@ class ProfileController(Controller):
                 return to_page()
 
     def upload_button(self,*a,**k):
-        input = webvars.__dict__
-        if not 'uploaded_photo' in input:
+        if not 'uploaded_photo' in data or not hasattr(data['uploaded_photo'],'filename'):
             message('File missing')
         else:
-            name = input.get('uploaded_photo').filename
-            data = input.get('uploaded_photo').value
+            name = data['uploaded_photo'].filename
+            image = data['uploaded_photo'].value
             user = current_user()
-            if user.update_photo(name,data):
+            if user.update_photo(name, image):
                 return redirect_to('/profile')
             else:
                 warning('unknown image type')

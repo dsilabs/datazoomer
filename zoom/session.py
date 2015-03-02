@@ -26,7 +26,7 @@ import os
 import Cookie
 import uuid
 
-from request import request, webvars
+from request import request
 
 SESSION_COOKIE_NAME = 'dz4sid'
 SUBJECT_COOKIE_NAME = 'dz4sub'

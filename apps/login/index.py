@@ -50,7 +50,7 @@ class LoginController(Controller):
 
 def fill(tag,*a,**k):
     if tag == 'username':
-        return webvars.USERNAME
+        return data.get('USERNAME','')
     elif tag == 'registration_link':
         return 'register' in user.apps and '<a href="register">New User?</a>' or ''
     elif tag == 'forgot_link':
