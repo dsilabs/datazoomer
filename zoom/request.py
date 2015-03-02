@@ -29,7 +29,7 @@ def calc_domain(host):
 class Request:
     def __init__(self):    
 
-        path = urllib.unquote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
+        path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
         route = path != '/' and path.split('/')[1:] or []
 
         # gather some commonly required environment variables

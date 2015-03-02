@@ -11,6 +11,7 @@ import flags
 from snippets import snippet
 import goals
 from urllib import quote
+from string import ascii_letters, digits
 
 def elapsed(fmt='%f'):
     """Returns time it took to generate current page."""
@@ -300,6 +301,24 @@ def app_side_nav(default='no apps'):
 def h(html_code):
     """Returns HTML with less than and greater than characters converted so it can be rendered as displayable content."""
     return html_code.replace('<','&lt;').replace('>','&gt')
+
+def attribute_escape(untrusted):
+    """Attributes escape 'untrusted' before inserting into HTML common attributes
+
+    ** important ** this should not be used for complex attributes, href, src, style
+    or event handlers - use "js_escape" instead
+
+        >>> attribute_escape('hello')
+        'hello'
+        >>> attribute_escape('hello123GOOd')
+        'hello123GOOd'
+        >>> attribute_escape('hello "> <script>')
+        'hello&#x20;&#x22;&#x3e;&#x20;&#x3c;script&#x3e;'
+    """
+    def __enc(char):
+        return '&#x%(encoded)s;' % {'encoded': char.encode("hex")}
+    safe = ascii_letters + digits
+    return ''.join([char in safe and char or __enc(char) for char in untrusted])
 
 def title():
     """Returns application title."""
@@ -635,6 +654,7 @@ def csrf_token():
 def form(action='/'+'/'.join(route),*args,**keywords):
     """Returns a form tag."""
     system.in_form = 1
+    esc = attribute_escape
     params = keywords.copy()
     form_name = keywords.get('form_name','dz_form')
     method = keywords.get('method','POST')
@@ -642,10 +662,10 @@ def form(action='/'+'/'.join(route),*args,**keywords):
         del params['method']
     t = []
     for arg_name in params:
-        t.append('\n<input type=hidden name="%s" value="%s">' % (arg_name,params[arg_name]))
+        t.append('\n<input type=hidden name="%s" value="%s">' % (esc(arg_name),esc(params[arg_name])))
     if method == 'POST':
         t.append('\n<input type="hidden" name="csrf_token" value="%s">' % csrf_token())
-    return '<form action="%s" id="%s" name="%s" method="%s">%s' % (action,form_name,form_name,method,''.join(t))
+    return '<form action="%s" id="%s" name="%s" method="%s">%s' % (esc(action),esc(form_name),esc(form_name),esc(method),''.join(t))
 
 def form_for(content,**keywords):
     """Returns a form tag with a closing tag, surrounding specified content."""
@@ -653,13 +673,14 @@ def form_for(content,**keywords):
 
 def multipart_form(action='/'+'/'.join(route),*args,**keywords):
     """Returns a multipart form tag."""
+    esc = attribute_escape
     params = keywords.copy()
     form_name = keywords.get('form_name','dz_form')
     t = []
     for arg_name in params:
-        t.append('\n<input type=hidden name="%s" value="%s">' % (arg_name,params[arg_name]))
+        t.append('\n<input type=hidden name="%s" value="%s">' % (esc(arg_name),esc(params[arg_name])))
     t.append('\n<input type="hidden" name="csrf_token" value="%s">' % csrf_token())
-    return '<form action="%s" id="%s" name="%s" method=POST enctype="multipart/form-data">%s\n' % (action,form_name,form_name,''.join(t))
+    return '<form action="%s" id="%s" name="%s" method=POST enctype="multipart/form-data">%s\n' % (esc(action),esc(form_name),esc(form_name),''.join(t))
 
 def multipart_form_for(content,**keywords):
     """Returns a multipart form tag with a closing tag, surrounding specified content."""

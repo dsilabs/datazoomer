@@ -21,6 +21,7 @@ from validators import *
 
 from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown
+from helpers import attribute_escape
 from request import route
 
 HINT_TPL = \
@@ -1342,7 +1343,7 @@ class Form(Fields):
 
         >>> form = Form(TextField("Name"))
         >>> form.edit()
-        '<form action="" id="dz_form" name="dz_form" method="POST" enctype="application/x-www-form-urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></div></div></form>'
+        '<form action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></div></div></form>'
 
     """
 
@@ -1367,12 +1368,13 @@ class Form(Fields):
         self.method = params.pop('method','POST')
 
     def edit(self):
+        esc = attribute_escape
         return '<form action="%s" id="%s" name="%s" method="%s" enctype="%s">%s</form>' % (
-                self.action,
-                self.form_name,
-                self.form_name,
-                self.method,
-                self.enctype,
+                esc(self.action),
+                esc(self.form_name),
+                esc(self.form_name),
+                esc(self.method),
+                esc(self.enctype),
                 ''.join([field.edit() for field in self.fields])
                 )
 
