@@ -1,6 +1,6 @@
 
 import os 
-from zoom import system, manager, page, markdown
+from zoom import system, manager, page, markdown, data
 from zoom.helpers import *
 
 def status_info():
@@ -17,7 +17,7 @@ def status_info():
         'date.............: %s' % tools.today,
         'now..............: %s' % tools.now,
         'route............: %s' % route,
-        'webvars..........: %s' % webvars,
+        'data.............: %s' % data,
         'session..........: %s' % system.session,
         'authentication...: %s' % system.authentication,
         'user.is_anonymous: %s' % user.is_anonymous,
@@ -25,7 +25,7 @@ def status_info():
         '\nrequest: %s'%str(request),
     ])
 
-def view():
+def view(*a, **k):
     d = system.__dict__
 
     lib_path = system.lib_path

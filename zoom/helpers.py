@@ -3,7 +3,7 @@ import os
 from system import system
 from manager import manager
 import tools
-from request import request, webvars, route
+from request import request, route
 from user import user
 import html
 from zoom.utils import *
@@ -341,7 +341,7 @@ def keywords():
     return system.app.keywords
 
 def in_form():
-    return hasattr(system,'in_form') and system.in_form==1
+    return hasattr(system,'in_form') and bool(system.in_form)
 
 def name_for(text):
     """Calculates a valid HTML field name given an arbitrary string."""
@@ -822,10 +822,9 @@ if __name__ == '__main__':
             self.assertEqual(url_for(app='app1',con=''),'index.py?app=app1')
 
         def test_text_input(self):
-            system.in_form = 1
-            webvars = dict(NAME='test')  #['NAME'] = 'test'
-            self.assertEqual(text_input('name',size=2),'<INPUT NAME="name" VALUE="{{NAME}}" MAXLENGTH="40" TYPE="text" CLASS="text" SIZE="40" />')
-            self.assertEqual(text_input('name',size=2,value='Joe'),'<INPUT NAME="name" VALUE="Joe" MAXLENGTH="40" TYPE="text" CLASS="text" SIZE="40" />')
+            system.in_form = True
+            self.assertEqual(text_input('name',size=2),'<input name="name" value="{{NAME}}" maxlength="40" type="text" class="text" size="40" />')
+            self.assertEqual(text_input('name',size=2,value='Joe'),'<input name="name" value="Joe" maxlength="40" type="text" class="text" size="40" />')
 
     unittest.main()
         

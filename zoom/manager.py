@@ -19,7 +19,7 @@ import os
 from application import Application
 from system import system
 from user import user
-from request import route, webvars
+from request import route, data
 import tools
 
 DEFAULT_SYSTEM_APPS = ['register','profile','login','logout']
@@ -81,7 +81,7 @@ class Manager:
         return name in self.apps and self.apps[name].enabled and (user.is_admin or name in user.apps)
         
     def requested_app_name(self):
-        return route and route[0] or getattr(webvars,'app',None)
+        return route and route[0] or data.get('app', None)
 
 
 if __name__ != '__main__':

@@ -20,7 +20,7 @@ from system import system
 from user import user
 
 from helpers import *
-from request import request, route, webvars, data
+from request import request, route, data
 from fields import *
 from tools import *
 from log import logger
