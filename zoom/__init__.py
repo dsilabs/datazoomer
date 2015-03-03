@@ -58,7 +58,7 @@ class App:
         return page(content)
 
 
-    def __call__(self):
+    def process(self, *route, **data):
 
         def load_page(module, filler):
             content = load_content(module)
@@ -92,3 +92,8 @@ class App:
 
         return response or system.result or load_page(module, filler) or self.page_missing()
     
+
+    def __call__(self):
+        return self.process(*route, **data)
+
+
