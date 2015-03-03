@@ -95,13 +95,16 @@ class Database(object):
         (1L, 'Joe', 32, None, None, None)
         (2L, 'Pat', None, None, None, Decimal('1234.56'))
 
-        >>> db('select * from person where id=2')
+        >>> db('select * from person where id=%s', 2)
         [(2L, 'Pat', None, None, None, Decimal('1234.56'))]
 
         >>> t = list(db('select * from person where id=2'))[0][-1]
         >>> t
         Decimal('1234.56')
         >>> assert amt == t
+
+        >>> db('select * from person where name in (%(buddy)s, %(pal)s)', {'buddy':'Pat', 'pal':'John'})
+        [(2L, 'Pat', None, None, None, Decimal('1234.56'))]
 
         >>> db('drop table person')
         0L
@@ -134,7 +137,7 @@ class Database(object):
         if self.__debug:
             start = time.time()
         try:
-            result = cursor.execute(sql, a)
+            result = cursor.execute(sql, len(a)==1 and hasattr(a[0],'items') and a[0] or a)
         finally:
             if self.__debug:
                 print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, args)
