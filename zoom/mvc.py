@@ -1,7 +1,7 @@
 
 from request import data
 from user import user
-from page import page
+from exceptions import PageMissingException
 
 __all__ = ['View','Controller','authorize']
 
@@ -91,13 +91,7 @@ class View(object):
             return result
 
     def show(self, *a, **k):
-        content = """
-        <div class="jumbotron">
-            <h1>Page Not Found</h1>
-            <p>The page you requested could not be found.  Please contact the administrator or try again.<p>
-        </div>
-        """
-        return page(content)
+        raise PageMissingException
 
 
 class Controller:

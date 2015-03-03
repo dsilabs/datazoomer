@@ -1,9 +1,9 @@
 
 from os import environ as env
-
 from zoom import *
 from zoom.response import PNGResponse
 from zoom.log import logger
+from exceptions import PageMissingException
 
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
@@ -90,7 +90,7 @@ class CollectionView(View):
                 memo = ''
             return page(c.fields.show() + memo, title=c.item_name, actions=actions)
         else:
-            return page('%s missing' % locator)
+            raise PageMissingException
 
     def new(self):
         c = self.collection

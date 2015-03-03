@@ -28,6 +28,7 @@ from mail import send
 from page import *
 from store import *
 from fill import fill
+from exceptions import PageMissingException
 
 # legacy models
 from storage import Model
@@ -46,6 +47,16 @@ warnings.filterwarnings('ignore',
 class App:
     def authorized(self):
         return True
+
+    def page_missing(self):
+        content = """
+        <div class="jumbotron">
+            <h1>Page Not Found</h1>
+            <p>The page you requested could not be found.  Please contact the administrator or try again.<p>
+        </div>
+        """
+        return page(content)
+
 
     def __call__(self):
 
@@ -74,7 +85,10 @@ class App:
             controller = None
             filler = None
 
-        response = controller and callable(controller) and controller(*a,**data) or view and callable(view) and view(*a,**data) 
+        try:
+            response = controller and callable(controller) and controller(*a,**data) or view and callable(view) and view(*a,**data) 
+        except PageMissingException:
+            return self.page_missing()
 
-        return response or system.result or load_page(module, filler) or Page(ITEM_MISSING_ERROR)
+        return response or system.result or load_page(module, filler) or page_missing() #Page(ITEM_MISSING_ERROR)
     
