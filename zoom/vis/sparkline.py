@@ -8,7 +8,7 @@ from zoom import system
 
 scripts = [
     "/static/dz/jquery/jquery-migrate-1.2.1.min.js",
-    "/static/jqsparkline/jquery.sparkline.js",
+    "/static/dz/jqsparkline/jquery.sparkline.min.js",
         ]
 
 js = """
