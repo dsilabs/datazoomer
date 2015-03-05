@@ -52,9 +52,10 @@ available_tilesets = {
 
   }
 
-leaflet_script = """    <script src="/static/dz/leaflet/leaflet.js"></script>"""
-leaflet_style = """    <link rel="stylesheet" href="/static/dz/leaflet/leaflet.css" />"""
-leaflet_head = "%s\n%s" % (leaflet_script, leaflet_style)
+leaflet_script = ["/static/dz/leaflet/leaflet.js"]
+leaflet_style = ["/static/dz/leaflet/leaflet.css"]
+leaflet_head = """    <script src="/static/dz/leaflet/leaflet.js"></script>
+    <link rel="stylesheet" href="/static/dz/leaflet/leaflet.css" />"""
 
 def var_for(s):
     """return JavaScript variable name"""
@@ -259,11 +260,8 @@ class AwesomeIcon(Icon):
 
     https://github.com/lvoogdt/Leaflet.awesome-markers
     """
-    scripts = """    <script src="/static/dz/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/dz/leaflet/leaflet.awesome-markers.min.js"></script>"""
-    styles = """    <link href="/static/dz/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/dz/leaflet/leaflet.awesome-markers.css">
-    """
+    scripts = ["/static/dz/bootstrap/js/bootstrap.min.js", "/static/dz/leaflet/leaflet.awesome-markers.min.js"]
+    styles = ["/static/dz/bootstrap/css/bootstrap.min.css", "/static/dz/leaflet/leaflet.awesome-markers.css"]
     _declare_ = "var %(name)s = L.AwesomeMarkers.icon(%(properties)s);"
     def render(self):
         system.libs = system.libs | self.scripts
@@ -346,8 +344,7 @@ class HeatLayer(LayerGroup):
     _declare_ = 'var %(var)s = new %(inline)s;'
     _tail_ = '%(var)s.setData( {data: [%(pins_layergroup)s] });'
     _data_ = '{lat: %s, lng: %s, value: %s}'
-    scripts = """    <script src="/static/dz/heatmap.js/heatmap.min.js"></script>
-    <script src="/static/dz/heatmap.js/leaflet-heatmap.js"></script>"""
+    scripts = ["/static/dz/heatmap.js/heatmap.min.js", "/static/dz/heatmap.js/leaflet-heatmap.js"]
     def render(self):
         system.libs = system.libs | self.scripts
         return LayerGroup.render(self)
