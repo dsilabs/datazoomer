@@ -53,7 +53,7 @@ available_tilesets = {
   }
 
 leaflet_head = """
-    <script src="/static/jquery/js/jquery-1.10.2.min.js"></script>
+    <script src="/static/dz/jquery/jquery-1.11.2.min.js"></script>
 
     <link rel="stylesheet" href="/static/dz/leaflet/leaflet.css" />
     <script src="/static/dz/leaflet/leaflet.js"></script>
