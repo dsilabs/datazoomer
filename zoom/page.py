@@ -62,7 +62,7 @@ class Page(object):
         def render_actions(items):
             return as_actions(items)
 
-        header_required = self.title or self.subtitle or self.search or self.actions
+        header_required = self.title or self.subtitle or self.search!=None or self.actions
         if not header_required: return ''
         return unisafe(HEADER_LAYOUT % dict(
                 title=self.title,
