@@ -8,6 +8,10 @@ cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 opener.addheaders.append(('Accept','application/json'))
 
+def get_test_site():
+    import os
+    return os.environ.get('DATAZOOMER_TEST_SITE', 'http://localhost')
+
 class API:
     """
         Connect to and interact with a datazoomer site.
@@ -15,7 +19,8 @@ class API:
         Note: request header specifies json but it's up to the app
               to decide whether or not to respect that.
 
-        >>> api = API('http://localhost', 'admin', 'admin')
+        >>> test_site = get_test_site()
+        >>> api = API(test_site, 'admin', 'admin')
         >>> api.get('ping')
         True
         >>> api.close()
@@ -61,7 +66,7 @@ class API:
 
 if __name__ == '__main__':
 
-    api = API('http://localhost', 'admin', 'admin')
+    api = API(test_site, 'admin', 'admin')
 
     connected = api.get('ping')
     print connected
