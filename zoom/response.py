@@ -1,6 +1,6 @@
 """HTTP responses for various common responses.
 """
-__all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse','JavascriptResponse', 'RedirectResponse','FileResponse']
+__all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse','JSONResponse', 'JavascriptResponse', 'RedirectResponse','FileResponse']
 
 def render_headers(headers):
     return (''.join(["%s: %s\n" % (header, value) for header, value in headers.items()]))
@@ -71,6 +71,11 @@ class JavascriptResponse(TextResponse):
     def __init__(self, content):
         TextResponse.__init__(self, content)
         self.headers['Content-type'] = 'application/javascript'
+
+class JSONResponse(TextResponse):
+    def __init__(self, content):
+        TextResponse.__init__(self,content)
+        self.headers['Content-type'] = 'application/json;charset=utf-8'
 
 class RedirectResponse(Response):
     def __init__(self,url):
