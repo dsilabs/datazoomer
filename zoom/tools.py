@@ -98,7 +98,7 @@ def as_actions(items):
         return ''
     result = []
     for item in reversed(items):
-        if type(item) == tuple:
+        if hasattr(item, '__iter__'):
             if len(item) == 2:
                 text, url = item
             else:
