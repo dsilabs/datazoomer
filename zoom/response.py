@@ -1,7 +1,8 @@
 """HTTP responses for various common responses.
 """
-import json
 __all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse','JSONResponse', 'JavascriptResponse', 'RedirectResponse','FileResponse']
+
+import zoom.jsonz as json
 
 def render_headers(headers):
     return (''.join(["%s: %s\n" % (header, value) for header, value in headers.items()]))
