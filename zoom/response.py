@@ -1,5 +1,6 @@
 """HTTP responses for various common responses.
 """
+from zoom import json
 __all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse','JSONResponse', 'JavascriptResponse', 'RedirectResponse','FileResponse']
 
 def render_headers(headers):
@@ -73,7 +74,8 @@ class JavascriptResponse(TextResponse):
         self.headers['Content-type'] = 'application/javascript'
 
 class JSONResponse(TextResponse):
-    def __init__(self, content):
+    def __init__(self, content, indent=4, sort_keys=True, ensure_ascii=False, **kwargs):
+        content = json.dumps(content, indent, sort_keys, ensure_ascii, **kwargs)
         TextResponse.__init__(self,content)
         self.headers['Content-type'] = 'application/json;charset=utf-8'
 
@@ -87,7 +89,7 @@ class FileResponse(Response):
         Response.__init__(self,'')
         if content:
             self.content = content
-        else:            
+        else:
             self.content = file(filename,'rb').read()
         import os
         (path,fileonly) = os.path.split(filename)
