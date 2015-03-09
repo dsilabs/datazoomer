@@ -32,39 +32,23 @@ css = """
 css = css
 
 scripts = [
-    "/static/excanvas.js",
-    "/static/jqplot/jquery.jqplot.min.js",
-    "/static/jqplot/plugins/jqplot.highlighter.min.js",
-    "/static/jqplot/plugins/jqplot.cursor.min.js",
-    "/static/jqplot/plugins/jqplot.dateAxisRenderer.min.js",
-    "/static/jqplot/plugins/jqplot.canvasTextRenderer.min.js",
-    "/static/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js",
-    "/static/jqplot/plugins/jqplot.barRenderer.min.js",
-    "/static/jqplot/plugins/jqplot.categoryAxisRenderer.min.js",
-    "/static/jqplot/plugins/jqplot.pointLabels.min.js",
-    "/static/jqplot/plugins/jqplot.pieRenderer.min.js",
-    "/static/jqplot/plugins/jqplot.meterGaugeRenderer.min.js",
+    "/static/dz/jqplot/excanvas.js",
+    "/static/dz/jqplot/jquery.jqplot.min.js",
+    "/static/dz/jqplot/plugins/jqplot.highlighter.min.js",
+    "/static/dz/jqplot/plugins/jqplot.cursor.min.js",
+    "/static/dz/jqplot/plugins/jqplot.dateAxisRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.canvasTextRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.barRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.categoryAxisRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.pointLabels.min.js",
+    "/static/dz/jqplot/plugins/jqplot.pieRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.meterGaugeRenderer.min.js",
         ]
 
 styles = [
-    "/static/jqplot/jquery.jqplot.min.css"
+    "/static/dz/jqplot/jquery.jqplot.min.css"
         ]
-
-head = """
-    <link rel="stylesheet" type="text/css" href="/static/jqplot/jquery.jqplot.min.css" />
-    <script type="text/javascript" src="/static/excanvas.js"></script>
-    <script type="text/javascript" src="/static/jqplot/jquery.jqplot.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.highlighter.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.cursor.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.barRenderer.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.categoryAxisRenderer.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.pointLabels.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.pieRenderer.min.js"></script>
-    <script type="text/javascript" src="/static/jqplot/plugins/jqplot.meterGaugeRenderer.min.js"></script>
-"""
 
 chart_tpl = """
     <div id="chart_%(name)s" class="chart"></div>
@@ -116,7 +100,6 @@ def render_options(default_options, options, k={}):
 def chart(v):
     system.libs = system.libs | scripts
     system.styles = system.styles | styles
-    #system.head.add(head)
     system.js.add(chart_js % v)
     system.css.add(css)
     return chart_tpl % v
