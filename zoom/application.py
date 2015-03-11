@@ -25,7 +25,7 @@ class Application:
         self.name    = name
         self.path    = path
         self.dir     = os.path.split(path)[0]
-        self.theme   = None
+        self.theme   = self.read_config('settings', 'theme', '') or None
         self.enabled = True
         self.version = None
         self.icon    = self.read_config('settings','icon',system.config.get('apps','icon','blank_doc'))
