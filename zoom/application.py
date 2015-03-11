@@ -25,7 +25,7 @@ class Application:
         self.name    = name
         self.path    = path
         self.dir     = os.path.split(path)[0]
-        self.theme   = system.theme
+        self.theme   = None
         self.enabled = True
         self.version = None
         self.icon    = self.read_config('settings','icon',system.config.get('apps','icon','blank_doc'))
@@ -43,7 +43,7 @@ class Application:
         try:
             config.read(config_file1)
             return config.get(section,key)
-        except:            
+        except:
             try:
                 config.read(config_file2)
                 return config.get(section,key)
@@ -51,12 +51,12 @@ class Application:
                 if default != None:
                     return default
                 else:
-                    raise                    
+                    raise
 
     def run(self):
         t = self.dispatch()
         return self.respond(t)
-        
+
     def dispatch(self):
         os.chdir(os.path.split(self.path)[0])
         import imp

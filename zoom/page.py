@@ -31,7 +31,7 @@ class Page(object):
         self.template = system.default_template
         self.callback = callback
         self.css      = css
-        self.theme    = system.theme
+        self.theme    = None
         self.js       = ''
         self.head     = ''
         self.tail     = ''
@@ -113,6 +113,10 @@ class Page(object):
 
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
 
+        self.theme = self.theme or system.app.theme or system.theme
+        if self.theme != system.theme:
+            system.set_theme(self.theme)
+
         self.content = fill('<dz:set_','>', self.content, set_setting)
 
         self.styles = render_style_sheets(system.styles, self.styles)
@@ -127,7 +131,7 @@ class Page(object):
         else:
             breadcrumb = ''
 
-        template_pathname = system.theme_path 
+        template_pathname = system.theme_path
         if template_pathname:
             template_filename = os.path.join(template_pathname, self.template+'.html')
             if not os.path.exists(template_filename):

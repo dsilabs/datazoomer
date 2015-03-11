@@ -17,6 +17,13 @@ from utils import OrderedSet
 
 env = os.environ
 
+def existing(path, subdir=None):
+    """Returns existing directories only"""
+    pathname = path and subdir and os.path.join(os.path.abspath(path), subdir) or path and os.path.abspath(path)
+    if pathname and os.path.exists(pathname):
+        return pathname
+
+
 class NoApp:
     name  = 'noapp'
     dir = ''
@@ -42,12 +49,6 @@ class System:
                 raise AttributeError
 
     def setup(self, instance_path):
-
-        def existing(path, subdir=None):
-            """Returns existing directories only"""
-            pathname = path and subdir and os.path.join(os.path.abspath(path), subdir) or path and os.path.abspath(path)
-            if pathname and os.path.exists(pathname):
-                return pathname
 
         self.debugging = True
         self.start_time  = timeit.default_timer()
@@ -143,27 +144,14 @@ class System:
 
         # users (experimental)
         self.users = UserStore(self.db)
-            
+
         # email settings
         self.from_addr = system.config.get('mail','from_addr')
 
         # load theme
         self.themes_path = existing(config.get('theme', 'path', os.path.join(self.root,'themes')))
         self.theme = self.themes_path and config.get('theme','name','default')
-        self.theme_path = existing(self.themes_path, self.theme)
-        self.default_theme_path = existing(self.themes_path, 'default')
-        self.default_template = config.get('theme', 'template', 'default')
-
-        # templates
-        self.template_path = existing(self.theme_path, 'templates')
-        self.default_template_path = existing(self.default_theme_path, 'templates')
-        self.templates_paths = filter(bool, [
-            self.template_path,
-            self.default_template_path,
-            self.theme_path,
-            self.default_theme_path,
-            ])
-        self.templates = {}
+        self.set_theme(self.theme)
 
         self.app = NoApp()
         self.site_name = ''
@@ -190,6 +178,28 @@ class System:
         self.session.load_session()
 
 
+    def set_theme(self, theme_name):
+
+        config = self.config
+
+        # theme
+        self.theme = self.themes_path and theme_name
+        self.theme_path = existing(self.themes_path, self.theme)
+        self.default_theme_path = existing(self.themes_path, 'default')
+        self.default_template = config.get('theme', 'template', 'default')
+
+        # theme templates
+        self.template_path = existing(self.theme_path, 'templates')
+        self.default_template_path = existing(self.default_theme_path, 'templates')
+        self.templates_paths = filter(bool, [
+            self.template_path,
+            self.default_template_path,
+            self.theme_path,
+            self.default_theme_path,
+            ])
+        self.templates = {}
+
+
     def setup_test(self):
         # setup config
         path = os.path.join(os.path.dirname(__file__),'../config')
@@ -207,17 +217,17 @@ class System:
         for item in items:
             if name in ['request']:
                 print name+':', ('%s' % item).replace('<','&lt;').replace('>','&gt;'), '\n%s' % item.__dict__
-            else:                
+            else:
                 print name+':', ('%s' % item).replace('<','&lt;').replace('>','&gt;')
         print '</pre><hr><pre>'
 
     def print_status(self):
         dump = self.dump
-        dz = self                
+        dz = self
         print 'DataZoomer System Status<br><hr><pre>'
         for key in self.__dict__:
             dump(key,self.__dict__[key])
-        print '</pre>'            
+        print '</pre>'
 
     def __str__(self):
         return 'System\n------\n' + '\n'.join('%s%s: %s' % (k, '.'*(25 - len(k)), v) for k,v in self.__dict__.items() if v)
@@ -227,4 +237,4 @@ system = System()
 if __name__ == '__main__':
     system.setup('../..')
 
-    
+
