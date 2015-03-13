@@ -92,11 +92,11 @@ def set_template(name):
     # module.  It's implemented here as a helper as well so that when the template
     # is rendered on it's final pass it is invisible.
     return ''
-    
+
 def theme():
     """Returns the system theme name."""
-    return system.theme        
-    
+    return system.theme
+
 def protocol():
     return request.protocol
 
@@ -152,24 +152,89 @@ def main_menu():
     """Returns the main menu."""
     return '<ul>%s</ul>' % main_menu_items()
 
+def _app_menu(uri, route, items):
+    """construct app menu
+
+    >>> items = [
+    ...     ('index','Overview','index'),
+    ...     ('system-log','System Log','system-log'),
+    ...     ('errors','Errors','errors'),
+    ...     ('top-users','Top Users','top-users'),
+    ...     ('addresses','Addresses','addresses'),
+    ...     ('tables','Tables','tables'),
+    ...     ('environment','Environment','environment'),
+    ...     ('python','Python','python'),
+    ...     ]
+    >>> t = _app_menu('', ['info'], items)
+    >>> s = ''.join([
+    ...     '<ul><li><a href="/info/index" id="current">Overview</a></li>',
+    ...     '<li><a href="/info/system-log">System Log</a></li>',
+    ...     '<li><a href="/info/errors">Errors</a></li>',
+    ...     '<li><a href="/info/top-users">Top Users</a></li>',
+    ...     '<li><a href="/info/addresses">Addresses</a></li>',
+    ...     '<li><a href="/info/tables">Tables</a></li>',
+    ...     '<li><a href="/info/environment">Environment</a></li>',
+    ...     '<li><a href="/info/python">Python</a></li></ul>',
+    ...     ])
+    >>> t == s
+    True
+
+    >>> items = 'Overview','Page One'
+    >>> t = _app_menu('', ['info'], items)
+    >>> s = ''.join(['<ul><li><a href="/info" id="current">Overview</a></li>',
+    ...              '<li><a href="/info/page-one">Page One</a></li></ul>'])
+    >>> t == s
+    True
+
+    >>> items = 'Overview','Page One'
+    >>> t = _app_menu('', ['info','page-one'], items)
+    >>> s = ''.join(['<ul><li><a href="/info">Overview</a></li>',
+    ...              '<li><a href="/info/page-one" id="current">',
+    ...              'Page One</a></li></ul>'])
+    >>> t == s or r'{}!={}'.format(repr(t),repr(s))
+    True
+
+    """
+
+    def url_for(*a, **k):
+        return construct_url(uri, route, a, k)
+
+    def as_menu_item(n, item):
+        if type(item) == str:
+            name = n and id_for(item) or ''
+            return name or 'index', item, name
+        else:
+            if len(item) == 2:
+                return item[1], item[0], item[1]
+            elif len(item) == 3:
+                return item
+            else:
+                raise Exception('unkown menu item {}'.format(item))
+
+    def as_menu(items):
+        for n, item in enumerate(items):
+            yield as_menu_item(n, item)
+
+    links = []
+    selected = \
+        len(route)>2 and route[0]=='content' and route[2] or \
+        len(route)>1 and route[1] or \
+        len(route) == 1 and route[0]!='content' and 'index'
+    for name, title, url in as_menu(items):
+        if url == '':
+            url = url_for('/'+route[0])
+        elif url[0]=='/':
+            url = url_for(url)
+        else:
+            url = url_for('/'+route[0]+'/'+url)
+        selector = name==selected and ' id="current"' or ''
+        links.append('<a href="%s"%s>%s</a>' % (url,selector,title))
+    return html.ul(links)
+
 def app_menu():
     """Returns the app menu."""
-    links = []        
-    if hasattr(system.app,'menu'):
-        items = system.app.menu
-        selected = route[0]=='content' and len(route)>2 and route[2] or len(route)>1 and route[1]
-        for (name,title,url) in items:
-            if url == '':
-                url = url_for('/'+route[0])
-            elif url[0]=='/':
-                url = url_for(url)
-            else:    
-                url = url_for('/'+route[0]+'/'+url)
-            selector = name==selected and 'id="current"' or ''
-            links.append('<a href="%s" %s>%s</a>' % (url,selector,title))
-    else:
-        links = []        
-    return html.ul(links)
+    items = getattr(system.app, 'menu', [])
+    return _app_menu(system.uri, route, items)
 
 def app_title():
     return system.app.title
@@ -256,7 +321,7 @@ def app_side_nav(default='no apps'):
     categories = sorted(set([MISC] + [i for s in [a.categories for a in apps] for i in s]))
 
     if 'dashboard' in [a.name for a in apps]:
-        result.append(dash_tpl % 
+        result.append(dash_tpl %
                 dict(
                     active=route[0]=='dashboard' and 'class="active"' or ''
                     ))
@@ -276,7 +341,7 @@ def app_side_nav(default='no apps'):
     items = []
     for c in sorted(category_apps):
         expand = any(bool(app['active']) for app in category_apps[c]) and 'in' or ''
-        items.append(dict( 
+        items.append(dict(
             fa_icon = '', #'fa-dashboard',
             name = c.upper(),
             label = c,
@@ -296,7 +361,6 @@ def app_side_nav(default='no apps'):
     result.extend(panel_tpl % i for i in items)
     result.append(tail_tpl)
     return '\n'.join(result)
-
 
 def h(html_code):
     """Returns HTML with less than and greater than characters converted so it can be rendered as displayable content."""
@@ -400,31 +464,18 @@ def logout_link():
 def upper(text):
     """Returns the given text in upper case."""
     return text.upper()
-    
-#def snippet(name, variant=None, default='', markdown=False):
-#    """
-#    Returns a snippet of content.
-#    
-#        >>> from system import system
-#        >>> system.setup_test()
-#        >>> snippet('nosuchsnippet', default='test')
-#        'test'
-#
-#    """
-#    return render_snippet(name, variant, default, markdown)
-    
 def site_name():
     """Returns the site name."""
     return system.settings.get('site_name')
-        
+
 def site(option,default=''):
     """Returns the site name."""
     return site_name() or default
-    
+
 def owner_name():
     """Returns the name of the site owner."""
     return system.settings.get('owner_name')
-        
+
 def owner_url():
     """Returns the URL of the site owner."""
     return system.settings.get('owner_url')
@@ -442,7 +493,7 @@ def owner_link():
 
 def owner_email():
     return system.settings.get('owner_email')
-        
+
 def admin_email():
     """Returns the email address of the site owner as defined in the site.conf file."""
     return system.settings.get('admin_email')
@@ -488,35 +539,35 @@ def load_menu(name=None):
 def theme_uri():
     """Returns the theme URI."""
     return system.uri+'/themes/'+theme()
-        
+
 def remote_addr():
     """Returns the user ip address."""
     return request.ip
-        
+
 def domain():
     """Returns the host name."""
     return request.domain
-        
+
 def host():
     """Returns the host name."""
     return request.host
-        
+
 def button(label='Submit',name=None):
     """Returns a button."""
     return '<input type=submit value="%(label)s" class="button" name="%(name)s">' % dict(name=name or name_for(label),label=label)
-    
+
 def save_button():
     """Returns a save button."""
     return button(label='Save',name='save_button')
-    
+
 def format_field(label,content,edit=in_form()):
     """Returns field with a label formatted in a standard way."""
     if edit:
         tpl = """<div class="field"><div class="field_label">%(label)s</div><div class="field_edit">%(content)s</div></div>"""
-    else:        
+    else:
         tpl = """<div class="field"><div class="field_label">%(label)s</div><div class="field_show">%(content)s</div></div>"""
     return tpl % (dict(label=label,content=content))
-    
+
 def tag_for(tag_text,content='',*args,**keywords):
     """Returns an HTML tag."""
     tag_type = tag_text.lower()
@@ -530,10 +581,6 @@ def tag_for(tag_text,content='',*args,**keywords):
 def link_to(label,*args,**keywords):
     """Returns a link to a URL."""
     return tag_for('a',label,href=url_for(*args,**keywords))
-
-def url_for_page(*args, **keywords):
-    """Returns a URL for a page within the current app"""
-    return url_for('/' + system.app.name, *args,**keywords)
 
 def link_to_page(label, *args, **keywords):
     """Returns a link to a page within the current app."""
@@ -583,7 +630,7 @@ def url_input(name,default='',*args,**keywords):
         return '<a target=_window href="{{%s}}">{{%s}}</a>' % (h(name),h(name))
     else:
         return text_input(name,size=2,default=default,*args,**keywords)
-    
+
 def url_field(label='',*args,**keywords):
     """Returns a URL input form field."""
     if 'name' not in keywords:
@@ -624,7 +671,7 @@ def radio_field(label='',*args,**keywords):
     if 'name' not in keywords:
         keywords['name'] = name_for(label)
     return format_field(label,radio_input(*args,**keywords))
-        
+
 def select_input(name,value=None,default='',values=''):
     """Returns a select input form element."""
     result = []
@@ -644,7 +691,7 @@ def select_field(label='',*args,**keywords):
     if 'name' not in keywords:
         keywords['name'] = name_for(label)
     return format_field(label,select_input(*args,**keywords))
-        
+
 def csrf_token():
     if not system.session.csrf_token:
         from uuid import uuid4
@@ -687,7 +734,44 @@ def multipart_form_for(content,**keywords):
     return '%s%s</form>'%(multipart_form(**keywords),content)
 
 def construct_url(root,route,a,k):
-    """Construct a site URL."""
+    """Construct a site URL
+
+    >>> construct_url('',[],[],{})
+    ''
+    >>> construct_url('/',[],[],{})
+    '/'
+    >>> construct_url('/data',[],[],{})
+    '/data'
+
+    >>> construct_url('',['home'],[],{})
+    '/home'
+    >>> construct_url('/',['home'],[],{})
+    '//home'
+    >>> construct_url('/data',['home'],[],{})
+    '/data/home'
+
+    >>> construct_url('',['home','alone'],[],{})
+    '/home'
+    >>> construct_url('/',['home','alone'],[],{})
+    '//home'
+    >>> construct_url('/data',['home','alone'],[],{})
+    '/data/home'
+
+    >>> construct_url('',['home','alone','one'],[],{})
+    '/home/alone'
+    >>> construct_url('/',['home','alone','one'],[],{})
+    '//home/alone'
+    >>> construct_url('/data',['home','alone','one'],[],{})
+    '/data/home/alone'
+
+    >>> construct_url('',['home','alone','one'],['two'],{})
+    '/home/alone/two'
+    >>> construct_url('',['home','alone','one'],['two'],{'q':1})
+    '/home/alone/two?q=1'
+    >>> construct_url('',['home','alone','one'],['two','three'],{'q':1})
+    '/home/alone/two/three?q=1'
+
+    """
     a = [str(i) for i in a]
     if a and a[0][0]=='/':
         if len(a[0])>1:
@@ -700,14 +784,14 @@ def construct_url(root,route,a,k):
         uri = a[0]
     else:
         uri = '/'.join([root] + list(route[:1]+route[1:-1]) + list(a))
-        
+
     if k:
         params = '&'.join([quote('%s=%s' % (name,k[name]),safe='/=') for name in k])
         return '%s?%s' % (uri,params)
     else:
         return uri
 
-def url_for(*a,**k):
+def url_for(*a, **k):
     """
     Return a URL for a page.
 
@@ -735,13 +819,17 @@ def url_for(*a,**k):
         '/test'
 
     """
-    return construct_url(system.uri,route,a,k)
+    return construct_url(system.uri, route, a, k)
 
 def url_for_app(*a,**k):
     """Return a URL for the current app."""
     if a and a[0][0] <> '/':
         b = ('/'+a[0],) + a[1:]
     return construct_url(system.uri,[],b,k)
+
+def url_for_page(*args, **keywords):
+    """Returns a URL for a page within the current app"""
+    return url_for('/' + system.app.name, *args,**keywords)
 
 def abs_url_for(*a, **k):
     """
@@ -775,10 +863,10 @@ def abs_url_for(*a, **k):
 def lorem():
     """Returns some sample latin text to use for prototyping."""
     return """
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
-        incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation 
-        ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in 
-        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non 
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+        incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+        ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
         proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         """
 
@@ -799,17 +887,17 @@ if __name__ == '__main__':
             self.assertEqual(construct_url('/dz/www',('cart','list','add'),('add','multiple',),{}),'/dz/www/cart/list/add/multiple')
             self.assertEqual(construct_url('/dz/www',('cart','list','add'),('sub',),{}),'/dz/www/cart/list/sub')
             self.assertEqual(construct_url('/dz/www',('cart','list','add','single','item'),('sub',),{}),'/dz/www/cart/list/add/single/sub')
-            
+
             # URLs referring to separate apps
             self.assertEqual(construct_url('/dz/www',('info',),('/home',),{}),'/dz/www/home')
             self.assertEqual(construct_url('/dz/www',('info',),('/home/page1',),{}),'/dz/www/home/page1')
             self.assertEqual(construct_url('/dz/www',('info',),('/home','page1'),{}),'/dz/www/home/page1')
             self.assertEqual(construct_url('/dz/www',('info',),('/',),{}),'/dz/www')
-            
+
             # absolute URLs
             self.assertEqual(construct_url('/dz/www',('info',),('http://localhost/login',),{}),'http://localhost/login')
 
-        def no(self):            
+        def no(self):
             self.assertEqual(url_for(action='action1'),'index.py?app=noapp&action=action1')
             self.assertEqual(url_for(con='con1'),'index.py?app=noapp&con=con1')
             self.assertEqual(url_for(con='con1',action='action1'),'index.py?app=noapp&con=con1&action=action1')
@@ -827,5 +915,5 @@ if __name__ == '__main__':
             self.assertEqual(text_input('name',size=2,value='Joe'),'<input name="name" value="Joe" maxlength="40" type="text" class="text" size="40" />')
 
     unittest.main()
-        
+
 
