@@ -40,7 +40,7 @@ from browse import browse
 ITEM_MISSING_ERROR = '<H1>Not Found</H1>Unable to locate page.'
 
 import warnings
-warnings.filterwarnings('ignore', 
+warnings.filterwarnings('ignore',
     '.*the sets module is deprecated.*',
     DeprecationWarning, 'MySQLdb')
 
@@ -66,6 +66,8 @@ class App:
                 return Page(content, filler)
 
         system.result = None
+        if hasattr(self, 'menu'):
+            system.app.menu = self.menu
 
         if len(route)>1 and os.path.isfile('%s.py'%route[1]) and self.authorized():
             module = route[1]
@@ -86,12 +88,12 @@ class App:
             filler = None
 
         try:
-            response = controller and callable(controller) and controller(*a,**data) or view and callable(view) and view(*a,**data) 
+            response = controller and callable(controller) and controller(*a,**data) or view and callable(view) and view(*a,**data)
         except PageMissingException:
             return self.page_missing()
 
         return response or system.result or load_page(module, filler) or self.page_missing()
-    
+
 
     def __call__(self):
         return self.process(*route, **data)
