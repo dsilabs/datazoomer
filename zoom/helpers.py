@@ -200,7 +200,7 @@ def _app_menu(uri, route, items):
         return construct_url(uri, route, a, k)
 
     def as_menu_item(n, item):
-        if type(item) == str:
+        if type(item) in [str, unicode]:
             name = n and id_for(item) or ''
             return name or 'index', item, name
         else:
@@ -209,7 +209,7 @@ def _app_menu(uri, route, items):
             elif len(item) == 3:
                 return item
             else:
-                raise Exception('unkown menu item {}'.format(item))
+                raise Exception('unkown menu item {}'.format(repr(item),))
 
     def as_menu(items):
         for n, item in enumerate(items):
