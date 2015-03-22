@@ -130,8 +130,9 @@ def main_menu_items():
 
     for (name,title,url,group) in static_links:
         if group==[] or [item for item in group if item in user.groups]:
-            selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and 'id="current"' or ''
-            links.append('<a href="%s" %s>%s</a>' % (url_for(url), selector, title))
+            selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and ' id="current"' or ''
+            bootstrap_selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and ' class="active"' or ''
+            links.append('<li%s><a href="%s"%s>%s</a></li>' % (bootstrap_selector,url_for(url), selector, title))
             visible_items.append(name)
 
     visible_items.extend(['content','login'])
@@ -143,10 +144,10 @@ def main_menu_items():
                 pos = 1
             else:
                 pos = 0
-            url = '<a href="%s" id="current">%s</a>' % (url_for('/'+current_app),system.app.title)
+            url = '<li class="active"><a href="%s" id="current">%s</a></li>' % (url_for('/'+current_app),system.app.title)
             links.insert(pos, url)
 
-    return html.li(links)
+    return ''.join(links)
 
 def main_menu():
     """Returns the main menu."""
@@ -167,7 +168,7 @@ def _app_menu(uri, route, items):
     ...     ]
     >>> t = _app_menu('', ['info'], items)
     >>> s = ''.join([
-    ...     '<ul><li><a href="/info/index" id="current">Overview</a></li>',
+    ...     '<ul><li class="active"><a href="/info/index" id="current">Overview</a></li>',
     ...     '<li><a href="/info/system-log">System Log</a></li>',
     ...     '<li><a href="/info/errors">Errors</a></li>',
     ...     '<li><a href="/info/top-users">Top Users</a></li>',
@@ -181,7 +182,7 @@ def _app_menu(uri, route, items):
 
     >>> items = 'Overview','Page One'
     >>> t = _app_menu('', ['info'], items)
-    >>> s = ''.join(['<ul><li><a href="/info" id="current">Overview</a></li>',
+    >>> s = ''.join(['<ul><li class="active"><a href="/info" id="current">Overview</a></li>',
     ...              '<li><a href="/info/page-one">Page One</a></li></ul>'])
     >>> t == s
     True
@@ -189,7 +190,7 @@ def _app_menu(uri, route, items):
     >>> items = 'Overview','Page One'
     >>> t = _app_menu('', ['info','page-one'], items)
     >>> s = ''.join(['<ul><li><a href="/info">Overview</a></li>',
-    ...              '<li><a href="/info/page-one" id="current">',
+    ...              '<li class="active"><a href="/info/page-one" id="current">',
     ...              'Page One</a></li></ul>'])
     >>> t == s or r'{}!={}'.format(repr(t),repr(s))
     True
@@ -228,8 +229,16 @@ def _app_menu(uri, route, items):
         else:
             url = url_for('/'+route[0]+'/'+url)
         selector = name==selected and ' id="current"' or ''
-        links.append('<a href="%s"%s>%s</a>' % (url,selector,title))
-    return html.ul(links)
+        bootstrap_selector = name==selected and ' class="active"' or ''
+        links.append('<li%s><a href="%s"%s>%s</a></li>' % (
+            bootstrap_selector,
+            url,
+            selector,
+            title,
+            ))
+    if links:
+        return ''.join(['<ul>'] + links + ['</ul>'])
+    return ''
 
 def app_menu():
     """Returns the app menu."""
