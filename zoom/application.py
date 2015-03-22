@@ -51,7 +51,7 @@ class Application:
                 if default != None:
                     return default
                 else:
-                    raise
+                    raise Exception('Config setting [{}]{} not found in {} or {}'.format(section, key, config_file1, config_file2))
 
     def run(self):
         t = self.dispatch()
