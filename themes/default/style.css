@@ -62,6 +62,9 @@ div.app-menu li a:hover {
     background: #ccc;
     text-decoration: none;
 }
+div.app-menu li a#current {
+    background: #d5d5d5;
+}
 
 
 /*
