@@ -110,6 +110,17 @@ def layout_field(label,content,edit=True):
         tpl = """<div class="field"><div class="field_label">%(label)s</div><div class="field_show">%(content)s</div></div>"""
     return tpl % (dict(label=label,content=content))
 
+def matches(item, terms):
+    if not terms: return True
+    v = [str(i).lower() for i in item.values()]
+    return all(any(t in s for s in v) for t in terms)
+
+def search(items, text):
+    search_terms = list(set([i.lower() for i in text.strip().split()]))
+    for item in items:
+        if matches(item, search_terms):
+            yield item
+
 def kind(o):
     """
     returns a suitable table name for an object based on the object class

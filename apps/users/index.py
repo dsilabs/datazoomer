@@ -70,10 +70,6 @@ class CollectionView(View):
 
     def index(self, q='', showall=''):
 
-        def match(r, text):
-            texts = [t for t in r.as_dict().values() if type(t)==str]
-            return any(text.lower() in t for t in texts)
-
         many_records = len(system.users) > 5
 
         options = Storage(index_recent=many_records)
@@ -82,6 +78,7 @@ class CollectionView(View):
         if q:
             title = 'Selected Users'
             users = Users.all()
+            search_terms = list(set([i.lower() for i in q.strip().split()]))
         else:
             if options.index_recent and not showall:
                 title = 'Recent Users'
@@ -95,7 +92,7 @@ class CollectionView(View):
 
         items = []
         for user in users:
-            if not q or match(user, q):
+            if not q or matches(user.as_dict(), search_terms):
                 item = dict(
                         username = link_to(user.loginid or user.userid,'/users/%s'%user.userid),
                         sort_by = user.loginid and user.loginid.lower(),
@@ -114,8 +111,6 @@ class CollectionView(View):
             footer = '%s most recent users of %s total users' % (user_count, len(system.users))
         else:
             footer = '%s users' % user_count
-        #user_count = q and len(items) or len(system.users)
-            #footer = user_count==1 and '1 user' or ('%d users' % user_count) + (q and ' found' or '')
 
         labels= self.labels
         return page(browse(items, labels=labels, footer=footer), title=title, search=q, actions=actions)
