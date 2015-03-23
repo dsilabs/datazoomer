@@ -5,6 +5,7 @@
 """
 
 import datetime
+import decimal
 from zoom.utils import Record, RecordList, kind
 
 class ValidException(Exception): pass
@@ -157,9 +158,20 @@ class RecordStore(object):
 
         keys        = [k for k in record.keys() if k <> '_id']
         values      = [record[k] for k in keys]
-        datatypes   = [repr(type(i)).strip("<type >").strip("'") for i in values]
+        datatypes   = [type(i) for i in values]
         values      = [i for i in values]
-        valid_types = ['str','unicode','long','int','float','datetime.date','datetime.datetime','bool','NoneType']
+        valid_types = [
+                str,
+                unicode,
+                long,
+                int,
+                float,
+                datetime.date,
+                datetime.datetime,
+                bool,
+                type(None), #NoneType,
+                decimal.Decimal,
+                ]
 
         db = self.db
 
