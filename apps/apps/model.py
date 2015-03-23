@@ -52,7 +52,7 @@ def get_selectors(app):
 class App(Entity): 
 
     descr = property(lambda a: a.description or a.name + ' application')
-    icon_image = property(lambda a: '<img src="/static/icons/%s">' % a.icon)
+    icon_image = property(lambda a: '<img src="/static/dz/icons/%s">' % a.icon)
     modified = property(lambda a: last_modified(a))
     location = property(lambda a: a.dir)
     installed = property(lambda a: a.name in registered_apps)

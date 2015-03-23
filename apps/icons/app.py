@@ -55,7 +55,7 @@ list_tpl = """
 item_tpl = """
     <li class="ui-state-default">
         <div class="icon-standardizer">
-            <img class="icon buggy_ie_icon" src="%(url)s/static/icons/%(name)s">
+            <img class="icon buggy_ie_icon" src="%(url)s/static/dz/icons/%(name)s">
         </div>
         %(name)s
     </li>

@@ -31,7 +31,7 @@ app_info_tpl = \
             </div>
         </div>
         <div class="app-icon">
-            <a href="/apps/%(name)s"><img src="/static/icons/%(icon)s.png"></a>
+            <a href="/apps/%(name)s"><img src="/static/dz/icons/%(icon)s.png"></a>
         </div>
         <div style="clear:both"></div>
     </div>

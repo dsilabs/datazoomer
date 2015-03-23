@@ -5,7 +5,7 @@ from zoom.manager import DEFAULT_SYSTEM_APPS
 def app():
     def list_apps(app_names):
         t = []
-        tpl = '<div class="app-icon"><a href="/%(name)s"><img src="/static/icons/%(icon)s.png" border=0></a><a href="/%(name)s">%(title)s</a></div>'
+        tpl = '<div class="app-icon"><a href="/%(name)s"><img src="/static/dz/icons/%(icon)s.png" border=0></a><a href="/%(name)s">%(title)s</a></div>'
         apps = [manager.get_app(name) for name in app_names]
         apps.sort(key=lambda a: a.title)
         for app in apps:
