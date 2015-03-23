@@ -39,7 +39,7 @@ class ContactsContact(DefaultRecord):
     linked_name = property(lambda self: is_manager(self.key) and self.link or self.name)
     title_line = property(lambda self: calc_title_line(self))
     mdbio = property(lambda self: markdown(self.bio).encode('utf-8'))
-    photo_img = property(lambda a: '<img alt="%s" src="%s">' % (a.name,a.photo and (a.url+'/image?name=photo') or '/static/images/no_photo.png'))
+    photo_img = property(lambda a: '<img alt="%s" src="%s">' % (a.name,a.photo and (a.url+'/image?name=photo') or '/static/dz/images/no_photo.png'))
 
 Contact = ContactsContact
 

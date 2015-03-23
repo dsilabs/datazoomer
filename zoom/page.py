@@ -46,7 +46,7 @@ class Page(object):
     def render_header(self):
 
         def render_search(value):
-            CLEAR_LAYOUT  = '<span class="clear"><a href="%s"><img src="/static/images/remove_filter.png"></a></span>'
+            CLEAR_LAYOUT  = '<span class="clear"><a href="%s"><img src="/static/dz/images/remove_filter.png"></a></span>'
             SEARCH_FIELDS = '<input type="text" class="text_field" id="search_text" name="q" value="%s">%s<input class="search_button" type=submit value="Search">'
             SEARCH_BUTTON = '<input class="search_button" type=submit value="Search">'
             SEARCH_LAYOUT = '<div class="search">%s</div>'

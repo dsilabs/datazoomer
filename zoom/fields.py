@@ -1296,7 +1296,7 @@ class ImageField(SimpleField):
     size = maxlength = 40
     _type = 'file'
     css_class = 'image_field'
-    no_image_url = '/static/images/no_photo.png'
+    no_image_url = '/static/dz/images/no_photo.png'
 
     def display_value(self):
         r = route[-1] == 'edit' and route[:-1] or route
