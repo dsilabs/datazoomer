@@ -154,48 +154,6 @@ def main_menu():
     return '<ul>%s</ul>' % main_menu_items()
 
 def _app_menu_items(uri, route, items):
-    """construct app menu
-
-    >>> items = [
-    ...     ('index','Overview','index'),
-    ...     ('system-log','System Log','system-log'),
-    ...     ('errors','Errors','errors'),
-    ...     ('top-users','Top Users','top-users'),
-    ...     ('addresses','Addresses','addresses'),
-    ...     ('tables','Tables','tables'),
-    ...     ('environment','Environment','environment'),
-    ...     ('python','Python','python'),
-    ...     ]
-    >>> t = _app_menu('', ['info'], items)
-    >>> s = ''.join([
-    ...     '<ul><li class="active"><a href="/info/index" id="current">Overview</a></li>',
-    ...     '<li><a href="/info/system-log">System Log</a></li>',
-    ...     '<li><a href="/info/errors">Errors</a></li>',
-    ...     '<li><a href="/info/top-users">Top Users</a></li>',
-    ...     '<li><a href="/info/addresses">Addresses</a></li>',
-    ...     '<li><a href="/info/tables">Tables</a></li>',
-    ...     '<li><a href="/info/environment">Environment</a></li>',
-    ...     '<li><a href="/info/python">Python</a></li></ul>',
-    ...     ])
-    >>> t == s
-    True
-
-    >>> items = 'Overview','Page One'
-    >>> t = _app_menu('', ['info'], items)
-    >>> s = ''.join(['<ul><li class="active"><a href="/info" id="current">Overview</a></li>',
-    ...              '<li><a href="/info/page-one">Page One</a></li></ul>'])
-    >>> t == s
-    True
-
-    >>> items = 'Overview','Page One'
-    >>> t = _app_menu('', ['info','page-one'], items)
-    >>> s = ''.join(['<ul><li><a href="/info">Overview</a></li>',
-    ...              '<li class="active"><a href="/info/page-one" id="current">',
-    ...              'Page One</a></li></ul>'])
-    >>> t == s or r'{}!={}'.format(repr(t),repr(s))
-    True
-
-    """
 
     def url_for(*a, **k):
         return construct_url(uri, route, a, k)
@@ -239,6 +197,48 @@ def _app_menu_items(uri, route, items):
     return links
 
 def _app_menu(uri, route, items):
+    """construct app menu
+
+    >>> items = [
+    ...     ('index','Overview','index'),
+    ...     ('system-log','System Log','system-log'),
+    ...     ('errors','Errors','errors'),
+    ...     ('top-users','Top Users','top-users'),
+    ...     ('addresses','Addresses','addresses'),
+    ...     ('tables','Tables','tables'),
+    ...     ('environment','Environment','environment'),
+    ...     ('python','Python','python'),
+    ...     ]
+    >>> t = _app_menu('', ['info'], items)
+    >>> s = ''.join([
+    ...     '<ul><li class="active"><a href="/info/index" id="current">Overview</a></li>',
+    ...     '<li><a href="/info/system-log">System Log</a></li>',
+    ...     '<li><a href="/info/errors">Errors</a></li>',
+    ...     '<li><a href="/info/top-users">Top Users</a></li>',
+    ...     '<li><a href="/info/addresses">Addresses</a></li>',
+    ...     '<li><a href="/info/tables">Tables</a></li>',
+    ...     '<li><a href="/info/environment">Environment</a></li>',
+    ...     '<li><a href="/info/python">Python</a></li></ul>',
+    ...     ])
+    >>> t == s
+    True
+
+    >>> items = 'Overview','Page One'
+    >>> t = _app_menu('', ['info'], items)
+    >>> s = ''.join(['<ul><li class="active"><a href="/info" id="current">Overview</a></li>',
+    ...              '<li><a href="/info/page-one">Page One</a></li></ul>'])
+    >>> t == s
+    True
+
+    >>> items = 'Overview','Page One'
+    >>> t = _app_menu('', ['info','page-one'], items)
+    >>> s = ''.join(['<ul><li><a href="/info">Overview</a></li>',
+    ...              '<li class="active"><a href="/info/page-one" id="current">',
+    ...              'Page One</a></li></ul>'])
+    >>> t == s or r'{}!={}'.format(repr(t),repr(s))
+    True
+
+    """
     links = _app_menu_items(uri, route, items)
     if links:
         return ''.join(['<ul>'] + links + ['</ul>'])
