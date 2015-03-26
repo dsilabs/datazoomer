@@ -153,7 +153,7 @@ def main_menu():
     """Returns the main menu."""
     return '<ul>%s</ul>' % main_menu_items()
 
-def _app_menu(uri, route, items):
+def _app_menu_items(uri, route, items):
     """construct app menu
 
     >>> items = [
@@ -236,9 +236,18 @@ def _app_menu(uri, route, items):
             selector,
             title,
             ))
+    return links
+
+def _app_menu(uri, route, items):
+    links = _app_menu_items(uri, route, items)
     if links:
         return ''.join(['<ul>'] + links + ['</ul>'])
     return ''
+
+def app_menu_items():
+    """Returns the app menu items."""
+    items = getattr(system.app, 'menu', [])
+    return ''.join(_app_menu_items(system.uri, route, items))
 
 def app_menu():
     """Returns the app menu."""
