@@ -8,7 +8,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
 
     def trash_can(key,kind,action,**args):
         link  = url_for(str(key),action,**args)
-        tpl = '<td width=1px><a href="%(link)s"><img src="/themes/%(theme)s/images/%(kind)s.png" border=0 height=13px width=13px alt="%(kind)s"></a></td>'
+        tpl = '<td width=1px><a href="%(link)s"><img src="/static/dz/images/%(kind)s.png" border=0 height=13px width=13px alt="%(kind)s"></a></td>'
         return tpl % dict(link=link, kind=kind, theme=system.theme)
 
     def getcol(item, name):

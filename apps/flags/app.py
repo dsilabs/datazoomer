@@ -1,11 +1,6 @@
 
-from zoom import App, system
+from zoom import App
 
 app = App()
-
-system.app.menu = [
-        ('index', 'Home', ''),
-        ('page-one', 'Page One', 'page_one'),
-        ('page-two', 'Page Two', 'page_two'),
-        ]
+app.menu = 'Home', 'Page One', 'Page Two', 'Page Three', 'Page Four', 'My Favourites'
 

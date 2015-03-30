@@ -3,19 +3,32 @@ from model import *
 
 
 INDEX_TEMPLATE = open('home.md').read()
+INDEX_JS = """
+    $(function(){
+        $('#mymail').load('/flags/my_flags?icon=mail');
+        $('#mystars').load('/flags/my_flags?icon=star');
+        $('#myheart').load('/flags/my_flags?icon=heart');
+    });
+"""
 
 class MyView(View):
 
     @authorize('admin', 'developers')
     def index(self):
 
+        def row_actions(f):
+            return '<a href="/{}/delete/{}">delete</a>'.format(
+                    system.app.name, 
+                    f._id)
+
         actions = "New",
-        labels = "Title", "URL", "Link", "Icon", "Owner", ""
+        labels = "Title", "URL", "Link", "Icon", "Owner", "Actions"
         refresh_url = '/'+route[0]
 
         # current list of flags
-        flag_list = [i for i in flags]
-        flag_list = browse(flags, labels=labels, on_delete='delete')
+        flag_list = browse(
+                [dict(f, actions=row_actions(f)) for f in flags], 
+                labels=labels)
 
         # some example data
         items = [
@@ -23,18 +36,19 @@ class MyView(View):
                 Record(title='Groups', url='http://localhost/groups'),
                 Record(title='Flags', url='http://localhost/flags'),
                 ]
-
         for item in items:
             item['flags'] = ''
             for icon in ['mail','star','heart','thumbs-up','thumbs-down']:
                 state = bool(flags.find(url=item.url, owner=user.username, icon=icon))
                 item['flags'] += flag(item['title'], item['url'], icon=icon)
-            
         test_list = browse(items , labels=('Title', 'URL', 'Flags'))
 
-        # show page
-
-        return page(markdown(INDEX_TEMPLATE %  locals()), title='Flags', actions=actions)
+        return page(
+                markdown(INDEX_TEMPLATE %  locals()),
+                title='Flags',
+                actions=actions,
+                js=INDEX_JS
+                )
 
     def new(self):
         return page(flag_form.edit(), title='New Flag')
@@ -51,8 +65,16 @@ class MyView(View):
         filename = '%s.md' % name
         if os.path.exists(filename):
             return page(markdown(open(filename).read()))
-        else:
-            return page('%s missing' % name)
+
+    def page_three(self):
+        return page(lorem(), title='Page 3', subtitle='<dz:flag "Page 3">')
+
+    def page_four(self):
+        title = 'Page 4'
+        return page(
+                lorem(),
+                title=title, 
+                subtitle='<dz:flag icon="heart" "{}">'.format(title))
 
 
 class MyController(Controller):
@@ -63,6 +85,8 @@ class MyController(Controller):
             return home()
 
     def toggle(self, **values):
+
+        logger.info(repr(values['ICON']))
         if flag_form.validate(values):
             flagged = flags.first(url=values['URL'], owner=user.username, icon=values['ICON'])
             if flagged:
@@ -75,6 +99,7 @@ class MyController(Controller):
                 flags.put(flagged)
                 return 'set'
         else:
+            logger.info('invalid %s' % repr((values)))
             return 'invalid %s' % repr((values))
         return 'okay'
 

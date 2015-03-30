@@ -34,26 +34,17 @@ Loaded via JQuery
 
 <H3>Mail Items</H3>
 <div id="mymail"></div>
-<script>
-    $('#mymail').load('/flags/my_flags?icon=mail');
-</script>
 </td>
 <td>
 
 <H3>Star Items</H3>
 <div id="mystars"></div>
-<script>
-    $('#mystars').load('/flags/my_flags?icon=star');
-</script>
 
 </td>
 <td>
 
 <H3>Heart Items</H3>
 <div id="myheart"></div>
-<script>
-    $('#myheart').load('/flags/my_flags?icon=heart');
-</script>
 
 </td>
 </tr>
