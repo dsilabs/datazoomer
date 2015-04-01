@@ -7,7 +7,7 @@ import uuid
 
 css = """
     .chart {
-        height:300px; 
+        height:300px;
     }
     .jqplot-axis {
         font-size: 0.8em;
@@ -19,7 +19,7 @@ css = """
         padding-right: 10px;
     }
     .content .jqplot-table-legend {
-        border: none; 
+        border: none;
         padding: 0.4em 1.0em;
     }
     .content td.jqplot-table-legend-label {
@@ -70,6 +70,10 @@ chart_js = """
             var data = %(data)s;
             var options = %(options)s;
             var plot1 = $.jqplot('chart_%(name)s', data, options);
+
+            $( window ).resize(function() {
+              plot1.replot( { resetAxes: true } );
+            });
           });
 """
 
@@ -88,7 +92,7 @@ def merge_options(a, b):
     else:
         return b
 
-PLUGIN = '\"\$\.jqplot\.(.*)"' 
+PLUGIN = '\"\$\.jqplot\.(.*)"'
 
 def render_options(default_options, options, k={}):
     """Merges options with default options and inserts plugins"""
@@ -125,7 +129,7 @@ def line(data, legend=None, options={}, *a, **k):
                 }
             }
 
-    if len(data)>1:  
+    if len(data)>1:
         labels, data = data[0], data[1:]
         default_options['axes']['xaxis']['ticks'] = labels
 
@@ -155,7 +159,7 @@ def bar(data, legend=None, options={}, *a, **k):
             },
         }
 
-    if len(data)>1:  
+    if len(data)>1:
         labels, data = data[0], data[1:]
         options['axes'] = dict(
                 xaxis=dict(
@@ -192,7 +196,7 @@ def hbar(data, legend=None, options={}, *a, **k):
             },
         }
 
-    if len(data)>1:  
+    if len(data)>1:
         labels, data = data[0], data[1:]
         options['axes'] = dict(
                 yaxis=dict(
