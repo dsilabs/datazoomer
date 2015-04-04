@@ -57,48 +57,48 @@ def summarize(table, dimensions, metrics=[]):
     >>> id = people.put(Person(name='Alex', age=25, kids=3, salary=Decimal('50000')))
     >>> print people
     person
-        id  kids  age  name   salary
-    ------- ----- ---- ------ ---------
-         1  1     25   Sam    40000.00
-         2  4     55   Sally  80000.00
-         3  2     25   Bob    70000.00
-         4  2     25   Jane   50000.00
-         5  3     25   Alex   50000.00
+        id  kids  age  name   salary    
+    ------- ----- ---- ------ --------- 
+         1  1     25   Sam    40000.00  
+         2  4     55   Sally  80000.00  
+         3  2     25   Bob    70000.00  
+         4  2     25   Jane   50000.00  
+         5  3     25   Alex   50000.00  
     5 records
     >>> print db(summarize('person', ['age']))
-      age   n
+      age   n 
      ----- ---
-      *     5
-      25    4
-      55    1
+      *     5 
+      25    4 
+      55    1 
     >>> print db(summarize('person', ['age','kids']))
-      age   kids   n
+      age   kids   n 
      ----- ------ ---
-      *     *      5
-      *     1      1
-      *     2      2
-      *     3      1
-      *     4      1
-      25    *      4
-      55    *      1
-      25    1      1
-      25    2      2
-      25    3      1
-      55    4      1
+      *     *      5 
+      *     1      1 
+      *     2      2 
+      *     3      1 
+      *     4      1 
+      25    *      4 
+      55    *      1 
+      25    1      1 
+      25    2      2 
+      25    3      1 
+      55    4      1 
     >>> print db(summarize('person', ['age','kids'], ['salary']))
-      age   kids   n      salary
+      age   kids   n      salary 
      ----- ------ --- -----------
-      *     *      5   290000.00
-      *     1      1    40000.00
-      *     2      2   120000.00
-      *     3      1    50000.00
-      *     4      1    80000.00
-      25    *      4   210000.00
-      55    *      1    80000.00
-      25    1      1    40000.00
-      25    2      2   120000.00
-      25    3      1    50000.00
-      55    4      1    80000.00
+      *     *      5   290000.00 
+      *     1      1    40000.00 
+      *     2      2   120000.00 
+      *     3      1    50000.00 
+      *     4      1    80000.00 
+      25    *      4   210000.00 
+      55    *      1    80000.00 
+      25    1      1    40000.00 
+      25    2      2   120000.00 
+      25    3      1    50000.00 
+      55    4      1    80000.00 
     >>> people.zap()
     >>> print people
     Empty list
