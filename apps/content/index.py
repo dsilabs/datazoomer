@@ -90,7 +90,7 @@ class ContentView:
         title, content, description, keywords = load_page(page_name, user.is_manager)
 
         p = page(menu + markdown(content), css=css, template='content')
-        p.title = title
+        system.app.title = title
         p.description = description
         p.keywords = keywords
         
