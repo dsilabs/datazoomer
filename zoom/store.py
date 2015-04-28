@@ -7,8 +7,10 @@ import decimal
 from zoom.utils import Record, RecordList, kind
 from zoom.tools import db
 
+
 class ValidException(Exception): pass
 class TypeException(Exception): pass
+
 
 def create_storage(db):
     db("""
@@ -30,16 +32,14 @@ def create_storage(db):
         )
     """)
 
+
 def delete_storage(db):
     db('drop table if exists attributes')
     db('drop table if exists entities')
 
-    #def zap_test_tables(db):
-    #    db('delete from attributes')
-    #    db('delete from entities')
 
 def setup_test():
-    import MySQLdb, database
+    import MySQLdb, db as database
 
     db = database.Database(
             MySQLdb.Connect, 
@@ -69,7 +69,10 @@ def entify(rs, klass):
     """
     entities = {}
 
-    for _, _, row_id, attribute, datatype, value in rs.data:
+    if hasattr(rs, 'data'): # maintain backward compatibility with
+        rs = rs.data        # legacy database module
+
+    for _, _, row_id, attribute, datatype, value in rs:
 
         if datatype == 'str':
             pass
