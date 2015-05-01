@@ -285,10 +285,10 @@ def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a
 def time_series(data, legend=None, time_format='%b %e', options={}, *a, **k):
 
     chart_name = uuid.uuid4().hex
-
-    data = [[[r[0].strftime('%m/%d/%Y %H:%M:%S')]+list(r[n+1:n+2]) for r in data] for n in range(len(data[0])-1)]
-    min_date = min(r[0] for r in data[0])
-    max_date = max(r[0] for r in data[0])
+    fmt = '%m/%d/%Y %H:%M:%S'
+    min_date = min(r[0] for r in data).strftime(fmt)
+    max_date = max(r[0] for r in data).strftime(fmt)
+    data = [[[r[0].strftime(fmt)]+list(r[n+1:n+2]) for r in data] for n in range(len(data[0])-1)]
 
     default_options = {
             'highlighter': {
