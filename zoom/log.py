@@ -74,7 +74,7 @@ class Logger:
         cmd = 'insert into log (app,route,status,user,address,login,server,timestamp,elapsed,message) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         values = [
             system.app.name,
-            feed or '/'.join(route),
+            (feed or '/'.join(route))[:80],
             status,
             username or user.__dict__.get('login_id','unknown'),
             os.environ.get('REMOTE_ADDR',''),

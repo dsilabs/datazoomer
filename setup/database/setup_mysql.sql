@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS `log`;
 CREATE TABLE `log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `app` varchar(30) DEFAULT NULL,
-  `route` varchar(50) DEFAULT NULL,
+  `route` varchar(80) DEFAULT NULL,
   `status` char(1) DEFAULT NULL,
   `user` varchar(30) DEFAULT NULL,
   `address` varchar(15) DEFAULT NULL,
