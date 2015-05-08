@@ -135,7 +135,7 @@ class System:
         self.administrator_group = system.config.get('users', 'administrator_group', 'administrators')
         self.manager_group = config.get('users', 'manager_group', 'managers')
         self.managers = config.get('users', 'managers', 'managers')
-        self.developers = config.get('users', 'developer', 'developers')
+        self.developers = config.get('users', 'developers', 'developers')
         self.administrators = config.get('users', 'administrators', 'administrators')
 
         # apps

@@ -78,7 +78,9 @@ class Manager:
             return system.config.get('apps','login','login')            
         
     def can_run(self,name):
-        return name in self.apps and self.apps[name].enabled and (user.is_admin or name in user.apps)
+        return name in self.apps and \
+                self.apps[name].enabled and \
+                (user.is_admin or user.is_developer and self.apps[name].in_development or name in user.apps)
         
     def requested_app_name(self):
         return route and route[0] or data.get('app', None)

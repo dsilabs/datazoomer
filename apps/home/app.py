@@ -26,17 +26,26 @@ def app():
         }
     """
 
+
     standard_apps = manager.get_standard_app_names()
     if 'home' in standard_apps:
         standard_apps.remove('home')
     system_apps = get_setting('system') or DEFAULT_SYSTEM_APPS
 
     panels = [list_apps(standard_apps)]
-    
+    already_included = standard_apps + system_apps + ['home']
+
+    if user.is_developer:
+        dev_apps = [n for n,a in manager.apps.items() if n not in already_included and a.in_development]
+        panels.append('<H1>Developers Only</H1>%s' % list_apps(dev_apps))
+    else:
+        dev_apps = []
+
     if user.is_admin:
-        other_apps = [item for item in manager.apps if item not in standard_apps+system_apps+['home']]
-        panels.append('<H1>Unregistered</H1>%s' % list_apps(other_apps))
-    
+        already_included = standard_apps + system_apps + ['home'] + dev_apps
+        other_apps = [item for item in manager.apps if item not in already_included]
+        panels.append('<H1>Administrators Only</H1>%s' % list_apps(other_apps))
+
     content = ''.join(panels)    
     return page(content, css=css, title='Home')
 

@@ -215,7 +215,6 @@ class User:
                 system.manager_group in self.groups or \
                 self.is_member(system.managers)
         self.is_developer = \
-                system.developer_group in self.groups or \
                 self.is_member(system.developers)
         self.is_anonymous = self.login_id == system.guest
         self.is_authenticated = not self.is_anonymous

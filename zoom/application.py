@@ -35,6 +35,7 @@ class Application:
         self.categories = [a.strip() for a in self.read_config('settings','categories','').split(',') if a]
         self.tags = [a.strip() for a in self.read_config('settings','tags','').split(',') if a]
         self.keywords = self.read_config('settings','keywords','')
+        self.in_development = self.read_config('settings', 'in_development', False)
 
     def read_config(self,section,key,default=None):
         config_file1 = os.path.join(self.dir,'config.ini')
