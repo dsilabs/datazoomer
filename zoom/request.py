@@ -102,13 +102,22 @@ class Request:
             home = os.path.dirname(env.get('SCRIPT_FILENAME','')),
             agent  = env.get('HTTP_USER_AGENT'),
             method = env.get('REQUEST_METHOD'),
-            module = env.get('mod_wsgi.version',None) and 'wsgi' or 'cgi',
+            module = env.get('wsgi.version',None) and 'wsgi' or 'cgi',
             mode = env.get('mod_wsgi.process_group', None) and 'daemon' or 'embedded',
             protocol = env.get('HTTPS','off') == 'on' and 'https' or 'http',
             referrer = env.get('HTTP_REFERER'),
             cookies  = get_cookies(env.get('HTTP_COOKIE')),
+            wsgi_version = env.get('wsgi.version'),
+            wsgi_urlscheme = env.get('wsgi.urlscheme'),
+            wsgi_multiprocess = env.get('wsgi.multiprocess'),
+            wsgi_multithread = env.get('wsgi.multithread'),
+            wsgi_filewrapper = env.get('wsgi.filewrapper'),
+            wsgi_runonce = env.get('wsgi.runonce'),
+            wsgi_errors = env.get('wsgi.errors'),
+            wsgi_input = env.get('wsgi.input'),
             route = route,
             data = Webvars(env).__dict__,
+            env = env
             )
         self.__dict__ = request
 
