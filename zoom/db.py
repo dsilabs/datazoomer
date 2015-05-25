@@ -2,7 +2,6 @@
     a database that does less
 """
 
-import MySQLdb
 import warnings
 
 ARRAY_SIZE = 1000
@@ -50,6 +49,7 @@ class Database(object):
     """
     database object
 
+        >>> import MySQLdb
         >>> db = database(host='database', db='test', user='testuser', passwd='password')
         >>> db('drop table if exists person')
         0L
@@ -169,9 +169,16 @@ class Database(object):
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
 
     if engine == 'mysql':
+        import MySQLdb
         db = Database(MySQLdb.connect, host=host, db=db, user=user, *a, **k)
         db.autocommit(1)
         return db
+
+    elif engine == 'sqlite':
+        import sqlite3
+        db = Database(sqlite3.connect, database=db, *a, **k)
+        return db
+
 
 def get_mysql_log_state():
     for rec in db('show variables like "log"'):
