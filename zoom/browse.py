@@ -11,11 +11,18 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
         tpl = '<td width=1px><a href="%(link)s"><img src="/static/dz/images/%(kind)s.png" border=0 height=13px width=13px alt="%(kind)s"></a></td>'
         return tpl % dict(link=link, kind=kind, theme=system.theme)
 
-    def getcol(item, name):
+    def getcol(item, index):
         try:
-            return item[name]
-        except:
+            if type(item) in  [dict, tuple, list]:
+                return item[index]
+            else:
+                return getattr(item, index)
+        except TypeError, e:
             return ''
+        except AttributeError, e:
+            return ''
+        except:
+            raise
 
     if labels:
         if not columns:
