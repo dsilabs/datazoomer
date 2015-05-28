@@ -56,7 +56,7 @@ def layout_field(label, content, edit=True):
     mode = bool(edit) and 'edit' or 'show'
     return FIELD_TPL % locals()
 
-class Field:
+class Field(object):
     js_init = ''
     js = ''
     value = ''
@@ -89,7 +89,17 @@ class Field:
             return name_for(self.label)
         raise AttributeError             
 
-    def initialize(self,**values):
+    def initialize(self, *a, **k):
+        if a:
+            values = a[0]
+        elif k:
+            values = k
+        else:
+            values = None
+        if values:
+            self._initialize(values)
+
+    def _initialize(self, values):
         self.assign(values.get(self.name.lower(), self.default))
 
     def update(self,**values):
@@ -1131,7 +1141,7 @@ class FieldIterator:
             raise StopIteration
 
 
-class Fields:
+class Fields(object):
     """A collection of field objects."""
 
     def __init__(self,*a):
@@ -1161,7 +1171,7 @@ class Fields:
             values = None
         if values:
             for field in self.fields:
-                field.initialize(**values)
+                field.initialize(values)
 
     def update(self,*a,**k):
         if a:
