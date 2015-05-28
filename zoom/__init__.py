@@ -65,6 +65,9 @@ class App:
             if content:
                 return Page(content, filler)
 
+        def if_callable(method):
+            return callable(method) and method
+
         system.result = None
         if hasattr(self, 'menu'):
             system.app.menu = self.menu
@@ -79,16 +82,22 @@ class App:
         filename = '%s.py' % module
         if os.path.isfile(filename):
             source = imp.load_source(module,filename)
-            filler     = getattr(source,'filler',None)
-            view       = getattr(source,'view',None)
-            controller = getattr(source,'controller',None)
+            app        = if_callable(getattr(source,'app',None))
+            view       = if_callable(getattr(source,'view',None))
+            controller = if_callable(getattr(source,'controller',None))
+            filler     = if_callable(getattr(source,'filler',None)) # depricated
         else:
+            app = None
             view = None
             controller = None
             filler = None
 
         try:
-            response = controller and callable(controller) and controller(*a,**data) or view and callable(view) and view(*a,**data)
+            response = \
+                    app and app(*a,**data) or \
+                    controller and controller(*a,**data) or \
+                    view and view(*a,**data)
+
         except PageMissingException:
             return self.page_missing()
 
