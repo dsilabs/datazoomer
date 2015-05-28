@@ -94,7 +94,7 @@ class View(object):
         raise PageMissingException
 
 
-class Controller:
+class Controller(object):
     """
 
         Use this class whenever an action is going to change the state of the model.
