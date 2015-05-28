@@ -1308,13 +1308,18 @@ class ImageField(SimpleField):
     css_class = 'image_field'
     no_image_url = '/static/dz/images/no_photo.png'
 
-    def display_value(self):
-        r = route[-1] == 'edit' and route[:-1] or route
-        if self.value:
-            url = '/' + '/'.join(r) + '/image?name=' + self.name.lower()
+    def _initialize(self, values):
+        if getattr(values, self.name.lower()):
+            url = values.url + '/image?name=' + self.name.lower()
         else:
             url = self.no_image_url
-        return '<img src="%(url)s">' % locals()
+        self.value = '<img alt="{}" src="{}">'.format(
+                values.name,
+                url,
+                )
+
+    def display_value(self):
+        return self.value
 
     def edit(self):
         input = tag_for(
