@@ -202,7 +202,7 @@ class CollectionController(Controller):
 
 class CollectionRecord(DefaultRecord):
     key = property(lambda self: id_for(self.name))
-    url = property(lambda self: url_for_page('contacts', self.key))
+    url = property(lambda self: url_for_page(route[1], self.key)) # not ideal, but works
     link = property(lambda self: link_to(self.name, self.url))
 
 
