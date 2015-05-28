@@ -65,7 +65,12 @@ class CollectionView(View):
             else:
                 footer_name = c.item_name
             footer = '%s %s' % (len(items), footer_name.lower())
-            content = browse(items, labels=c.labels, columns=c.columns, fields=c.fields, footer=footer)
+            content = browse(
+                    [c.entity(i) for i in items],
+                    labels=c.labels,
+                    columns=c.columns,
+                    fields=c.fields,
+                    footer=footer)
             return page(content, title=c.name, actions=actions, search=q)
 
     def clear(self):
@@ -82,7 +87,7 @@ class CollectionView(View):
         record = locate(c, locator)
         if record:
             actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
-            c.fields.initialize(record)
+            c.fields.initialize(c.entity(record))
 
             if 'updated' in record and 'updated_by' in record:
                 memo = '<div class="meta" style="float:right"> record updated %(updated)s by %(updated_by)s</div><div style="clear:both"></div>' % record
@@ -103,7 +108,7 @@ class CollectionView(View):
         if c.can_edit():
             record = locate(c, key)
             if record:
-                c.fields.update(record)
+                c.fields.initialize(record)
                 c.fields.update(data)
                 form = Form(c.fields, ButtonField('Save', cancel=record.url))
                 return page(form.edit(), title=c.item_name)
@@ -123,6 +128,8 @@ class CollectionView(View):
         record = self.collection.locate(key)
         if record:
             return PNGResponse(record[name])
+
+
 
 
 class CollectionController(Controller):
@@ -191,5 +198,48 @@ class CollectionController(Controller):
             del record[name]
             self.collection.store.put(record)
             return redirect_to(url_for(record.url,'edit'))
+
+
+class CollectionRecord(DefaultRecord):
+    key = property(lambda self: id_for(self.name))
+    url = property(lambda self: url_for_page('contacts', self.key))
+    link = property(lambda self: link_to(self.name, self.url))
+
+
+class Collection(object):
+
+    def is_manager(self):
+        return user.is_member(['managers'])
+
+    name_column = 'name'
+    sort_by = lambda t,a: a.name_column
+    can_edit = is_manager
+    order = lambda t,a: a[a.sort_by].lower()
+
+    def __init__(self, item_name, fields, entity):
+        self.item_name = item_name
+        self.name = item_name + 's'
+        self.fields = fields
+        self.entity = entity
+        self.labels = [f.label for f in fields.as_list()]
+        self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
+        self.store = store(entity)
+        self.url = '/{}/{}'.format(system.app.name, id_for(self.name))
+
+    def locate(self, key):
+        def scan(store, key):
+            for rec in store:
+                if rec.key == key or rec.href_id == key:
+                    return rec
+        return key.isdigit() and self.store.get(key) or self.store.first(key=key) or scan(self.store, key)
+
+    def __call__(self, *a, **k):
+        # To use a Collection as an app
+        controller = CollectionController(self)
+        view = CollectionView(self)
+        return controller(*a, **k) or view(*a, **k)
+
+
+
 
 
