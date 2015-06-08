@@ -216,7 +216,7 @@ class Collection(object):
     can_edit = is_manager
     order = lambda t,a: a[a.sort_by].lower()
 
-    def __init__(self, item_name, fields, entity):
+    def __init__(self, item_name, fields, entity, url=None):
         self.item_name = item_name
         self.name = item_name + 's'
         self.fields = fields
@@ -224,7 +224,7 @@ class Collection(object):
         self.labels = [f.label for f in fields.as_list()]
         self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
         self.store = store(entity)
-        self.url = '/{}/{}'.format(system.app.name, id_for(self.name))
+        self.url = url or '/{}/{}'.format(system.app.name, id_for(self.name))
 
     def locate(self, key):
         def scan(store, key):
