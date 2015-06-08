@@ -149,7 +149,59 @@ def image_mime_type_valid(s):
     if not s or isinstance(s, (str,unicode)) and imghdr.what('a',s) in accept: return True
     return False
 
+
+def number_valid(s):
+    """
+        >>> number_valid(0)
+        True
+        >>> number_valid(-1)
+        True
+        >>> number_valid(1.12039123)
+        True
+        >>> number_valid('1.12039123')
+        True
+        >>> number_valid('x1.12039123')
+        False
+        >>> number_valid('t')
+        False
+        >>> number_valid('')
+        True
+        >>> number_valid(False) # not sure if this is what's we want
+        True
+    """
+    if s == '': return True
+    try:
+        float(s)
+        return True
+    except:
+        return False
+
+
+def latitude_valid(s):
+    if s == '': return True
+    try:
+        v = float(s)
+        if v >= -90 and v <= 90:
+            return True
+    except:
+        return False
+
+
+def longitude_valid(s):
+    if s == '': return True
+    try:
+        v = float(s)
+        if v >= -180 and v <= 180:
+            return True
+    except:
+        return False
+
+
 # Common Validators
+# ----------------------------
+# Error messages should suggest what the user needs to do for the value
+# to be considered value (i.e. "enter a numeric value").
+
 notnull = Validator("required", bool)
 required = Validator("required", lambda a: bool(a) and not (hasattr(a,'isspace') and a.isspace()))
 valid_name = MinimumLength(2)
@@ -161,3 +213,6 @@ valid_new_password = MinimumLength(8)
 valid_url = URLValidator()
 valid_postal_code = PostalCodeValidator()
 image_mime_type = Validator("a supported image is required (gif, jpeg, png)", image_mime_type_valid)
+valid_number = Validator("enter a numeric value", number_valid)
+valid_latitude = Validator("enter a number between -90 and 90", latitude_valid)
+valid_longitude = Validator("enter a number between -180 and 180", longitude_valid)
