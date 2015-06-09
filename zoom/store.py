@@ -619,13 +619,66 @@ class EntityStore:
     def __iter__(self):
         return self.all()
 
-    def __getitem__(self, n):
-        if n<0 or n>len(self)-1:
-            raise Exception('Invalid value for n: %s' % n)
-        cmd = 'select distinct row_id from attributes where kind="%s" limit %s,1' % (self.kind, n)
-        rs = self.db(cmd)
-        if rs:
-            return self.get(rs[0].ROW_ID)
+    def __getitem__(self, key):
+        """
+        return entities or slices of entities by position
+
+            >>> db = setup_test()
+            >>> class Person(Entity): pass
+            >>> class People(EntityStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam', age=25))
+            >>> id = people.put(Person(name='Sally', age=55))
+            >>> id = people.put(Person(name='Bob', age=25))
+
+            >>> people[0]
+            <Person {'name': 'Sam', 'age': 25}>
+
+            >>> people[1]
+            <Person {'name': 'Sally', 'age': 55}>
+
+            >>> people[-1]
+            <Person {'name': 'Bob', 'age': 25}>
+
+            >>> people[0:2]
+            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Sally', 'age': 55}>]
+
+            >>> people[::2]
+            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+
+            >>> people[::-2]
+            [<Person {'name': 'Bob', 'age': 25}>, <Person {'name': 'Sam', 'age': 25}>]
+
+            >>> people[1:-1]
+            [<Person {'name': 'Sally', 'age': 55}>]
+
+            >>> try:
+            ...     people[3]
+            ... except IndexError, e:
+            ...     print e
+            Index (3) out of range
+
+            >>> db.close()
+
+        """
+        n = len(self)
+        if isinstance(key, slice):
+            # get the start, stop, and step from the slice
+            start, stop, step = key.indices(n)
+            return [self[ii] for ii in xrange(start, stop, step)]
+        elif isinstance(key, int):
+            if key<0:
+                key += n
+            elif key >= n:
+                raise IndexError, 'Index ({}) out of range'.format(key)
+            cmd = 'select distinct row_id from attributes where kind="%s" limit %s,1' % (self.kind, key)
+            rs = self.db(cmd)
+            if rs:
+                return self.get(list(rs)[0][0])
+            else:
+                return 'no records'
+        else:
+            raise TypeError, 'Invalid argument type'
 
     def __repr__(self):
         return repr(self.all())
