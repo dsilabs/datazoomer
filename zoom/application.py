@@ -77,7 +77,7 @@ class Application:
             elif type(t) == type([]):  # an array of string-like things (like WSGI)
                 return dzresponse.HTMLResponse(''.join(t))
 
-            elif type(t) == type(""):  # a string-like thing
+            elif isinstance(t, basestring):  # a string-like thing
                 return response.HTMLResponse(t)
 
         return response.HTMLResponse('OK') #self.render_view()
