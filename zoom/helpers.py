@@ -404,7 +404,7 @@ def attribute_escape(untrusted):
 
 def title():
     """Returns application title."""
-    return ' | '.join([system.app.title, site_name()])
+    return ' | '.join(set([system.app.title, site_name()]))
 
 def removal_icon(url):
     """Generates a removal icon"""
