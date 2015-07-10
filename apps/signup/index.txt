@@ -1,8 +1,0 @@
-Sign Up
-=======
-Please enter your email address:
-
-<dz:form>
-<input type=email name=email class="text_field" value="" size=60><br>
-<input type=submit name=submit_button class=button>
-</form>
