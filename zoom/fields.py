@@ -1309,12 +1309,18 @@ class ImageField(SimpleField):
     no_image_url = '/static/dz/images/no_photo.png'
 
     def _initialize(self, values):
-        if getattr(values, self.name.lower()):
-            url = values.url + '/image?name=' + self.name.lower()
+        name = self.name.lower()
+        alt = self.name
+        if hasattr(values, name) and getattr(values, name):
+            url = values.url + '/image?name=' + name
+            alt = values.name
+        elif isinstance(values, dict) and values.get(name):
+            # we do not know the route when passed as a dict, we just see the data blob
+            url = 'image?name=' + name
         else:
             url = self.no_image_url
         self.value = '<img alt="{}" src="{}">'.format(
-                values.name,
+                alt,
                 url,
                 )
 
