@@ -1303,6 +1303,15 @@ class FileField(TextField):
 
 
 class ImageField(SimpleField):
+    """ Display an image storage field
+    
+    >>> ImageField('Photo').initialize(None)
+    >>> Fields([ImageField('Photo')]).initialize({'hi':'dz'})   # support dict
+    >>> i = ImageField('Photo')
+    >>> i.initialize({'photo':'data blob', 't':12})
+    >>> i.value
+    '<img alt="PHOTO" src="image?name=photo">'
+    """
     size = maxlength = 40
     _type = 'file'
     css_class = 'image_field'
