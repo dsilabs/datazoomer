@@ -179,6 +179,35 @@ def database(engine='mysql', host='database', db='test', user='testuser', *a, **
         db = Database(sqlite3.connect, database=db, *a, **k)
         return db
 
+    elif engine == 'pymysql':
+        import pymysql
+        db = Database(pymysql.connect, host=host, db=db, user=user, charset='utf8', *a, **k)
+        db.autocommit(1)
+        return db
+
+    elif engine == 'pymysql_back':
+        """ pymysql engine with mysqldb/dz backwards compatibility
+
+            This is mainly done for tests, running dz tests, unchanged, under pymysql
+        """
+        import pymysql
+        from pymysql.converters import conversions
+        from pymysql.constants import FIELD_TYPE
+        from pymysql.cursors import Cursor
+        class LegacyCursor(Cursor):
+            def __getattribute__(self, name):
+                r = object.__getattribute__(self, name)
+                if name == 'lastrowid': r = long(r)
+                return r
+
+        mysqldb_compat = conversions.copy()
+        mysqldb_compat[FIELD_TYPE.LONG] = long
+        mysqldb_compat[FIELD_TYPE.LONGLONG] = long
+        db = Database(pymysql.connect, host=host, db=db, user=user, conv=mysqldb_compat, charset='latin1', use_unicode=False, cursorclass=LegacyCursor, *a, **k)
+        db.autocommit(1)
+
+        return db
+
 
 def get_mysql_log_state():
     for rec in db('show variables like "log"'):
