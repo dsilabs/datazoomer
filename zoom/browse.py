@@ -19,7 +19,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
                 return getattr(item, index)
         except TypeError, e:
             return ''
-        except AttributeError, e:
+        except (AttributeError, KeyError), e:
             return ''
         except:
             raise
