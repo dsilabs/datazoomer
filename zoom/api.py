@@ -54,11 +54,14 @@ class API:
         url = '/'.join([self.site_url]+list(a))
         encoded = urllib.urlencode(data)
         response = opener.open(url, encoded).read()
-        try:
-            result = loads(response)
-        except:
-            print 'JSON Conversion Failed: response was %s' % repr(response)
-            result = response
+        if response.lower() in ['ok','error']:
+            result = dict(status=response.lower())
+        else:
+            try:
+                result = loads(response)
+            except:
+                print 'JSON Conversion Failed: response was %s' % repr(response)
+                result = response
         return result
 
     def __call__(self, *a, **k):
