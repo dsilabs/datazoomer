@@ -77,8 +77,11 @@ def entify(rs, klass):
         if datatype == 'str':
             pass
 
-        elif datatype == 'unicode':
+        elif datatype == 'unicode' and isinstance(value, unicode):
             pass
+
+        elif datatype == 'unicode':
+            value = value.decode('utf8')
 
         elif datatype == "long":
             value = long(value)
@@ -212,6 +215,11 @@ class EntityStore:
         <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 3}>
         >>> EntityStore(db, 'person').first(name='Joe')['age']
         20
+        >>> from utils import PY2
+        >>> name = PY2 and unicode('somename') or str('somename')
+        >>> id = misc.put(dict(host='database', name=name))
+        >>> my_info = misc.get(id)
+        >>> assert type(my_info['name'])==type(name)
 
     """
 
