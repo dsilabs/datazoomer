@@ -384,7 +384,7 @@ var dsi = {
                         .text(metadata.title)
                       .append("tspan")
                         .attr("class", "svg_glyphicon")
-                        .text(metadata.description === '' ? '' : ' \ue252');    //.text('\ue119');
+                        .text(metadata.description === '' ? '' : ' \ue159');    //.text('\ue252'); // but requires newer bootstrap
                         // TODO: add this via css?
                     var d = d3.select("body").selectAll("div#description").data(metadata.description ? [metadata.description] : '');
                     d.enter()
