@@ -1,3 +1,7 @@
+function uniques(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
 // Extend
 String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
@@ -695,7 +699,7 @@ var dsi = {
                 .html(tooltip);
 
         // Various accessors that specify the four dimensions of data to visualize.
-        function x(d) { return d.income; }
+        function x(d) { return d.value; }
         function key(d) { return d.date; }
         function tooltip(d) { return "<strong>" + d + "</strong>"; }
         function getLabel(fn, dir) {
@@ -724,7 +728,7 @@ var dsi = {
             d3.select("#description").call(brewerSelector);
 
             // Create the SVG container and set the origin.
-            var svg = d3.select(this).selectAll("svg").data(summary.years);
+            var svg = d3.select(this).selectAll("svg").data(summary.years.filter(uniques));
             var cont = svg.enter().append("svg").append("g").each(function() {
                 var d = d3.select(this);
                 d.append("g").attr("class", "labels").append("text");
@@ -908,6 +912,7 @@ var dsi = {
 
         } /* end-chart */
 
+        // dimensions
         my.width = function(value) {
             if (!arguments.length) return width;
             width = value - margin.right;
@@ -920,9 +925,28 @@ var dsi = {
             return my;
         };
 
+        my.margin = function(value) {
+            if (!arguments.length) return margin;
+            margin = value;
+            return my;
+        };
+
+        // accessors
         my.x = function(fn) {
             if (!arguments.length) return x;
             x = fn;
+            return my;
+        };
+
+        my.key = function(fn) {
+            if (!arguments.length) return key;
+            key = fn;
+            return my;
+        };
+
+        my.tooltip = function(fn) {
+            if (!arguments.length) return tooltip;
+            tooltip = fn;
             return my;
         };
 
@@ -935,6 +959,31 @@ var dsi = {
         my.palette = function(value) {
             if (!arguments.length) return palette;
             palette = value;
+            return my;
+        };
+
+        // options
+        my.label = function(value) {
+            if (!arguments.length) return labelFormat;
+            labelFormat = value;
+            return my;
+        };
+
+        my.date = function(value) {
+            if (!arguments.length) return dateFormat;
+            dateFormat = value;
+            return my;
+        };
+
+        my.week_label = function(value) {
+            if (!arguments.length) return daysofweek;
+            daysofweek = value;
+            return my;
+        };
+
+        my.month_label = function(value) {
+            if (!arguments.length) return months;
+            months = value;
             return my;
         };
 
