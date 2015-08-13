@@ -85,7 +85,9 @@ var dsi = {
             radiusScale = d3.scale.sqrt().domain([0, 5e8]).range([0, 40]),
             colorScale = d3.scale.category10().range(d3.scale.category10().range().reverse()),
             xAxis = d3.svg.axis().orient("bottom").scale(xScale).ticks(12, d3.format(",d")),
+            xiqrAxis = d3.svg.axis().orient("top").scale(xScale).innerTickSize(3).outerTickSize(0),
             yAxis = d3.svg.axis().scale(yScale).orient("left"),
+            yiqrAxis = d3.svg.axis().orient("right").scale(yScale).innerTickSize(3).outerTickSize(0),
             xZoom = undefined, yZoom = undefined,
             summary = {},
             axis_buffer = 0.12
@@ -164,12 +166,20 @@ var dsi = {
             var overlay = undefined;
             addZOverlay();  // enter and update of the z overlay
 
+            // Add the IQR axis
+            cont.append("g").attr("class", "xiqr axis");
+            svg.select("svg g g.xiqr.axis")
+                .attr("transform", "translate(0," + (height) + ")")
+                .call(xiqrAxis);
             // Add the x-axis.
             cont.append("g").attr("class", "x axis");
             svg.select("svg g g.x.axis")
                 .attr("transform", "translate(0," + height + ")")
                 .call(xAxis);
 
+            // Add the IQR axis
+            cont.append("g").attr("class", "yiqr axis");
+            svg.select("svg g g.yiqr.axis").call(yiqrAxis);
             // Add the y-axis.
             cont.append("g").attr("class", "y axis");   //enter
             svg.select("svg g g.y.axis").call(yAxis);   //update
@@ -286,11 +296,13 @@ var dsi = {
                     fn = typeof fn !== 'undefined' ? fn : "linear";
                     if (!(fn in d3.scale) || (typeof xy == 'undefined')) { return false; }
 
-                    var isY = d3.select("text."+xy).classed('y label');
-                    var axis = isY ? yAxis : xAxis;
-                    var sel = isY ? ".y.axis" : ".x.axis"
-                    var scale = isY ? yScale : xScale;
-                    var domain = scale.domain()
+                    var isY = d3.select("text."+xy).classed('y label'),
+                        axis = isY ? yAxis : xAxis,
+                        iqraxis = isY ? yiqrAxis : xiqrAxis,
+                        sel = isY ? ".y.axis" : ".x.axis",
+                        iqrsel = isY ? ".yiqr.axis" : ".xiqr.axis",
+                        scale = isY ? yScale : xScale,
+                        domain = scale.domain();
                     if (fn=='log' && domain[0]==0) { domain[0] = 1; }
                     if (!(fn=='log') && domain[0]==1) { domain[0] = 0; }
 
@@ -305,9 +317,15 @@ var dsi = {
                                 if ('nice' in xScale) { xScale.nice(); }
                             }
                             axis.scale( isY ? yScale : xScale );
+                            iqraxis.scale( isY ? yScale : xScale );
                             d3.select(sel)
                               .transition().duration(1500)
                                 .call(axis);
+                            console.log(iqraxis);
+                            d3.select(iqrsel)
+                              .transition().duration(1500)
+                                .call(iqraxis);
+
                             displayYear();
                         });
 
@@ -527,22 +545,16 @@ var dsi = {
                      'y': yScale(d3[m](d, y)),
                      'label': m,
                     }]).transition().duration(dur).call(position_summary);
-              }
-              // Updates the display to the shown year
-              function redrawYear() {
-                var year = svg.select("text.year.label").text(),
-                    d = interpolateData(year),
-                    notdone = d3.select("#jq-dropdown-agg li.active").empty(),
-                    m =  ! notdone ? d3.select("#jq-dropdown-agg li.active").text() : 'median' || 'median';
-                // Cancel the current transition, if any.
-                dot.transition().duration(0);
-                dot.data(d, key).transition().duration(1500).call(position).sort(order);
-                label.text(Math.round(year));
-                summary_lines.data([
-                    {'x': xScale(d3[m](d, x)),
-                     'y': yScale(d3[m](d, y)),
-                     'label': m,
-                    }]).transition().duration(1500).call(position_summary);
+                xbox = boxplot(d,x);
+                ybox = boxplot(d,y);
+                xiqrAxis.tickValues([xbox.lw, xbox.q1, xbox.q2, xbox.q3, xbox.uw]);
+                yiqrAxis.tickValues([ybox.lw, ybox.q1, ybox.q2, ybox.q3, ybox.uw]);
+                svg.select(".xiqr.axis")
+                  .transition().duration(dur)
+                    .call(xiqrAxis);
+                svg.select(".yiqr.axis")
+                  .transition().duration(dur)
+                    .call(yiqrAxis);
               }
 
               // Interpolates the dataset for the given (fractional) year.
