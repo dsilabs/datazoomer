@@ -4,6 +4,9 @@ from zoom import system
 d3_libs = ["/static/dz/d3/d3.min.js", "/static/dz/dz.addons.js"]
 d3_styles = []
 
+def chain_methods(options):
+    return ''.join(['.{}({})'.format(method,value) for method,value in options.items()])
+
 class scatter(object):
     """d3.js scatter plot"""
     _declare_ = """
@@ -37,7 +40,7 @@ class calendar(object):
     """d3.js calendar plot"""
     _declare_ = """
     <script>
-        var %(ref)s = dsi.calendar();
+        var %(ref)s = dsi.calendar()%(methods)s;
         d3.json("%(view)s", function(data) {
             d3.select("%(selector)s")
               .datum(data)
@@ -59,6 +62,7 @@ class calendar(object):
     def __init__(self, view_for_data, selector="chart"):
         self.view = view_for_data
         self.selector = selector.startswith('#') and selector or '#{}'.format(selector)
+        self.options = {}
     def __str__(self):
         libs = d3_libs + self.libs
         system.libs = system.libs | libs
@@ -66,5 +70,6 @@ class calendar(object):
         ref = self.ref
         view = self.view
         selector = self.selector
+        methods = chain_methods(self.options)
         system.tail = system.tail | [self._declare_ % (locals())]
         return ''
