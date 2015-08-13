@@ -888,7 +888,7 @@ var dsi = {
 
             // ColorBrewer selector component
             function brewerSelector(selection, brewerSize) {
-                brewerSize = typeof brewerSize !== 'undefined' ? brewerSize : 11;
+                brewerSize = typeof brewerSize !== 'undefined' ? brewerSize : colorScale.range().length;
                 if (typeof colorbrewer == 'undefined') { return false; }
 
                 var pal = Object.keys(colorbrewer).filter(function(d) {return brewerSize.toString() in colorbrewer[d]; }),
