@@ -659,4 +659,285 @@ var dsi = {
 
         return my;
     },  /* end scatter chart */
+
+
+    calendar: function() {
+        /* A calendar plot chart
+
+        i. reusable
+        i. responsive grammar
+
+        TODO:
+            i. change metric
+            i. change the color scale
+            i. add/remove grammar as we resize
+            i. add color scale
+            i. vary color scale (min/max, center on zero, center on "x", [0..1], ...)
+            i. add events
+
+        */
+
+        var margin = {top: 20, right: 40, bottom: 20, left: 50},
+            width = 960 - margin.right,
+            height = 156 - margin.top - margin.bottom,
+            cellSize = 17,
+            labelFormat = d3.format(",d"),
+            dateFormat = d3.time.format("%Y-%m-%d"),
+            palette = "RdYlGn",
+            colorScale = d3.scale.quantize().range(d3.range(11).map(function(d) { return "q" + d + "-11"; })),
+            summary = {},
+            metadata = {'title': 'Calendar Demo'},
+            daysofweek = ['Su','M', 'Tu', 'W', 'Th', 'F', 'Sa'],
+            months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([-6, 0])
+                .html(tooltip);
+
+        // Various accessors that specify the four dimensions of data to visualize.
+        function x(d) { return d.income; }
+        function key(d) { return d.date; }
+        function tooltip(d) { return "<strong>" + d + "</strong>"; }
+        function getLabel(fn, dir) {
+            var l = fn(metadata.labels);
+            l = typeof l !== 'undefined' ? l + " " + dir : undefined;
+            return l;
+        }
+
+        function my(selection) {
+          selection.each(function(chartdata, i) {
+            metadata.title = chartdata.title || metadata.title;
+            metadata.description = chartdata.description || '';
+            metadata.labels = chartdata.labels || {};
+            metadata.daysofweek = chartdata.daysofweek || daysofweek;
+            metadata.months = chartdata.months || months;
+            data = chartdata.data || chartdata;
+            summarize(data);
+
+            // Set the domains and scales based on the data
+            colorScale.domain(summary.x);
+
+            // Create chart title and controls
+            var controls = d3.select(this).selectAll("h1.title").data([data]);
+            controls.enter().append("h1").attr("class", "title").each(resizeContainer);
+            controls.call(addTitle);
+            d3.select("#description").call(brewerSelector);
+
+            // Create the SVG container and set the origin.
+            var svg = d3.select(this).selectAll("svg").data(summary.years);
+            var cont = svg.enter().append("svg").append("g").each(function() {
+                var d = d3.select(this);
+                d.append("g").attr("class", "labels").append("text");
+                d.append("g").attr("class", "days");
+                d.append("g").attr("class", "months");
+                d.append("g").attr("class", "events");
+            });
+            svg.call(tip);
+            svg.attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .attr("class", palette);
+            svg.select("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            // Update the week/month/year labels
+            svg.select("g g.labels text")
+                .attr("transform", "translate(-10," + (cellSize/2) + ")")
+                .style("text-anchor", "end")
+                .text(function(d) { return d; });
+            var monthlabel = selection.select("g.labels").selectAll(".monthlabel").data(metadata.months);
+            monthlabel.enter()
+              .append("text")
+                .attr("class", "monthlabel")
+                .style("text-anchor", "start");
+            monthlabel
+                .attr("dy", -1*(cellSize/4))
+                .attr("x", function(d,i) {
+                    var t0 = new Date(summary.years[0], i + 1, 0),
+                        w0 = d3.time.weekOfYear(t0);
+                    return ((w0)*(cellSize)) - (cellSize/4);
+                })
+                .text(function(d) { return d; });
+            var weekday = selection.select("g.labels").selectAll(".dayofweek").data(metadata.daysofweek);
+            weekday.enter()
+              .append("text")
+                .attr("class", "dayofweek")
+                .style("text-anchor", "start");
+            weekday
+                .attr("dy", -1*(cellSize/4))
+                .attr("y", function(d,i) { return (i+1)*(cellSize) ;})
+                .attr("x", width + 6)
+                .text(function(d) { return d; });
+
+            // Enter/Update the days
+            var rect = svg.select("g.days").selectAll(".day")
+                .data(function(d) { return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1)); });
+            rect.enter().append("rect")
+                .attr("class", "day");
+            rect
+                .attr("width", cellSize)
+                .attr("height", cellSize)
+                .attr("x", function(d) { return d3.time.weekOfYear(d) * cellSize; })
+                .attr("y", function(d) { return d.getDay() * cellSize; })
+                .on('mouseover', tip.show)
+                .on('mouseout', tip.hide)
+                .datum(dateFormat);
+
+            // Enter/Update the months
+            var month = svg.select("g.months").selectAll(".month")
+                .data(function(d) { return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1)); });
+            month.enter().append("path").attr("class", "month");
+            month.attr("d", monthPath);
+
+            // Update the days for our data
+            var displayData = d3.nest()
+              .key(key)
+              .rollup(function(d) { return x(d[0]); })
+                .map(data);
+            rect.filter(function(d) { return d in displayData; })
+                .attr("class", function(d) { return "day " + colorScale(displayData[d]); })
+                .on("mouseover", function(d) { return tip.show(d + ": " + labelFormat(displayData[d])); })
+                .on("mouseout", tip.hide);
+
+            // support responsive by default
+            d3.select(window).on('resize', resizeContainer);
+
+            // Generate the path for a month
+            function monthPath(t0) {
+              var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+                  d0 = t0.getDay(), w0 = d3.time.weekOfYear(t0),
+                  d1 = t1.getDay(), w1 = d3.time.weekOfYear(t1);
+              return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+                  + "H" + w0 * cellSize + "V" + 7 * cellSize
+                  + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+                  + "H" + (w1 + 1) * cellSize + "V" + 0
+                  + "H" + (w0 + 1) * cellSize + "Z";
+            }
+
+            // Summarize the data
+            function summarize(data) {
+                summary.x = d3.extent(data,x);
+                summary.key = d3.extent(data,key);
+                summary.years = summary.key.map(function(d) {return dateFormat.parse(d).getFullYear();});
+                //summary.box = boxplot(data, x);
+                //console.log(summary);
+            }
+
+            // Add the title.
+            function addTitle(selector) {
+                selector
+                    .classed('linkable', metadata.description === '' ? false : true)
+                    .classed('down',true)
+                    .on("click", function() { toggleIn("#description", "up"); })
+                    .text(metadata.title)
+                var d = d3.select("body").selectAll("div#description").data(metadata.description ? [metadata.description] : '');
+                d.enter()
+                  .append("div")
+                    .attr("id", "description")
+                    .attr("data-id", "#description");
+                d.html(function(d) {return d;});
+            }
+
+            // Resize the chart container
+            function resizeContainer() {
+                var cwidth = parseInt(selection.style("width"));
+                cwidth = cwidth - parseInt(selection.style("padding-left")) - parseInt(selection.style("padding-left"));
+
+                cellSize = (cwidth - margin.left - margin.right) / 53;
+                my.width(cwidth - margin.left - 1);
+                selection
+                  .datum(chartdata)
+                  .call(my);
+                $("#description").hide();
+            }
+
+            function toggleIn(selector, direction) {
+                //TODO: remove jquery depends
+                var ts = ".title",
+                    t = selection.select(ts),
+                    d = $(selector),
+                    m = parseInt(d.css("padding-left"));    // assumes uniform
+
+                // toggle the icon direction
+                t.classed('down',!t.classed('down'));
+                t.classed('up',!t.classed('up'));
+
+                // toggle the panel
+                var o = $("#chart").offset().top + $(ts).offset().top + parseInt($(ts).css("height"));
+                d.css("width", width + margin.left + margin.right);
+                d.css("left", $("#chart").offset().left );
+                d.css("top", o );
+                d.css("height", parseInt($("#chart").css("height")) - o);
+                if ( d.css("display") !== "block" ) {
+                    if ( d.effect ) {
+                        d.css("display", "block").effect("slide", {"direction":direction});
+                    } else {
+                        d.show().css("display", "block");
+                    }
+                } else {
+                    if ( d.effect ) {
+                        //d.slideUp();
+                        d.toggle("slide", {"direction":direction})
+                    } else {
+                        d.hide();
+                    }
+                }
+            }
+
+            // ColorBrewer selector component
+            function brewerSelector(selection, brewerSize) {
+                brewerSize = typeof brewerSize !== 'undefined' ? brewerSize : 11;
+                if (typeof colorbrewer == 'undefined') { return false; }
+
+                var pal = Object.keys(colorbrewer).filter(function(d) {return brewerSize.toString() in colorbrewer[d]; }),
+                    activePal = function(p) { return p==palette; }
+                var cont = selection.selectAll("p.dropdown.brewer").data([pal]);
+                cont.enter()
+                  .append("p")
+                    .attr("class", "dropdown brewer")
+                    .text("Change Palette:")
+                    .append("select")
+                        .attr("class", "form-control")
+                        .selectAll("option")
+                          .data(pal)
+                            .enter().append("option")
+                                .attr("selected", function(d) {return (activePal(d) ? "selected" : null);})
+                                .text(function(d) { return d; });
+
+            }
+
+          }); /* end for each */
+
+        } /* end-chart */
+
+        my.width = function(value) {
+            if (!arguments.length) return width;
+            width = value - margin.right;
+            return my;
+        };
+
+        my.height = function(value) {
+            if (!arguments.length) return height;
+            height = value - margin.top - margin.bottom;
+            return my;
+        };
+
+        my.x = function(fn) {
+            if (!arguments.length) return x;
+            x = fn;
+            return my;
+        };
+
+        my.color = function(scale) {
+            if (!arguments.length) return colorScale;
+            colorScale = scale;
+            return my;
+        };
+
+        my.palette = function(value) {
+            if (!arguments.length) return palette;
+            palette = value;
+            return my;
+        };
+
+        return my;
+    },  /* end calendar chart */
 };
