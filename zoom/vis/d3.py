@@ -42,14 +42,14 @@ class calendar(object):
             d3.select("%(selector)s")
               .datum(data)
               .call(%(ref)s);
-        });
 
-        d3.select("#description p.dropdown.brewer select")
-            .on("click", function() {
-                var p = d3.select(this).select(":checked").text();
-                d3.select("%(selector)s").selectAll("svg")
-                    .attr("class", p);
+            d3.select("#description p.dropdown.brewer select")
+                .on("click", function() {
+                    var p = d3.select(this).select(":checked").text();
+                    d3.select("%(selector)s").selectAll("svg")
+                        .attr("class", p);
             });
+        });
     </script>
     """
     name = property(lambda self: '%s_%s' % (self.__class__.__name__, id(self)))

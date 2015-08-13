@@ -861,11 +861,11 @@ var dsi = {
                 t.classed('up',!t.classed('up'));
 
                 // toggle the panel
-                var o = $("#chart").offset().top + $(ts).offset().top + parseInt($(ts).css("height"));
+                var top = ($(ts).offset().top + parseInt($(ts).css("padding-top")) + parseInt($(ts).height()));
                 d.css("width", width + margin.left + margin.right);
                 d.css("left", $("#chart").offset().left );
-                d.css("top", o );
-                d.css("height", parseInt($("#chart").css("height")) - o);
+                d.css("top", top );
+                d.css("height", $("#chart").height() - parseInt($(ts).css("margin-top")) - parseInt($(ts).css("padding-top")) - $(ts).height());
                 if ( d.css("display") !== "block" ) {
                     if ( d.effect ) {
                         d.css("display", "block").effect("slide", {"direction":direction});
