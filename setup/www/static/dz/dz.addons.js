@@ -325,7 +325,6 @@ var dsi = {
                             d3.select(sel)
                               .transition().duration(1500)
                                 .call(axis);
-                            console.log(iqraxis);
                             d3.select(iqrsel)
                               .transition().duration(1500)
                                 .call(iqraxis);
@@ -696,7 +695,14 @@ var dsi = {
             tip = d3.tip()
                 .attr('class', 'd3-tip')
                 .offset([-6, 0])
-                .html(tooltip);
+                .html(tooltip),
+            colorAxis = dsi.colorLegend()
+                .scale(colorScale)
+                .height(50)
+                .width(200)
+                .label(labelFormat)
+                .tooltip(function(d) { return d.map(Math.round); })
+                .title(function() { return getLabel(x); });
 
         // Various accessors that specify the four dimensions of data to visualize.
         function x(d) { return d.value; }
@@ -704,6 +710,7 @@ var dsi = {
         function tooltip(d) { return "<strong>" + d + "</strong>"; }
         function getLabel(fn, dir) {
             var l = fn(metadata.labels);
+            dir = typeof dir !== 'undefined' ? dir : '';
             l = typeof l !== 'undefined' ? l + " " + dir : undefined;
             return l;
         }
@@ -719,7 +726,7 @@ var dsi = {
             summarize(data);
 
             // Set the domains and scales based on the data
-            colorScale.domain(summary.x);
+            colorScale.domain([summary.x[0]<0 ? summary.x[0] : 0, summary.x[1]]);
 
             // Create chart title and controls
             var controls = d3.select(this).selectAll("h1.title").data([data]);
@@ -728,18 +735,19 @@ var dsi = {
             d3.select("#description").call(brewerSelector);
 
             // Create the SVG container and set the origin.
-            var svg = d3.select(this).selectAll("svg").data(summary.years.filter(uniques));
-            var cont = svg.enter().append("svg").append("g").each(function() {
+            var svg = d3.select(this).selectAll("svg.calendar").data(summary.years.filter(uniques));
+            var cont = svg.enter().append("svg").attr("class", "calendar").append("g").each(function() {
                 var d = d3.select(this);
                 d.append("g").attr("class", "labels").append("text");
                 d.append("g").attr("class", "days");
                 d.append("g").attr("class", "months");
                 d.append("g").attr("class", "events");
+                d.append("g").attr("class", "legend").append("g");
             });
             svg.call(tip);
             svg.attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-                .attr("class", palette);
+                .attr("class", "calendar " + palette);
             svg.select("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
             // Update the week/month/year labels
@@ -800,6 +808,16 @@ var dsi = {
                 .attr("class", function(d) { return "day " + colorScale(displayData[d]); })
                 .on("mouseover", function(d) { return tip.show(d + ": " + labelFormat(displayData[d])); })
                 .on("mouseout", tip.hide);
+
+            // Add the legend
+            var legend = d3.select(this).selectAll("svg.legend").data([1]);
+            legend.enter().insert("svg", "svg").attr("class", "legend").append("g");
+            legend
+                .attr("class", "legend " + palette)
+                .attr("width", colorAxis.fullWidth())
+                .attr("height", colorAxis.height());
+            legend.select("g")
+                .call(colorAxis);
 
             // support responsive by default
             d3.select(window).on('resize', resizeContainer);
@@ -947,12 +965,14 @@ var dsi = {
         my.tooltip = function(fn) {
             if (!arguments.length) return tooltip;
             tooltip = fn;
+            tip.html(tooltip);
             return my;
         };
 
         my.color = function(scale) {
             if (!arguments.length) return colorScale;
             colorScale = scale;
+            colorAxis.scale(colorScale);
             return my;
         };
 
@@ -989,4 +1009,147 @@ var dsi = {
 
         return my;
     },  /* end calendar chart */
+
 };
+
+dsi.colorLegend = function() {
+    /* A legend/axis for a color scale
+
+    TODO:
+        i. support on hover (hover in visual shows where in the axis it fits)
+        i. orientation
+    */
+
+    var width = 300,
+        height = 44,
+        margin = 10,
+        labelFormat = function(d) { return d3.format(",d")(100*d); },
+        title = 'Color Scale',
+        colorScale = d3.scale.threshold().domain([.11, .22, .33, .50]).range(["#6e7c5a", "#a0b28f", "#d8b8b3", "#b45554", "#760000"]),
+        x = d3.scale.linear().domain([0, 1]).range([0, width]),
+        xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(13)
+            .tickValues(colorScale.domain())
+            .tickFormat(labelFormat),
+        tip = d3.tip()
+            .attr('class', 'd3-tip color-axis')
+            .offset([-6, 0])
+            .html(tooltip);
+
+    // Various accessors
+    function tooltip(d) { return "<strong>" + d + "</strong>"; }
+
+    function my(g) {
+      g.each(function(data, i) {
+
+        // Update the domain
+        if (colorScale.domain().length == 2) {
+            x.domain(colorScale.domain());
+            xAxis.tickValues(colorScale.domain());
+        } else {
+            x.domain([0,1]);
+            xAxis.tickValues(colorScale.domain());
+        }
+
+        // Add the tip container
+        g.call(tip);
+
+        // Create the color bands
+        g.attr("class", "color legend")
+            .attr("width", width + margin*2).attr("height", height)
+            .attr("transform", "translate(" + margin + "," + height / 2.5 + ")");
+        g.selectAll("rect")
+            .data(colorScale.range().map(function(color) {
+              var d = colorScale.invertExtent(color);
+              if (d[0] == null) d[0] = x.domain()[0];
+              if (d[1] == null) d[1] = x.domain()[1];
+              return d;
+            }))
+          .enter().append("rect")
+            .attr("height", 8)
+            .attr("x", function(d) { return x(d[0]); })
+            .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+            .attr("class", function(d) {
+                var k = colorScale(d[0]);
+                return k[0] == '#' ? null : k;
+            })
+            .style("fill", function(d) {
+                var k = colorScale(d[0]);
+                return k[0] == '#' ? k : null;
+            })
+            .on("mouseover", tip.show)
+            .on("mouseout", tip.hide);
+
+        g.call(xAxis);
+        var caption = g.selectAll("text.caption").data([1]);
+        caption.enter()
+          .append("text")
+            .attr("class", "caption");
+        caption
+            .attr("class", "caption")
+            .attr("y", -6)
+            .text(title);
+
+      }); /* end for each */
+
+    } /* end-grammar */
+
+    // a required scale to work on
+    my.scale = function(value) {
+        if (!arguments.length) return colorScale;
+        colorScale = value;
+        return my;
+    };
+    my.xaxis = function(value) {
+        if (!arguments.length) return xAxis;
+        xAxis = value;
+        return my;
+    };
+
+    // dimensions
+    my.fullWidth = function() {
+        return width + margin*2;
+    };
+
+    my.margin = function(value) {
+        if (!arguments.length) return margin;
+        margin = value;
+        return my;
+    };
+
+    my.height = function(value) {
+        if (!arguments.length) return height;
+        height = value;
+        return my;
+    };
+
+    my.width = function(value) {
+        if (!arguments.length) return width;
+        width = value;
+        x.range([0,width]);
+        return my;
+    };
+
+    // options
+    my.label = function(value) {
+        if (!arguments.length) return labelFormat;
+        labelFormat = value;
+        xAxis.tickFormat(labelFormat);
+        return my;
+    };
+
+    my.title = function(value) {
+        if (!arguments.length) return title;
+        title = value;
+        return my;
+    };
+
+    // accessors
+    my.tooltip = function(value) {
+        if (!arguments.length) return tooltip;
+        tooltip = value;
+        tip.html(tooltip);
+        return my;
+    };
+
+    return my;
+}  /* end color scale axis */
