@@ -57,7 +57,7 @@ dz.boxplot = function(d, accessor) {
 // Create a d3 charts namespace
 d3.charts = { version: "0.1" };
 
-d3.charts.scatter = 
+d3.charts.scatter =
     function() {
         /* A scatter plot chart
 
@@ -1156,3 +1156,131 @@ d3.charts.colorLegend = function() {
 
     return my;
 }  /* end color scale axis */
+
+d3.charts.circleLegend = function() {
+    /* A legend/scale for circles
+
+    TODO:
+        i. support on hover (hover in visual shows where in the axis it fits)
+        i. ensure circle domain/range matches the source
+    */
+
+    var margin = {top: 60, right: 0, bottom: 0, left: 90},
+        width = 120,
+        height = 100,
+        labelFormat = d3.format(",d"),
+        title = 'Circle Scale',
+        radiusScale = d3.scale.linear().domain([0, 1]).range([0, 40]);
+
+    // Various accessors
+    function radius(d) { return d.value; }
+
+    function my(g) {
+      g.each(function(data, i) {
+        // Set the domain based on the data.
+        radiusScale.domain([0,d3.max(data, radius)]);
+        max_radius = radiusScale.range()[1];
+        radius_offset = 10;
+
+        // Variable definitions.
+        var caption = g.selectAll("text.caption").data([data]),
+            captionEnter = caption.enter(),
+            circles = g.selectAll("g.circle").data(data),
+            circlesEnter = circles.enter();
+
+        // Set the container origin.
+        g.attr("class", "circle legend")
+            .attr("width", width).attr("height", height)
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // Handle the circles for the keys.
+        circlesEnter
+          .append("g")
+          .attr("class", "circle")
+          .call(addKey)
+          .sort(order);
+
+        circles
+            .attr("transform", function(d) {
+                var offset = -1 * (radiusScale(radius(d)) - max_radius);
+                return "translate(0," + offset + ")";
+            });
+        circles.select("line")
+            .attr("x1", function(d) { return -1 * (radiusScale(radius(d)));} )
+            .attr("x2", function(d) { return -1 * (max_radius+radius_offset);} )
+            .attr("y1", 0)
+            .attr("y2", 0);
+        circles.select("circle")
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .attr("r", function(d) { return radiusScale(radius(d)); });
+        circles.select("text")
+            .attr("text-anchor", "end")
+            .attr("transform", "translate(" + -1*(max_radius+(radius_offset*1.1)) + ",0)")
+            .text(function(d) { return labelFormat(radius(d)); });
+
+        // Handle the legend title/caption.
+        captionEnter.append("text")
+            .attr("class", "caption");
+        caption
+            .attr("class", "caption")
+            .attr("text-anchor", "middle")
+            .attr("dy", -6)
+            .attr("transform", "translate(0," + -1*max_radius + ")")
+            .text(title);
+
+        function addKey(sel) {
+            sel.append("circle");
+            sel.append("line");
+            sel.append("text");
+        };
+
+        function order(a, b) {
+            return radius(b) - radius(a);
+        }
+
+      }); /* end for each */
+
+    } /* end-grammar */
+
+    // a required scale to work on
+    my.scale = function(value) {
+        if (!arguments.length) return radiusScale;
+        radiusScale = value;
+        return my;
+    };
+
+    // dimensions
+    my.margin = function(value) {
+        if (!arguments.length) return margin;
+        margin = value;
+        return my;
+    };
+
+    my.height = function(value) {
+        if (!arguments.length) return height;
+        height = value;
+        return my;
+    };
+
+    my.width = function(value) {
+        if (!arguments.length) return width;
+        width = value;
+        return my;
+    };
+
+    // options
+    my.label = function(value) {
+        if (!arguments.length) return labelFormat;
+        labelFormat = value;
+        return my;
+    };
+
+    my.title = function(value) {
+        if (!arguments.length) return title;
+        title = value;
+        return my;
+    };
+
+    return my;
+}  /* end circle scale */
