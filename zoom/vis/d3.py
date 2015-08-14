@@ -1,7 +1,7 @@
 """d3.js tools"""
 from zoom import system
 
-d3_libs = ["/static/dz/d3/d3.min.js", "/static/dz/dz.addons.js"]
+d3_libs = ["/static/dz/d3/d3.min.js", "/static/dz/d3.charts.js"]
 d3_styles = []
 
 def chain_methods(options):
@@ -11,7 +11,7 @@ class scatter(object):
     """d3.js scatter plot"""
     _declare_ = """
     <script>
-        var %(ref)s = dsi.scatter();
+        var %(ref)s = d3.charts.scatter();
         d3.json("%(view)s", function(data) {
             d3.select("%(selector)s")
               .datum(data)
@@ -40,7 +40,7 @@ class calendar(object):
     """d3.js calendar plot"""
     _declare_ = """
     <script>
-        var %(ref)s = dsi.calendar()%(methods)s;
+        var %(ref)s = d3.charts.calendar()%(methods)s;
         d3.json("%(view)s", function(data) {
             d3.select("%(selector)s")
               .datum(data)

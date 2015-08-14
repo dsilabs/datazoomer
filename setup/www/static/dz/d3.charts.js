@@ -1,7 +1,3 @@
-function uniques(value, index, self) {
-    return self.indexOf(value) === index;
-}
-
 // Extend
 String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
@@ -22,14 +18,21 @@ Number.prototype.format = function(n, x) {
     return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
 };
 
+// Create a namespace for general use
+dz = {}
+
+dz.uniques = function(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
 // get scale options
-function scaleChoices() {
+dz.scaleChoices = function() {
     var t = [];
     for (var s in d3.scale) { t.push(s); }
     return t
 }
 // boxplot
-function boxplot(d, accessor) {
+dz.boxplot = function(d, accessor) {
     var t = d.map(accessor);
     t.sort(d3.ascending);
 
@@ -51,9 +54,11 @@ function boxplot(d, accessor) {
     };
 }
 
-// dsi namespace
-var dsi = {
-    scatter: function() {
+// Create a d3 charts namespace
+d3.charts = { version: "0.1" };
+
+d3.charts.scatter = 
+    function() {
         /* A scatter plot chart
 
         i. reusable
@@ -95,7 +100,7 @@ var dsi = {
             xZoom = undefined, yZoom = undefined,
             summary = {},
             axis_buffer = 0.12
-            scale_choices = scaleChoices(),
+            scale_choices = dz.scaleChoices(),
             agg_choices = ['max', 'mean', 'median', 'min'],
             metadata = {'title': 'Scatter Demo'},
             tip = d3.tip()
@@ -548,8 +553,8 @@ var dsi = {
                      'y': yScale(d3[m](d, y)),
                      'label': m,
                     }]).transition().duration(dur).call(position_summary);
-                xbox = boxplot(d,x);
-                ybox = boxplot(d,y);
+                xbox = dz.boxplot(d,x);
+                ybox = dz.boxplot(d,y);
                 xiqrAxis.tickValues([xbox.lw, xbox.q1, xbox.q2, xbox.q3, xbox.uw]);
                 yiqrAxis.tickValues([ybox.lw, ybox.q1, ybox.q2, ybox.q3, ybox.uw]);
                 svg.select(".xiqr.axis")
@@ -661,10 +666,10 @@ var dsi = {
         };
 
         return my;
-    },  /* end scatter chart */
+    }  /* end scatter chart */
 
-
-    calendar: function() {
+d3.charts.calendar =
+    function() {
         /* A calendar plot chart
 
         i. reusable
@@ -696,7 +701,7 @@ var dsi = {
                 .attr('class', 'd3-tip')
                 .offset([-6, 0])
                 .html(tooltip),
-            colorAxis = dsi.colorLegend()
+            colorAxis = d3.charts.colorLegend()
                 .scale(colorScale)
                 .height(50)
                 .width(200)
@@ -735,7 +740,7 @@ var dsi = {
             d3.select("#description").call(brewerSelector);
 
             // Create the SVG container and set the origin.
-            var svg = d3.select(this).selectAll("svg.calendar").data(summary.years.filter(uniques));
+            var svg = d3.select(this).selectAll("svg.calendar").data(summary.years.filter(dz.uniques));
             var cont = svg.enter().append("svg").attr("class", "calendar").append("g").each(function() {
                 var d = d3.select(this);
                 d.append("g").attr("class", "labels").append("text");
@@ -839,7 +844,7 @@ var dsi = {
                 summary.x = d3.extent(data,x);
                 summary.key = d3.extent(data,key);
                 summary.years = summary.key.map(function(d) {return dateFormat.parse(d).getFullYear();});
-                //summary.box = boxplot(data, x);
+                //summary.box = dz.boxplot(data, x);
                 //console.log(summary);
             }
 
@@ -1008,11 +1013,9 @@ var dsi = {
         };
 
         return my;
-    },  /* end calendar chart */
+    }  /* end calendar chart */
 
-};
-
-dsi.colorLegend = function() {
+d3.charts.colorLegend = function() {
     /* A legend/axis for a color scale
 
     TODO:
