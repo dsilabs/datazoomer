@@ -120,6 +120,7 @@ d3.charts.scatter =
         function key(d) { return d.name; }
         function getLabel(fn, dir) {
             var l = fn(metadata.labels);
+            dir = typeof dir !== 'undefined' ? dir : '';
             l = typeof l !== 'undefined' ? l + " " + dir : undefined;
             return l;
         }
@@ -171,6 +172,12 @@ d3.charts.scatter =
                 d3.select(this).append("line").attr("class", "y summary");
             });
             var summary_lines = svg.select("svg g").selectAll("g.summary").data([{'hi':1}]);
+
+            // Add legends
+            cont.append("g").attr("class", "legends").append("g").attr("class", "circle legend");
+            d3.select("g.legends g.circle.legend")
+              .datum([{value: summary.maxr*.5}, {value: summary.maxr}])
+                .call(d3.charts.circleLegend().title(getLabel(radius)).label(function(d) { return d3.format("0,.2f")(d/1000000000)+'B'; }));
 
             var overlay = undefined;
             addZOverlay();  // enter and update of the z overlay
@@ -274,6 +281,9 @@ d3.charts.scatter =
 
                 summary.minz = d3.min(data, function(d) {return d3.min(x(d), z);});
                 summary.maxz = d3.max(data, function(d) {return d3.max(y(d), z);});
+
+                summary.minr = d3.min(data, function(d) {return d3.min(radius(d), atZ);});
+                summary.maxr = d3.max(data, function(d) {return d3.max(radius(d), atZ);});
 
                 summary.default_minx = ('base' in d3.scale.log() && 'base' in xScale) ? 1 : 0;
                 summary.default_miny = ('base' in d3.scale.log() && 'base' in yScale) ? 1 : 0;
