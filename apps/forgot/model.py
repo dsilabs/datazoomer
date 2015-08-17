@@ -5,6 +5,8 @@ import time
 from zoom import *
 from zoom.storage import Model
 from zoom.fill import fill
+from zoom.validators import valid_new_password
+from zoom.user import User
 
 db = system.database
 
@@ -53,8 +55,8 @@ def process_reset_request(token):
 def reset_password(token,password,confirm):
         if not valid_token(token):
             return Page('expired')
-        elif not valid_password(password):
-            error('Invalid password (must be at least 5 characters)')
+        elif not valid_new_password(password):
+            error('Invalid password ({})'.format(valid_new_password.msg))
         elif password <> confirm:
             error('Passwords do not match')
         else:
@@ -62,15 +64,13 @@ def reset_password(token,password,confirm):
             if not user:
                 error('Invalid request')
             else:                
-                set_password(user['USERID'],password)
+                user = User(user['LOGINID'])
+                user.set_password(password)
                 rec = ForgotToken.find(token=token)[0]
                 rec.expiry = time.time()
                 rec.put()
                 return home('complete')
     
-def valid_password(password):
-    return len(password)>5    
-
 def initiate_password_reset(email):
     if valid_email(email) and user_by_email(email):
         token = uuid.uuid4().hex
@@ -84,10 +84,6 @@ def initiate_password_reset(email):
         send(email,'Password reset',markdown(t))
     else:    
         return 'invalid email address'
-
-
-def set_password(userid,password):
-    db('update dz_users set password=OLD_PASSWORD(%s) where userid=%s',password,userid)
 
 txt_missing_user = 'Email address is incorrect.  Please try again.'
 
