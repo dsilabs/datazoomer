@@ -111,7 +111,7 @@ class CollectionView(View):
                 c.fields.initialize(record)
                 c.fields.update(data)
                 form = Form(c.fields, ButtonField('Save', cancel=record.url))
-                return page(form.edit().decode('utf8'), title=c.item_name)
+                return page(form.edit(), title=c.item_name)
             else:
                 return page('%s missing' % key)
 

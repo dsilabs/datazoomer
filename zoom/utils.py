@@ -19,9 +19,11 @@
 
 import string
 import collections
+from sys import version_info
 
 norm = string.maketrans('','')
 special = string.translate(norm, norm, string.letters + string.digits + ' ')
+PY2 = version_info[0] == 2
 
 def trim(text):
     """
