@@ -31,7 +31,7 @@ class API:
         self.site_url = site_url
         values = urllib.urlencode(dict(USERNAME=username, PASSWORD=password))
         response = opener.open(site_url+'/login', values).read()
-        if response != 'OK':
+        if response != 'OK' and response != '{}':
             raise Exception('Unable to login to {}\nresponse: {}\n'.format(site_url, response))
 
     def close(self):

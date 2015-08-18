@@ -1,55 +1,19 @@
-
-        <br>
-        <br>
-        <center>
-        <div class=login_box>
-            <div style="margin:20px;text-align:left;">
-                <center>
-                    <H1><dz:site_name></H1>
-                </center>
-                    <br>
+<div class="container">
+    <div class="row" style="margin-top:4em">
+        <div class="col-sm-4 col-sm-offset-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><dz:site_name></h3>
+                </div>
+                <div id="login-panel" class="panel-body">
                     <dz:alerts>
                     <dz:form>
-
-                      <input type=hidden name=url value="">
-                      <div class="field">
-                          <div class="field_label">
-                              Username
-                          </div>
-                          <div class="field_edit">
-                              <input class="text_field" type="text" maxlength="50" size="20" id="USERNAME" name="USERNAME" value="{{username}}">
-                          </div>
-                      </div>
-                      <div class="field">
-                          <div class="field_label">
-                              Password
-                          </div>
-                          <div class="field_edit">
-                              <input class="text_field" type="password" size="20" id="PASSWORD" name="PASSWORD" value="">
-                          </div>
-                      </div>
-                      <div class="field">
-                          <div class="field_label">
-                              &nbsp;
-                          </div>
-                          <div class="field_edit">
-                              <input class="text_field" type="checkbox" size="20" id="remember_me" name="remember_me" value="y"><span class="remember_me">remember me</span>
-                          </div>
-                      </div>
-                      <div class="field">
-                          <div class="field_label">&nbsp;
-                          </div>
-                          <div class="field_edit">
-                              <input class="button" type=submit id="LOGIN_BUTTON" name="LOGIN_BUTTON" value="Login"> {{registration_link}}
-                          </div>
-                      </div>
-
+                        {{form}}
+                        <input class="btn btn-lg btn-success btn-block" type="submit" name="LOGIN_BUTTON" id="LOGIN_BUTTON" value="Login"> {{registration_link}}
+                        {{forgot_link}}
                     </form>
-                <center>
-                    {{forgot_link}}                    
-                </center>
+                </div>
             </div>
-        </div>            
-        </center>
-
-
+        </div>
+    </div>
+</div>

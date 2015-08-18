@@ -437,6 +437,13 @@
     div.login_box H1 { font-size: 20px; }
     div.login_box li { display:inline; color: red; }
 
+    div#login-panel input[type='text'], 
+    div#login-panel input[type='password'] {
+        padding: 1em 0.6em;
+        height: 3em;
+    }
+
+
 
 /* Social
 ==========================*/
