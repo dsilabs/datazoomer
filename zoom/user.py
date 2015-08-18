@@ -19,6 +19,7 @@ import os
 import datetime
 
 from system import system
+from auth import ctx, DataZoomerSaltedHash, BcryptDataZoomerSaltedHash
 
 TWO_WEEKS = 14 * 24 * 60 * 60
 
@@ -31,15 +32,19 @@ def get_current_username():
         None
 
 def authenticate(login_id, password):
-    cmd = "SELECT * FROM dz_users WHERE loginid=%s and password=PASSWORD(CONCAT(dtadd,%s)) and status='A'"
-    dataset = system.database(cmd, login_id, password)
-    if len(dataset):
-        return True
+    """ Authenticate the login """
+    user_record = system.database("SELECT date_format(dtadd,'%%Y-%%m-%%d %%H:%%i:%%s'), password FROM dz_users WHERE loginid=%s and status='A';", login_id)
+    if len(user_record)<>1: return False
+    user_record = user_record[0]
+    dtadd = lambda a: user_record[0]
+    DataZoomerSaltedHash.salt_fn = dtadd
+    BcryptDataZoomerSaltedHash.salt_fn = dtadd
 
-    cmd = "SELECT userid FROM dz_users WHERE loginid=%s and password=OLD_PASSWORD(%s) and status='A'"
-    dataset = system.database(cmd,login_id,password)
-    if len(dataset):
-        return True
+    match, phash = ctx.verify_and_update(password, user_record[1])
+    if match and phash:
+        u = User(login_id)
+        u.set_password(password, phash)
+    return match
 
 def deactivate_user(username):
     return system.database('update dz_users set status="I" where loginid=%s', username)
@@ -161,12 +166,10 @@ class User:
         system.session.destroy_session()
         return self.initialize()
             
-    def set_password(self, password):
-        if using_old_passwords():
-            cmd = "UPDATE dz_users SET password=OLD_PASSWORD(%s), dtupd=now() where loginid=%s"
-        else:
-            cmd = "UPDATE dz_users SET password=PASSWORD(CONCAT(dtadd,%s)), dtupd=now() where loginid=%s"
-        system.database(cmd, password, self.login_id)
+    def set_password(self, password, phash=None):
+        cmd = "UPDATE dz_users SET password=%s, dtupd=now() where loginid=%s"
+        phash = phash is None and ctx.encrypt(password) or phash
+        system.database(cmd, phash, self.login_id)
 
     def is_member(self, groups):
         return is_member(self, groups)
