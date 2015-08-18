@@ -11,7 +11,7 @@ class scatter(object):
     """d3.js scatter plot"""
     _declare_ = """
     <script>
-        var %(ref)s = d3.charts.scatter();
+        var %(ref)s = d3.charts.scatter()%(methods)s;
         d3.json("%(view)s", function(data) {
             d3.select("%(selector)s")
               .datum(data)
@@ -33,6 +33,7 @@ class scatter(object):
         ref = self.ref
         view = self.view
         selector = self.selector
+        methods = chain_methods(self.options)
         system.tail = system.tail | [self._declare_ % (locals())]
         return ''
 

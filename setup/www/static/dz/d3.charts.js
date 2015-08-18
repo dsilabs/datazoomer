@@ -24,6 +24,13 @@ dz = {}
 dz.uniques = function(value, index, self) {
     return self.indexOf(value) === index;
 }
+dz.getKey = function(obj, value) {
+  for (var key in obj) {
+    if( obj.hasOwnProperty(key) && obj[key]===value ) {
+      return key;
+    }
+  }
+}
 
 // get scale options
 dz.scaleChoices = function() {
@@ -91,7 +98,8 @@ d3.charts.scatter =
             xScale = d3.scale.log().range([0, width]),
             yScale = d3.scale.linear().range([height, 0]),
             zScale = d3.scale.linear().clamp(true),
-            radiusScale = d3.scale.sqrt().domain([0, 5e8]).range([0, 40]),
+            radiusScale = d3.scale.sqrt().range([0, 40]),
+            radiusFormat = d3.format("0,.2f"),
             colorScale = d3.scale.category10().range(d3.scale.category10().range().reverse()),
             xAxis = d3.svg.axis().orient("bottom").scale(xScale).ticks(12, d3.format(",d")),
             xiqrAxis = d3.svg.axis().orient("top").scale(xScale).innerTickSize(3).outerTickSize(0),
@@ -103,25 +111,32 @@ d3.charts.scatter =
             scale_choices = dz.scaleChoices(),
             agg_choices = ['max', 'mean', 'median', 'min'],
             metadata = {'title': 'Scatter Demo'},
+            disableResize = false,
             tip = d3.tip()
                 .attr('class', 'd3-tip')
                 .offset([-6, 0])
                 .html(function(d) {
-                    return "<strong>" + key(d) + "</strong>";
+                    return "<strong>" + key(d) + "</strong>" + "<ul>" +
+                        "<li>" + getLabel(x) + ":" + x(d) + "</li>" +
+                        "<li>" + getLabel(y) + ":" + y(d) + "</li>" +
+                        "<li>" + getLabel(radius) + ":" + radius(d) + "</li>" +
+                        "<li>" + getLabel(color) + ":" + color(d) + "</li>" +
+                        "</ul>"
+                    ;
                 });
 
         // Various accessors that specify the four dimensions of data to visualize.
-        function x(d) { return d.income; }
-        function y(d) { return d.lifeExpectancy; }
+        function x(d) { return d.x; }
+        function y(d) { return d.y; }
         function z(d) { return d[0]; }
         function atZ(d) { return d[1]; }
-        function radius(d) { return d.population; }
-        function color(d) { return d.region; }
+        function radius(d) { return d.radius; }
+        function color(d) { return d.color; }
         function key(d) { return d.name; }
         function getLabel(fn, dir) {
             var l = fn(metadata.labels);
-            dir = typeof dir !== 'undefined' ? dir : '';
-            l = typeof l !== 'undefined' ? l + " " + dir : undefined;
+            dir = typeof dir !== 'undefined' ? " " + dir : '';
+            l = typeof l !== 'undefined' ? l + dir : undefined;
             return l;
         }
 
@@ -129,7 +144,7 @@ d3.charts.scatter =
           selection.each(function(chartdata, i) {
             metadata.title = chartdata.title || metadata.title;
             metadata.description = chartdata.description || '';
-            metadata.labels = chartdata.labels || {};
+            metadata.labels = chartdata.labels || {x:'x-axis', y:'y-axis', radius:'radius', color:'color', key: 'name'};
             data = chartdata.data || chartdata;
             // TODO: investigate the chart being responsive (add/remove graph grammar depending on size)
             //console.log(parseInt(d3.select(this).style("width")));
@@ -139,6 +154,7 @@ d3.charts.scatter =
             xScale.domain([summary.default_minx, summary.maxx]).nice();
             yScale.domain([summary.default_miny, summary.maxy]).nice();
             zScale.domain([summary.minz, summary.maxz]);
+            radiusScale.domain([summary.minr, summary.maxr]);
 
             // Create the SVG container and set the origin.
             var svg = d3.select(this).selectAll("svg").data([data]);
@@ -177,7 +193,7 @@ d3.charts.scatter =
             cont.append("g").attr("class", "legends").append("g").attr("class", "circle legend");
             d3.select("g.legends g.circle.legend")
               .datum([{value: summary.maxr*.5}, {value: summary.maxr}])
-                .call(d3.charts.circleLegend().title(getLabel(radius)).label(function(d) { return d3.format("0,.2f")(d/1000000000)+'B'; }));
+                .call(d3.charts.circleLegend().title(getLabel(radius)).label(radiusFormat));
 
             var overlay = undefined;
             addZOverlay();  // enter and update of the z overlay
@@ -243,7 +259,6 @@ d3.charts.scatter =
             dot.enter().append("circle")
                   .attr("class", "dot")
                 .style("fill", function(d) { return colorScale(color(d)); })
-                  //.on("click", function(d) {console.log($(this)); $(this).tooltip({title:'hi', container:'body', 'placement': 'top'});})
                   .on('mouseover', function(d) {
                     tip.show(d);
                     d3.select(this).classed("active", true);
@@ -251,7 +266,7 @@ d3.charts.scatter =
                   .on('mouseout', function(d) {tip.hide(d); d3.select(this).classed("active", false);})
                   .call(position)
                   .sort(order);
-            displayYear();   // update the docst once the interaction is done
+            displayYear();   // update the dots once the interaction is done
 
             // Add a title. - changed to d3.tooltip
             //dot.append("title")
@@ -269,7 +284,7 @@ d3.charts.scatter =
             addScaleMenu({'id': "jq-dropdown-agg", 'choices': agg_choices, 'active': 'median', 'callback': displayYear});
 
             // support responsive by default
-            d3.select(window).on('resize', resizeContainer);
+            if (!disableResize) { d3.select(window).on('resize', resizeContainer); }
 
             // Summarize the data
             function summarize(data) {
@@ -578,13 +593,13 @@ d3.charts.scatter =
               // Interpolates the dataset for the given (fractional) year.
               function interpolateData(year) {
                 return data.map(function(d) {
-                  return {
-                    name: d.name,
-                    region: d.region,
-                    income: interpolateValues(d.income, year),
-                    population: interpolateValues(d.population, year),
-                    lifeExpectancy: interpolateValues(d.lifeExpectancy, year)
-                  };
+                    var out = {}
+                    out[dz.getKey(metadata.labels, getLabel(key))] = key(d);
+                    out[dz.getKey(metadata.labels, getLabel(color))] = color(d);
+                    out[dz.getKey(metadata.labels, getLabel(x))] = interpolateValues(x(d), year);
+                    out[dz.getKey(metadata.labels, getLabel(radius))] = interpolateValues(radius(d), year);
+                    out[dz.getKey(metadata.labels, getLabel(y))] = interpolateValues(y(d), year);
+                  return out;
                 });
               }
 
@@ -642,18 +657,29 @@ d3.charts.scatter =
 
         } /* end-chart */
 
+        // Dimensions
+        my.margin = function(value) {
+            if (!arguments.length) return margin;
+            margin = value;
+            return my;
+        };
         my.width = function(value) {
             if (!arguments.length) return width;
             width = value - margin.right;
             return my;
         };
-
         my.height = function(value) {
             if (!arguments.length) return height;
             height = value - margin.top - margin.bottom;
             return my;
         };
+        my.aspect_ratio = function(value) {
+            if (!arguments.length) return ratio;
+            ratio = value;
+            return my;
+        };
 
+        // Accessors
         my.x = function(fn) {
             if (!arguments.length) return x;
             x = fn;
@@ -664,6 +690,38 @@ d3.charts.scatter =
             y = fn;
             return my;
         };
+        my.z = function(fn) {
+            if (!arguments.length) return z;
+            z = fn;
+            return my;
+        };
+        my.valueatZ = function(fn) {
+            if (!arguments.length) return atZ;
+            atZ = fn;
+            return my;
+        };
+        my.radius = function(fn) {
+            if (!arguments.length) return radius;
+            radius = fn;
+            return my;
+        };
+        my.color = function(fn) {
+            if (!arguments.length) return color;
+            color = fn;
+            return my;
+        };
+        my.key = function(fn) {
+            if (!arguments.length) return key;
+            key = fn;
+            return my;
+        };
+        my.tooltip = function(fn) {
+            if (!arguments.length) return tooltip;
+            tooltip = fn;
+            return my;
+        };
+
+        // Scales
         my.xScale = function(scale) {
             if (!arguments.length) return xScale;
             xScale = scale;
@@ -672,6 +730,57 @@ d3.charts.scatter =
         my.yScale = function(scale) {
             if (!arguments.length) return yScale;
             yScale = scale;
+            return my;
+        };
+        my.zScale = function(scale) {
+            if (!arguments.length) return zScale;
+            zScale = scale;
+            return my;
+        };
+        my.radiusScale = function(scale) {
+            if (!arguments.length) return radiusScale;
+            radiusScale = scale;
+            return my;
+        };
+        my.colorScale = function(scale) {
+            if (!arguments.length) return colorScale;
+            colorScale = scale;
+            return my;
+        };
+
+        // Formatters
+        my.radiusFormat = function(value) {
+            if (!arguments.length) return radiusFormat;
+            radiusFormat = value;
+            return my;
+        };
+
+        // Axis
+        my.xAxis = function(value) {
+            if (!arguments.length) return xAxis;
+            xAxis = value;
+            return my;
+        };
+        my.yAxis = function(value) {
+            if (!arguments.length) return yAxis;
+            yAxis = value;
+            return my;
+        };
+
+        // Options
+        my.scale_choices = function(value) {
+            if (!arguments.length) return scale_choices;
+            scale_choices = value;
+            return my;
+        };
+        my.agg_choices = function(value) {
+            if (!arguments.length) return agg_choices;
+            agg_choices = value;
+            return my;
+        };
+        my.disableResize = function(value) {
+            if (!arguments.length) return disableResize;
+            disableResize = value;
             return my;
         };
 
