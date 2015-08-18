@@ -159,7 +159,7 @@ DROP TABLE IF EXISTS `dz_users`;
 CREATE TABLE `dz_users` (
   `userid` int(5) NOT NULL auto_increment,
   `loginid` char(50) default NULL,
-  `password` char(41) default NULL,
+  `password` varchar(125) default NULL,
   `firstname` char(40) default NULL,
   `lastname` char(40) default NULL,
   `email` char(60) default NULL,
@@ -266,8 +266,8 @@ UNLOCK TABLES;
 /*!40000 ALTER TABLE `dz_users` DISABLE KEYS */;
 LOCK TABLES `dz_users` WRITE;
 INSERT INTO `dz_users` VALUES
-    (1,'admin',old_password('admin'),'Admin','User','admin@datazoomer.com','','',now(),now(),'A'),
-    (2,'user',old_password('user'),'User','Known','user@datazoomer.com','','',now(),now(),'I'),
+    (1,'admin','$bcrypt-sha256$2a,14$q4iT8GFWNrwfYDIMKaYI0e$KVxn8PWpzKbOgE/qfwG.IVhRIx.Pma6','Admin','User','admin@datazoomer.com','','',now(),now(),'A'),
+    (2,'user','$bcrypt-sha256$2a,14$o6ySWvtBElcaqrnTzyx5o.$NIAMytGFktN2rgAUeTU/QY9lzTL6U0m','User','Known','user@datazoomer.com','','',now(),now(),'I'),
     (3,'guest','','Guest','User','guest@datazoomer.com','','',now(),now(),'A');
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `dz_users` ENABLE KEYS */;
