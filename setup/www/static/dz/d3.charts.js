@@ -31,6 +31,14 @@ dz.getKey = function(obj, value) {
     }
   }
 }
+dz.range = function(start, stop) {
+    var arr = [],
+        c = stop - start + 1;
+    while ( c-- ) {
+        arr[c] = stop--;
+    }
+    return arr;
+}
 
 // get scale options
 dz.scaleChoices = function() {
@@ -808,7 +816,7 @@ d3.charts.calendar =
             width = 960 - margin.right,
             height = 156 - margin.top - margin.bottom,
             cellSize = 17,
-            labelFormat = d3.format(",d"),
+            labelFormat = d3.format(",g"),
             dateFormat = d3.time.format("%Y-%m-%d"),
             palette = "RdYlGn",
             colorScale = d3.scale.quantize().range(d3.range(11).map(function(d) { return "q" + d + "-11"; })),
@@ -859,7 +867,7 @@ d3.charts.calendar =
             d3.select("#description").call(brewerSelector);
 
             // Create the SVG container and set the origin.
-            var svg = d3.select(this).selectAll("svg.calendar").data(summary.years.filter(dz.uniques));
+            var svg = d3.select(this).selectAll("svg.calendar").data(dz.range(summary.years[0], summary.years[1]));
             var cont = svg.enter().append("svg").attr("class", "calendar").append("g").each(function() {
                 var d = d3.select(this);
                 d.append("g").attr("class", "labels").append("text");
