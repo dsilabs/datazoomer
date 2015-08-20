@@ -72,12 +72,14 @@ class Marker(object):
 
 class Map(object):
 
-    def __init__(self, center=CANADA_LL, zoom=3, markers=[], klass=None, icons=[]):
+    def __init__(self, center=CANADA_LL, zoom=3, markers=[], klass=None, icons=[], geojson=None, bounds=None):
         self.center = center
         self.zoom = zoom
         self.markers = markers
         self.klass = klass
         self.icons = icons
+        self.geojson = geojson
+        self.bounds = bounds
 
     def render(self):
         vis_name = uuid.uuid4().hex
@@ -89,6 +91,19 @@ class Map(object):
 
         a = []
         a.append(''.join(str(m) for m in self.markers))
+
+        if self.geojson:
+            geo_data = """
+            var geojson_featureset = {};
+            """.format(self.geojson)
+            a.append(geo_data)
+            code = """
+            L.geoJson(geojson_featureset, {}).addTo(map);
+            """
+            a.append(code)
+
+        if self.bounds:
+            a.append('map.fitBounds({});'.format(self.bounds))
 
         b = ''.join(str(i) for i in self.icons)
 
