@@ -5,6 +5,9 @@ String.prototype.capitalize = function() {
 String.prototype.endswith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
+String.prototype.name_for = function() {
+    return this.replace(/_/g, ' ').capitalize();
+};
 String.prototype.plural = function(cnt) {
     if ( Math.abs(cnt) ==1 ) { return this.slice(); }
     if ( this.endswith('y') ) { return this.slice(0,-1) + 'ies'; }
@@ -38,6 +41,27 @@ dz.range = function(start, stop) {
         arr[c] = stop--;
     }
     return arr;
+}
+dz.flattenNest = function(data) {
+    // flatten the "values" from a d3.nest() data set
+    flat = data.map(function(d) {
+        var t = {key: d.key};
+        Object.keys(d.values).forEach(function(j) { t[j] = d.values[j]; });
+        return t;
+    });
+    return flat;
+}
+
+dz.seedLabels = function(aggData, data) {
+    // check aggData for new keys and add them to data.labels
+    if (aggData.length<=0 || !(data.labels)) { return false; }
+    Object.keys(aggData[0]).forEach(
+        function(k) {
+            if (!(k in data.labels)) {
+                data.labels[k] = k.name_for();
+            }
+        }
+    );
 }
 
 // get scale options
@@ -1114,10 +1138,17 @@ d3.charts.calendar =
             return my;
         };
 
+        my.legend = function(value) {
+            if (!arguments.length) return colorAxis;
+            colorAxis = value;
+            return my;
+        };
+
         // options
         my.label = function(value) {
             if (!arguments.length) return labelFormat;
             labelFormat = value;
+            colorAxis.label(labelFormat);
             return my;
         };
 
@@ -1411,3 +1442,81 @@ d3.charts.circleLegend = function() {
 
     return my;
 }  /* end circle scale */
+
+
+d3.charts.chosenSelect = function() {
+    /* A chosen input/select box
+
+    data format ['option group label', ['list', 'of', 'options'], [...]]
+    */
+
+    var tabindex = 1,
+        multiple = false,
+        placeholder = "Select an Option...",
+        title = 'Single Select',
+        selected = false;
+
+    function my(g) {
+      g.each(function(data, i) {
+        if (!selected) { selected = data[0][0]; }
+
+        // Variable definitions.
+        var caption = g.selectAll("em").data([data]),
+            captionEnter = caption.enter(),
+            aselect = g.selectAll("select").data([data]),
+            selectEnter = aselect.enter();
+
+        // Create and update the containers.
+        captionEnter.append("em");
+        selectEnter.append("select").attr("class", "chosen-select");
+        caption.text(title);
+        aselect
+            .attr("data-placeholder", placeholder)
+            .attr("tabindex", tabindex)
+            .attr("multiple", multiple ? true : null);
+
+        // Handle the option groups.
+        optionGroups = aselect.selectAll("optgroup").data(function(d) { return d; }),
+        optionGroups.enter().append("optgroup");
+        optionGroups.attr("label", function(d) { return d[0]; } );
+
+        // Handle the options
+        options = optionGroups.selectAll("option").data(function(d) { return d[1]; }),
+        options.enter().append("option");
+        options.attr("selected", function(d) { return d==selected ? "selected" : null; });
+        options.classed("active", function(d) { return d==selected ? true : false; });
+        options.text(function(d) { return d; });
+
+      }); /* end for each */
+
+    } /* end chosen select */
+
+    // options
+    my.selected = function(value) {
+        if (!arguments.length) return selected;
+        selected = value;
+        return my;
+    };
+    my.tabindex = function(value) {
+        if (!arguments.length) return tabindex;
+        tabindex = value;
+        return my;
+    };
+    my.multiple = function(value) {
+        if (!arguments.length) return multiple;
+        multiple = value;
+        return my;
+    };
+    my.placeholder = function(value) {
+        if (!arguments.length) return placeholder;
+        placeholder = value;
+        return my;
+    };
+    my.title = function(value) {
+        if (!arguments.length) return title;
+        title = value;
+        return my;
+    };
+
+    return my;
+}  /* end chosen select */
