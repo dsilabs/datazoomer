@@ -827,10 +827,7 @@ d3.charts.calendar =
         i. responsive grammar
 
         TODO:
-            i. change metric
-            i. change the color scale
             i. add/remove grammar as we resize
-            i. add color scale
             i. vary color scale (min/max, center on zero, center on "x", [0..1], ...)
             i. add events
 
@@ -845,6 +842,7 @@ d3.charts.calendar =
             palette = "RdYlGn",
             colorScale = d3.scale.quantize().range(d3.range(11).map(function(d) { return "q" + d + "-11"; })),
             summary = {},
+            disableResize = false,
             metadata = {'title': 'Calendar Demo'},
             daysofweek = ['Su','M', 'Tu', 'W', 'Th', 'F', 'Sa'],
             months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
@@ -976,7 +974,7 @@ d3.charts.calendar =
                 .call(colorAxis);
 
             // support responsive by default
-            d3.select(window).on('resize', resizeContainer);
+            if (!disableResize) { d3.select(window).on('resize', resizeContainer); }
 
             // Generate the path for a month
             function monthPath(t0) {
@@ -1011,7 +1009,7 @@ d3.charts.calendar =
                   .append("div")
                     .attr("id", "description")
                     .attr("data-id", "#description");
-                d.html(function(d) {return d;});
+                d.html(function(d) {return "<h1>Calendar</h1><p>" + d + "</p>";});
             }
 
             // Resize the chart container
@@ -1167,6 +1165,12 @@ d3.charts.calendar =
         my.month_label = function(value) {
             if (!arguments.length) return months;
             months = value;
+            return my;
+        };
+
+        my.disableResize = function(value) {
+            if (!arguments.length) return disableResize;
+            disableResize = value;
             return my;
         };
 

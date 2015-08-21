@@ -1,0 +1,68 @@
+
+<p>This is an example scatter plot making use of CDN networks for script source.  This can be a quick way to check that the chart still perform with
+ the most recent version of the necessary libraries.
+</p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12">
+            <p id="chart"></p>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<!-- http://labs.abeautifulsite.net/jquery-dropdown/ -->
+<link type="text/css" rel="stylesheet" href="https://cdn.rawgit.com/claviska/jquery-dropdown/master/jquery.dropdown.min.css" />
+<script type="text/javascript" src="https://cdn.rawgit.com/claviska/jquery-dropdown/master/jquery.dropdown.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<script src="https://cdn.rawgit.com/Caged/d3-tip/master/index.js"></script>
+<script src="/static/dz/d3.charts.js"></script>
+<script>
+    var scatter = d3.charts.scatter()
+            .x(function(d) { return d.income; })
+            .y(function(d) { return d.lifeExpectancy; })
+            .radius(function(d) { return d.population; })
+            .radiusFormat(function(d) { return d3.format('0,.2f')(d/1000000000)+'B'; })
+            .color(function(d) { return d.region; })
+            .key(function(d) { return d.name; });
+    var t = {
+        title: 'Scatter Demo',
+        labels: {
+            income: "income per capita, inflation-adjusted (dollars)",
+            lifeExpectancy: "life expectancy (years)",
+            population: "population (total)",
+            region: "geographic region",
+            name: "country"
+        }
+    };
+    var app_description = '<h1><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> Scatter Demo</h1>' + 
+    '<p>This is a reusable scatter plot produced with <a href="http://d3js.org/">d3.js</a>.  The scatter plot allows you to compare, up-to, five variables; x, y, z, color and the size/radius.' + 
+    '  The plot grammar should be fully responsive however it does not yet add/remove marks as the size gets large/small for them.  Here are some features of the chart:' +
+    '  <ul>' +
+    '    <li>a responsive, reusable d3 chart</li>' +
+    '    <li>Zoom in/out on the x/y axis</li>' +
+    '    <li>Change the x/y axis scale and dimension</li>' +
+    '    <li>X vs. Y vs. Z vs. Color vs. Size</li>' +
+    '    <li>Changeable aggregate function as well as the four quadrants</li>' +
+    '    <li>Interactive z-dimension (hover over z-axis overlay)</li>' +
+    '    <li>Object constancy on transitions</li>' +
+    '  </ul>' +
+    '</p>'
+
+
+    // Load the data.
+    d3.json("nations", function(data) {
+        t.data = data;
+        t.description = app_description;
+        d3.select("#chart")
+          .datum(t)
+          .call(scatter);
+    });
+</script>
+
