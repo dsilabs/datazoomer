@@ -12,16 +12,18 @@ import os
 import log
 
 HEADER_LAYOUT = """
-<table id="title_bar"><tr>
-<td id="title_bar_left">
-<H1>%(title)s</H1>
-%(subtitle)s
-</td>
-<td id="title_bar_right">
-%(actions)s
-%(search)s
-</td>
-</tr></table>
+<div class="container-fluid">
+    <div id="title_bar" class="row">
+        <div id="title_bar_left" class="col-xs-12 col-md-4">
+            <H1>%(title)s</H1>
+            %(subtitle)s
+        </div>
+        <div id="title_bar_right" class="col-xs-12 col-md-8">
+            %(actions)s
+            %(search)s
+        </div>
+    </div>
+</div>
 """
 
 class Page(object):

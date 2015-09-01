@@ -36,13 +36,13 @@
         line-height: 2em;
         vertical-align: middle;
     }
-    .field_edit ul.checkbox_field li { 
-        list-style-type: none; 
-        margin-right: 2em; 
+    .field_edit ul.checkbox_field li {
+        list-style-type: none;
+        margin-right: 2em;
     }
-    .field_edit ul.checkbox_field div { 
-        display: inline; 
-        line-height: 2em; 
+    .field_edit ul.checkbox_field div {
+        display: inline;
+        line-height: 2em;
     }
 
     /* textarea */
@@ -108,14 +108,14 @@
 
     div input { padding-right: 5px; padding-left: 5px; }
     div textarea { padding: 5px; }
-    
+
     span.radio { margin-right:10px; display: inline; padding: 0; }
-    .content span.radio input[type="radio"] { 
-        display: inline; 
-        float: none; 
-        height: 1em; 
-        border: 0; 
-        margin: 2px; 
+    .content span.radio input[type="radio"] {
+        display: inline;
+        float: none;
+        height: 1em;
+        border: 0;
+        margin: 2px;
         vertical-align: middle;
         position: relative;
     }
@@ -148,10 +148,10 @@
         }
     div.content input.button { height: 40px; }
     div.content input.field_button { height: 30px; padding: 0 15px; }
-    
+
     .content fieldset {
-        border: 1px solid #ccc; 
-        padding: 1em; 
+        border: 1px solid #ccc;
+        padding: 1em;
     }
     .content legend {
         font-size: 1em;
@@ -170,6 +170,7 @@
         position: relative;
         display: inline;
         float: right;
+        margin-right: -3px;
     }
     div.search form {
         display: block;
@@ -182,9 +183,9 @@
     div.search input.text_field {
         width: 200px;
     }
-    div.content input.search_button { 
-        height: 37px; 
-        margin-left: 9px; 
+    div.content input.search_button {
+        height: 37px;
+        margin-left: 9px;
         margin-right: 5px;
         display: inline;
     }
@@ -197,6 +198,14 @@
         display: inline;
     }
 
+    @media (max-width: 560px) {
+      div.search {
+        margin-top: 0.2em;
+      }
+      div.search input.text_field {
+        width: 40%;
+      }
+    }
 
 /* Actions
 ==========================*/
@@ -286,23 +295,23 @@
 
 /* Tables
 ==========================*/
-    .content table { 
-        border-collapse: collapse; 
-        border: 1px solid #ccc; 
+    .content table {
+        border-collapse: collapse;
+        border: 1px solid #ccc;
         background: white;
     }
-    .content th, .content td { 
-        padding: 0.4em 1.0em; 
-        border: 1px solid #ccc; 
+    .content th, .content td {
+        padding: 0.4em 1.0em;
+        border: 1px solid #ccc;
     }
     .content th {
         background-color: #d2e2f2;
-        border-bottom: 1px solid #ccc; 
+        border-bottom: 1px solid #ccc;
     }
 
-    .content .transparent, .content .transparent th, .content .transparent td { 
+    .content .transparent, .content .transparent th, .content .transparent td {
         border: none;
-        background: none; 
+        background: none;
         color: none;
         padding: 0;
         margin: 0;
@@ -312,23 +321,23 @@
 
 /* Lists (like tables but for data records)
 ==========================*/
-    .baselist table { 
-        width:100%; 
-        border-spacing:0; 
-        margin:0; 
-        padding:0; 
-        border: 1px solid #ccc; 
-        border-spacing: 0px; 
+    .baselist table {
+        width:100%;
+        border-spacing:0;
+        margin:0;
+        padding:0;
+        border: 1px solid #ccc;
+        border-spacing: 0px;
     }
     .baselist table th {
         border-bottom: 1px solid #ccc;
         text-transform: capitalize;
     }
-    .baselist table tbody th { 
+    .baselist table tbody th {
         color: black;
         background-color: #d2e2f2;
         line-height:25px;
-        text-align:left; 
+        text-align:left;
         padding-top:0.3em;
         padding-bottom:0.3em;
         padding-right:0.3em;
@@ -424,20 +433,20 @@
 
 /* Login
 ==========================*/
-    div.login_box { 
-        -webkit-border-radius:1em; 
-        -moz-border-radius:1em; 
-        background-color:rgb(245,250,250); 
-        border:10px solid rgb(157,157,157); 
+    div.login_box {
+        -webkit-border-radius:1em;
+        -moz-border-radius:1em;
+        background-color:rgb(245,250,250);
+        border:10px solid rgb(157,157,157);
         color:black;
         margin:10px;
         line-height:1em;
-        width:350px; 
+        width:350px;
     }
     div.login_box H1 { font-size: 20px; }
     div.login_box li { display:inline; color: red; }
 
-    div#login-panel input[type='text'], 
+    div#login-panel input[type='text'],
     div#login-panel input[type='password'] {
         padding: 1em 0.6em;
         height: 3em;
@@ -572,7 +581,7 @@
         border: none;
     }
     #title_bar_left, #title_bar_right {
-        height: 50px;
+        height: 100%;
         vertical-align: middle;
         padding: 0;
         margin: 0;
@@ -585,7 +594,6 @@
     #title_bar h1 {
         margin: 0;
     }
-
 
 
 /* Price Boxes

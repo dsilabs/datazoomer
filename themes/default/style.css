@@ -92,7 +92,7 @@ div.app-menu li a#current {
     min-height: 100%;
     height: auto !important;
     height: 100%;
-    margin: 0 auto -50px;
+    margin: 0 auto -60px;
 }
 .bottom, .push {
     height: 50px;
@@ -115,6 +115,10 @@ div.footer li { display: inline; margin-right:10px; }
 /*
  * misc
  */
+#title_bar {
+    margin: 12px 0;
+}
+
 legend {
     width: auto;
     border-bottom: none;
