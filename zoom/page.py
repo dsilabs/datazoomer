@@ -12,7 +12,7 @@ import os
 import log
 
 HEADER_LAYOUT = """
-<div class="container-fluid">
+<div class="container-fluid container-title">
     <div id="title_bar" class="row">
         <div id="title_bar_left" class="col-xs-12 col-md-4">
             <H1>%(title)s</H1>

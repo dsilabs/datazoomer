@@ -573,6 +573,9 @@
 
 /* Title
 ==========================*/
+    div.container-title {
+        padding-left: 0;
+    }
     #title_bar {
         background: none;
         width: 100%;
