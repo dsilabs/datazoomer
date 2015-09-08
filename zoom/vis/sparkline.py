@@ -28,7 +28,7 @@ js = """
 def chart(selector, data, options):
     system.libs = system.libs | scripts
     system.js.add(js.replace('<<options>>',repr(options)))
-    return '<span class="{}">{}</span>'.format(selector, repr(data)[1:-1])
+    return '<span class="{} inojs">{}</span>'.format(selector, repr(data)[1:-1])
 
 def line(data, options={}):
     selector = 'inlinesparkline'

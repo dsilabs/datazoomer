@@ -660,3 +660,8 @@ div.content div.group_relationships_list table td {
 .activity {
     margin-bottom: 0.75em;
 }
+
+/* jquery sparkline */
+.jqstooltip {
+    width: 50px; height: 35px;
+}

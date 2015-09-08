@@ -56,4 +56,14 @@
     </body>
 
     <dz:tail>
+    <script type="text/javascript">
+        $( function() {
+            // FOUC
+            $(".nojs").css("display", "block");
+            $(".inojs").css("display", "inline");
+            if ('sparkline_display_visible' in $) {
+                $.sparkline_display_visible();
+            }
+        });
+    </script>
 </html>
