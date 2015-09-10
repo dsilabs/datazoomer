@@ -663,5 +663,6 @@ div.content div.group_relationships_list table td {
 
 /* jquery sparkline */
 .jqstooltip {
-    width: 50px; height: 35px;
+  width: auto !important;
+  height: auto !important;
 }

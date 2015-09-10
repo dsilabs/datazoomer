@@ -131,6 +131,8 @@ def browse2(items,
     head = head and "<thead><tr>{}</tr></thead>".format(''.join(["<th>{}</th>".format(h) for h in head])) or ''
     if footer and hasattr(footer, '__iter__'):
         foot = '<tfoot><tr>{}</tr></tfoot>'.format(''.join(["<td>{}</td>".format(f) for f in footer]))
+    elif footer=='':
+        foot = ''
     else:
         foot = footer or (len(alist) and "{:,d} items".format(len(alist))) or "None"
         foot = '<tfoot><tr><td colspan="{}">{}</td></tr></tfoot>'.format(len(labels),foot)
