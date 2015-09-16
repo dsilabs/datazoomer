@@ -94,6 +94,7 @@ dz.boxplot = function(d, accessor) {
 }
 
 // Create a d3 charts namespace
+if (typeof d3 === "undefined") { d3={}; }
 d3.charts = { version: "0.1" };
 
 d3.charts.scatter =
