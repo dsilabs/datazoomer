@@ -28,6 +28,16 @@ class PNGResponse(Response):
         Response.__init__(self, content)
         self.headers['Content-type']  = 'image/png'
 
+class JPGResponse(Response):
+    def __init__(self, content):
+        Response.__init__(self, content)
+        self.headers['Content-type']  = 'image/jpeg'
+
+class GIFResponse(Response):
+    def __init__(self, content):
+        Response.__init__(self, content)
+        self.headers['Content-type']  = 'image/gif'
+
 class HTMLResponse(Response):
     """
     Render an HTML response.
