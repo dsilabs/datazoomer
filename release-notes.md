@@ -18,5 +18,4 @@ at each users next visit.  This approach is not optimal in that the weak hash
 will continue to be stored until such time as the users next login, which 
 unfortunately could be never.
 
-[Commits](https://github.com/hlainchb/datazoomer/compare/285c83f8c3283a93d8aa79e63e40610f52a55ad0...20ef555f7be0478f0d8ebf75a70a46b3a78db58c)
-
+[Commits](https://github.com/hlainchb/datazoomer/compare/3ec4ca0e6bff396ec9e4611b8d559e85e95e0705...54ba6181761f4c4359f5ee78cc278c4b663f533b)
