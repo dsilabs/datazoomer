@@ -20,22 +20,36 @@ import response
 import ConfigParser
 from system import system
 
+
+def list_it(iter):
+    return [a.strip() for a in iter.split(',') if a]
+
 class Application:
     def __init__(self,name,path):
         self.name    = name
+        self.get = self.read_config
         self.path    = path
         self.dir     = os.path.split(path)[0]
-        self.theme   = self.read_config('settings', 'theme', '') or None
-        self.enabled = True
-        self.version = None
-        self.icon    = self.read_config('settings','icon',system.config.get('apps','icon','blank_doc'))
-        self.title   = self.read_config('settings','title',name.capitalize())
-        self.visible = self.read_config('settings','visible',True) not in ['no', 'n', False, '0']
-        self.description = self.read_config('settings','description','')
-        self.categories = [a.strip() for a in self.read_config('settings','categories','').split(',') if a]
-        self.tags = [a.strip() for a in self.read_config('settings','tags','').split(',') if a]
-        self.keywords = self.read_config('settings','keywords','')
-        self.in_development = self.read_config('settings', 'in_development', False)
+        #self.settings = system.settings.app(name)
+        from zoom import manager, EntityStore
+        from settings import Settings, ApplicationSettings
+        self.settings = Settings(
+            EntityStore(system.db, ApplicationSettings),
+            self,
+            name
+          )
+        get = self.settings.get
+        self.theme   = get('theme')
+        self.enabled = get('enabled')
+        self.version = get('version')
+        self.icon    = get('icon')
+        self.title   = get('title') or name.capitalize()
+        self.visible = get('visible')
+        self.description = get('description', '')
+        self.categories = list_it(get('categories',''))
+        self.tags = list_it(get('tags',''))
+        self.keywords = get('keywords','')
+        self.in_development = get('in_development')
 
     def read_config(self,section,key,default=None):
         config_file1 = os.path.join(self.dir,'config.ini')
