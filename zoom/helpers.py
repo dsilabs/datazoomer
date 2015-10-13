@@ -112,7 +112,7 @@ def system_menu_items():
     """Returns the system menu."""
     def title_of(app):
         return manager.apps[app].title
-    return html.li(link_to(title_of(app),'/'+app) for app in manager.get_system_app_names())
+    return html.li([link_to(title_of(app),'/'+app) for app in manager.get_system_app_names() if manager.apps[app].visible])
 
 def system_menu():
     """Returns the system menu."""
