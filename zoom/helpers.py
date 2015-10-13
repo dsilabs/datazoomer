@@ -129,7 +129,7 @@ def main_menu_items():
     static_links = [assign_defaults(*item) for item in tools.get_menu()]
 
     for (name,title,url,group) in static_links:
-        if group==[] or [item for item in group if item in user.groups]:
+        if (group==[] or [item for item in group if item in user.groups]) and manager.apps[name].visible:
             selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and ' id="current"' or ''
             bootstrap_selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and ' class="active"' or ''
             links.append('<li%s><a href="%s"%s>%s</a></li>' % (bootstrap_selector,url_for(url), selector, title))
