@@ -112,7 +112,7 @@ def system_menu_items():
     """Returns the system menu."""
     def title_of(app):
         return manager.apps[app].title
-    return html.li(link_to(title_of(app),'/'+app) for app in manager.get_system_app_names())
+    return html.li([link_to(title_of(app),'/'+app) for app in manager.get_system_app_names() if manager.apps[app].visible])
 
 def system_menu():
     """Returns the system menu."""
@@ -130,6 +130,7 @@ def main_menu_items():
 
     for (name,title,url,group) in static_links:
         if group==[] or [item for item in group if item in user.groups]:
+            if manager.get_app(name) and not manager.get_app(name).visible: continue
             selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and ' id="current"' or ''
             bootstrap_selector = (len(route)>1 and route[0]=='content' and route[1]==name or len(route) and route[0]==name) and ' class="active"' or ''
             links.append('<li%s><a href="%s"%s>%s</a></li>' % (bootstrap_selector,url_for(url), selector, title))
