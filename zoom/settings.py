@@ -18,6 +18,9 @@ class SystemSettings(Record):
             owner_url     = config.get('site','owner_url','http://www.yourcompanysite.com'),
             admin_email   = config.get('site','admin_email','admin@yourcompany.com'),
 
+            theme_name    = config.get('theme','name','default'),
+            theme_template= config.get('theme','template','default'),
+
             smtp_host     = config.get('mail','smtp_host','mail.yourcompany.com'),
             smtp_port     = config.get('mail','smtp_port','587'),
             smtp_user     = config.get('mail','smtp_user','noreply@yourcompany.com'),
@@ -25,6 +28,18 @@ class SystemSettings(Record):
             from_address  = config.get('mail','from_addr',''),
             logo_url      = config.get('mail','logo',''),
             gnugp_home    = config.get('mail','gnugp_home',''),
+        )
+
+class UserSystemSettings(Record):
+    """ Per user System settings/context """
+    @classmethod
+    def defaults(cls, config):
+        return dict(
+            home            = config.get('apps','home','home'),
+            icon            = config.get('apps','icon',''),
+            theme_name      = config.get('theme','name',''),
+            theme_template  = config.get('theme','template',''),
+            profile         = config.get('system','profile',''),
         )
 
 class ApplicationSettings(Record):

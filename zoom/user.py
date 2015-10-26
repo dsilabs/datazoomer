@@ -161,11 +161,11 @@ class User:
                 system.session.lifetime = TWO_WEEKS
             self.initialize(login_id)
             return True
-            
+
     def logout(self):
         system.session.destroy_session()
         return self.initialize()
-            
+
     def set_password(self, password, phash=None):
         cmd = "UPDATE dz_users SET password=%s, dtupd=now() where loginid=%s"
         phash = phash is None and ctx.encrypt(password) or phash
@@ -193,7 +193,7 @@ class User:
                 system.database(insert_user,login_id,now,now)
                 dataset = system.database(select_user,login_id)
                 add_user(login_id, 'guests')
-        
+
         if len(dataset):
             self.login_id   = login_id
             self.username   = login_id
@@ -226,7 +226,7 @@ class User:
         if self.is_anonymous:
             self.default_app = system.index
         else:
-            self.default_app = system.home
+            self.get_settings()
             if self.default_app not in self.apps:
                 self.default_app = system.index
 
@@ -238,14 +238,14 @@ class User:
                     if group == s and g not in result:
                         result += get_memberships(g,memberships,depth+1)
             return result
-                    
+
         my_groups   = [rec[0] for rec in system.database('SELECT groupid FROM dz_members WHERE userid=%s',user_id or self.user_id)]
         sub_groups  = [(rec.GROUPID,rec.SUBGROUPID) for rec in system.database('SELECT subgroupid,groupid FROM dz_subgroups ORDER BY subgroupid')]
         memberships = []
         for group in my_groups:
             memberships += get_memberships(group,sub_groups)
         groups = my_groups + memberships
-        
+
         named_groups = []
         for rec in system.database('SELECT groupid, name FROM dz_groups'):
             groupid = rec[0]
@@ -254,6 +254,28 @@ class User:
                 named_groups += [name]
 
         return named_groups
+
+    def get_settings(self):
+        """load and set the user/context settings"""
+        from zoom import manager, EntityStore
+        from settings import Settings, UserSystemSettings
+        self.settings = Settings(
+            EntityStore(system.db, UserSystemSettings),
+            system.config,
+            self.login_id   # hash this or something
+          )
+        get = self.settings.get
+        self.theme = get('theme_name')
+        self.default_app = get('home')
+        self.profile = get('profile')
+
+    def apply_settings(self):
+        """apply the user context settings to the system"""
+        if hasattr(self, 'theme') and self.theme and self.theme<>system.theme:
+            system.theme = self.theme
+            system.set_theme(system.theme)
+        if hasattr(self, 'profile') and self.profile<>system.profile:
+            system.profile = self.profile
 
 user = User()
 
