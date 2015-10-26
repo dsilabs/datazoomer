@@ -275,8 +275,8 @@ class User:
             if hasattr(self, 'theme') and self.theme and self.theme<>system.theme:
                 system.theme = self.theme
                 system.set_theme(system.theme)
-            if hasattr(self, 'profile') and self.profile<>system.profile:
-                system.profile = self.profile
+            if hasattr(self, 'profile') and self.profile in ['0','1']:
+                system.profile = self.profile == '1'
 
 user = User()
 
