@@ -271,11 +271,12 @@ class User:
 
     def apply_settings(self):
         """apply the user context settings to the system"""
-        if hasattr(self, 'theme') and self.theme and self.theme<>system.theme:
-            system.theme = self.theme
-            system.set_theme(system.theme)
-        if hasattr(self, 'profile') and self.profile<>system.profile:
-            system.profile = self.profile
+        if user.is_admin or user.is_developer:
+            if hasattr(self, 'theme') and self.theme and self.theme<>system.theme:
+                system.theme = self.theme
+                system.set_theme(system.theme)
+            if hasattr(self, 'profile') and self.profile<>system.profile:
+                system.profile = self.profile
 
 user = User()
 
