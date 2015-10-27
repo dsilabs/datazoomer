@@ -227,6 +227,7 @@ class User:
             self.default_app = system.index
         else:
             self.get_settings()
+            self.default_app = system.home
             if self.default_app not in self.apps:
                 self.default_app = system.index
 
