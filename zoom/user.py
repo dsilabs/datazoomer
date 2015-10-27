@@ -266,7 +266,6 @@ class User:
           )
         get = self.settings.get
         self.theme = get('theme_name')
-        self.default_app = get('home')
         self.profile = get('profile')
 
     def apply_settings(self):
