@@ -6,6 +6,9 @@ class MyView(View):
 
     title = 'User Settings'
     base_url = '/settings/user'
+    preamble = """
+<p>These settings allow an administrator or developer to override a subset of the system settings.  These overrides will be specific for the user setting the feature and will not impact other users of the system.</p>
+    """
 
     def index(self, q="", **k):
 
@@ -15,7 +18,7 @@ class MyView(View):
         actions = ('Edit', 'user/edit'),
         load_user()
         content = user_settings_form.show()
-        return page(content, title=self.title, actions=actions)
+        return page('{}{}'.format(self.preamble,content), title=self.title, actions=actions)
 
     def edit(self, reset_settings=False):
         if reset_settings:
@@ -23,14 +26,14 @@ class MyView(View):
         else:
             load_user()
         content = user_settings_form.edit()
-        return page(content, title=self.title)
+        return page('{}{}'.format(self.preamble,content), title=self.title)
 
     def cancel(self):
         return redirect_to(base_url)
 
     def list(self):
         content = browse(user.settings.store.all(), labels=('Key','Value'))
-        return page(content, title='All User Settings')
+        return page('{}{}'.format(self.preamble,content), title='All User Settings')
 
 class MyController(Controller):
 

@@ -35,9 +35,6 @@ system_settings_form = Form(
     )
 
 user_settings_form = Form(
-    Section('Apps',[
-        PulldownField('Home', default='', options=manager.apps.keys(), hint="App to use when authenticated users don't specify an app"),
-    ]),
     Section('Theme',[
         PulldownField('Name', name='THEME_NAME', default='', options=listdir(system.themes_path)),
     ]),
