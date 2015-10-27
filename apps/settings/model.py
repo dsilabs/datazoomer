@@ -1,6 +1,7 @@
 
 
 from zoom import *
+from os import listdir
 
 class MyModel(Record):
     pass
@@ -35,15 +36,13 @@ system_settings_form = Form(
 
 user_settings_form = Form(
     Section('Apps',[
-        TextField('Home'),
-        TextField('Icon'),
+        PulldownField('Home', default='', options=manager.apps.keys(), hint="App to use when authenticated users don't specify an app"),
     ]),
     Section('Theme',[
-        TextField('Name', name='THEME_NAME'),
-        TextField('Template', name='THEME_TEMPLATE'),
+        PulldownField('Name', name='THEME_NAME', default='', options=listdir(system.themes_path)),
     ]),
     Section('System',[
-        TextField('Profile'),
+        PulldownField('Profiler', name='PROFILE', default='', options=['0','1'], hint="Enable the system profiler")
     ]),
     Buttons(['Save'], cancel='/settings/user'),
     )
