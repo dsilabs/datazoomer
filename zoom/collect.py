@@ -162,7 +162,8 @@ class CollectionController(Controller):
                         pass # can happen when key depends on database auto-increment value
                     c.store.put(record)
                     logger.activity(system.app.name, '%s added %s %s' % (user.link, c.item_name.lower(), record.linked_name))
-                    return redirect_to(record.url or c.url)
+                    #return redirect_to(record.url or c.url)
+                    return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
         c = self.collection
