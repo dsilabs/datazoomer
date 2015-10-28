@@ -4,7 +4,12 @@ import os
 import time
 import sys
 import logging
+import traceback
 from subprocess import Popen, PIPE, call
+
+class ServiceException(Exception): pass
+
+ERROR_FILE = 'traceback.txt'
 
 con_formatter = logging.Formatter('%(asctime)s  %(name)-15s %(levelname)-8s %(message)s')
 console_handler = logging.StreamHandler(sys.stdout)
@@ -24,25 +29,27 @@ def emit(t):
     sys.stdout.flush()
 
 def perform(jobs_path):
-    def run_main(fn):
-        path, name = os.path.split(fn)
+
+    def run_main(pathname):
+        path, name = os.path.split(pathname)
         try:
             save_dir = os.getcwd()
+            os.chdir(path)
             try:
-                os.chdir(path)
-                if not name.endswith('.py'):
-                    call(['./'+name])
-                else:
-                    call(['python',name])
+                p = Popen(['python', name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                output, err = p.communicate(b"")
+                rc = p.returncode
+                if err:
+                    raise ServiceException(err)
             finally:
                 os.chdir(save_dir)
         except:
-            logger.debug('an error occured in %s' % fn)
+            logger.error('an error occured in %s' % pathname)
 
             t = traceback.format_exc()
 
+            emit('\nException occured in %s\n' % pathname)
             emit('*' * 40 + '\n')
-            emit('Exception occured in %s\n' % pathname)
             emit(t)
             emit('*' * 40 + '\n')
 
@@ -58,7 +65,6 @@ def perform(jobs_path):
         if os.path.isdir(pathname):
             fn = os.path.join(pathname, 'service.py')
             if os.path.exists(fn):
-                #emit(pathname + '\n')
                 run_main(fn)
 
     import random
