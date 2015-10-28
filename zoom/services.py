@@ -46,6 +46,8 @@ def perform(jobs_path):
             f.write(msg)
             f.close()
 
+        more_to_do = False
+
         path, name = os.path.split(pathname)
         try:
             save_dir = os.getcwd()
@@ -58,10 +60,13 @@ def perform(jobs_path):
                     report_error('error from %s' % pathname, err)
 
                 elif rc:
-                    report_error(
-                            'non-zero code returned by {}'.format(pathname),
-                            "return code: {}\n".format(rc)
-                            )
+                    if args.keepalive:
+                        more_to_do = True
+                    else:
+                        report_error(
+                                'non-zero code returned by {}'.format(pathname),
+                                "return code: {}\n".format(rc)
+                                )
                 if output:
                     service_dir, service_name = os.path.split(path)
                     service_logger = logging.getLogger(service_name)
@@ -76,12 +81,21 @@ def perform(jobs_path):
         finally:
             logger.debug('ran %s' % path)
 
+        return more_to_do
+
+    work_remaining = []
     for filename in os.listdir(jobs_path):
         pathname = os.path.abspath(os.path.join(jobs_path, filename))
         if os.path.isdir(pathname):
             fn = os.path.join(pathname, 'service.py')
             if os.path.exists(fn):
-                run_main(fn)
+                work_remaining.append(run_main(fn))
+
+    return any(work_remaining)
+
+def run_for(t):
+    stop_time = time.time() + t
+    return lambda: time.time() > stop_time
 
 
 def process(args, time_to_stop=False):
@@ -98,7 +112,11 @@ def process(args, time_to_stop=False):
         if not first_time: sleep(sleep_time)
         first_time = False
 
-        perform(jobs_path)
+        r = perform(jobs_path)
+
+        if r:
+            logging.debug('resetting timer to {} seconds'.format(args.timeout))
+            time_to_stop = run_for(args.timeout)
 
         if callable(time_to_stop):
             done = time_to_stop()
@@ -140,10 +158,6 @@ if __name__ == '__main__':
         error_handler.setFormatter(csv_formatter)
         root_logger.addHandler(error_handler)
 
-
-    def run_for(t):
-        stop_time = time.time() + t
-        return lambda: time.time() > stop_time
 
     try:
         process(args, run_for(args.timeout))
