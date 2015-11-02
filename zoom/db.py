@@ -165,6 +165,12 @@ class Database(object):
             self.lastrowid = cursor.lastrowid
             return self.lastrowid
 
+    def use(self, name):
+        """use another database on the same instance"""
+        args = list(self.__args)
+        keywords = dict(self.__keywords, db=name)
+        return Database(self.__factory, *args, **keywords)
+
 
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
 
