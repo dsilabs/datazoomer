@@ -172,8 +172,6 @@ def store(kind, db=None):
 _config = locate_config('services.ini')
 if _config:
     _db = connect_db(config=_config)
-else:
-    raise Exception('services.ini file missing')
 
 # State
 # ==================================================================================
