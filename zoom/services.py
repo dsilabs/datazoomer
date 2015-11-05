@@ -12,6 +12,7 @@ import logging
 import traceback
 import ConfigParser
 import shlex
+import platform
 
 import zoom
 from zoom.db import database as DB
@@ -202,22 +203,24 @@ def cmd(x, returncode=False, location=None):
     """
     Run a shell command and return the response as a string
 
-        >>> cmd("echo testing")
-        'testing\\n'
+        >>> cmds = platform.system() == 'Windows' and "{} /c echo testing".format(os.environ.get('COMSPEC','cmd.exe')) or "echo testing"
+        >>> res =cmd(cmds)
+        >>> assert res.strip() == 'testing'
 
     """
     logger.debug('cmd(%r)' % cmd)
     save_dir = os.getcwd()
+    posix = platform.system() <> 'Windows' and True or False
     try:
         if returncode:
             # capture return code, stdout and stderr
             if location: os.chdir(location)
-            p = Popen(shlex.split(x), stdout=PIPE, stderr=PIPE)
+            p = Popen(shlex.split(x, posix=posix), stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
             result = p.returncode, str(stdout), str(stderr)
         else:
             # capture stdout only
-            result = str(Popen(shlex.split(x), stdout=PIPE).communicate()[0])
+            result = str(Popen(shlex.split(x, posix=posix), stdout=PIPE).communicate()[0])
     finally:
         os.chdir(save_dir)
     return result
