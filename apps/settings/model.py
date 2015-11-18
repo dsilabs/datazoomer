@@ -16,7 +16,7 @@ system_settings_form = Form(
         EmailField('Admin Email', required),
     ]),
     Section('Theme',[
-        TextField('Name', name='THEME_NAME'),
+        PulldownField('Name', name='THEME_NAME', options=listdir(system.themes_path)),
         TextField('Template', name='THEME_TEMPLATE'),
     ]),
     Section('Mail',[
