@@ -78,8 +78,14 @@ class LoginController(Controller):
                     logger.security('user account (%s) deactivated' % username)
                 elif user.login(username, password, remember_me):
                     if as_api:
+                        logger.info('user %s successfully logged in via api' % username)
                         return '{}'
                     else:
+                        username = user.username
+                        user_id = user.id
+                        msg = '<a href="/users/%(user_id)s">%(username)s</a> logged in' % locals()
+                        logger.activity('session', msg)
+                        logger.info('user %s successfully logged in' % username)
                         return redirect_to('/'+user.default_app)
             else:
                 logger.security('unknown username (%s)' % username)
