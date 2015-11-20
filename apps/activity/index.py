@@ -26,8 +26,8 @@ class ActivityView(View):
 
     def activity(self):
         feed = db('select * from log where status="A" order by timestamp desc limit 100')
-        tpl = '<div class="activity"><div class="message">%s</div><div class="meta">%s</div></div>' 
-        result = ''.join(tpl % (a.message.decode('utf8'), how_long_ago(a.timestamp)) for a in feed)
+        tpl = '<div class="activity"><div class="message">%s</div><div title="%s" class="meta">%s</div></div>' 
+        result = ''.join(tpl % (a.message.decode('utf8'), a.timestamp, how_long_ago(a.timestamp)) for a in feed)
         system.logging = False
         return result or 'no activity'
 
