@@ -30,6 +30,7 @@ class NoApp:
     keywords = ''
     description = ''
     title = name
+    theme = ''
 
 class Site:
     def __init__(self,**k):
