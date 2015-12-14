@@ -252,8 +252,8 @@ class TextField(SimpleField):
         >>> TextField('Name',value="John Doe").show()
         u'<div class="field"><div class="field_label">Name</div><div class="field_show">John Doe</div></div>'
 
-        >>> TextField('Name',value='John Doe').edit()
-        '<div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="John Doe" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></div></div>'
+        >>> TextField('Name',value='John Doe').widget()
+        '<INPUT NAME="NAME" VALUE="John Doe" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
         >>> TextField('Name',value="Dan").show()
         u'<div class="field"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
@@ -261,8 +261,8 @@ class TextField(SimpleField):
         >>> TextField('Name',default="Dan").show()
         '<div class="field"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
 
-        >>> TextField('Name',hint="required").edit()
-        '<div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /><span class="hint">required</span></div></div>'
+        >>> TextField('Name',hint="required").widget()
+        '<INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
         >>> f = TextField('Title')
         >>> f.update(**{"TITLE": "Joe's Pool Hall"})
@@ -278,8 +278,8 @@ class TextField(SimpleField):
     _type = 'text'
     css_class = 'text_field'
 
-    def edit(self):
-        input = tag_for(
+    def widget(self):
+        return tag_for(
             'input', 
             name = self.name,
             id = self.id,
@@ -289,7 +289,6 @@ class TextField(SimpleField):
             Type = self._type,
             Class = self.css_class,
         )
-        return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
 
 
 class Hidden(SimpleField):
@@ -386,8 +385,8 @@ class PasswordField(TextField):
         >>> PasswordField('Password').show()
         ''
 
-        >>> PasswordField('Password').edit()
-        '<div class="field"><div class="field_label">Password</div><div class="field_edit"><INPUT NAME="PASSWORD" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="password" ID="PASSWORD" SIZE="40" /></div></div>'
+        >>> PasswordField('Password').widget()
+        '<INPUT NAME="PASSWORD" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="password" ID="PASSWORD" SIZE="40" />'
     """
 
     size = maxlength = 40
@@ -404,8 +403,8 @@ class NumberField(TextField):
         >>> NumberField('Size',value=2).show()
         u'<div class="field"><div class="field_label">Size</div><div class="field_show">2</div></div>'
 
-        >>> NumberField('Size').edit()
-        '<div class="field"><div class="field_label">Size</div><div class="field_edit"><INPUT NAME="SIZE" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="SIZE" SIZE="10" /></div></div>'
+        >>> NumberField('Size').widget()
+        '<INPUT NAME="SIZE" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="SIZE" SIZE="10" />'
 
         >>> n = NumberField('Size')
         >>> n.assign('2')
@@ -440,8 +439,8 @@ class IntegerField(TextField):
         >>> IntegerField('Count',value=2).show()
         u'<div class="field"><div class="field_label">Count</div><div class="field_show">2</div></div>'
 
-        >>> IntegerField('Count').edit()
-        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
+        >>> IntegerField('Count').widget()
+        '<INPUT NAME="COUNT" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
  
         >>> n = IntegerField('Size')
         >>> n.assign('2')
@@ -463,8 +462,8 @@ class FloatField(TextField):
         >>> FloatField('Count',value=2.1).show()
         u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
 
-        >>> FloatField('Count').edit()
-        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
+        >>> FloatField('Count').widget()
+        '<INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
  
         >>> n = FloatField('Size')
         >>> n.assign(2.1)
@@ -509,8 +508,11 @@ class DecimalField(TextField):
         >>> DecimalField('Count',value="2.1").show()
         u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
 
-        >>> DecimalField('Count').edit()
-        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
+        >>> DecimalField('Count', value=Decimal('10.24')).widget()
+        '<INPUT NAME="COUNT" VALUE="10.24" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
+ 
+        >>> DecimalField('Count').widget()
+        '<INPUT NAME="COUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
  
         >>> n = DecimalField('Size')
         >>> n.assign('2.1')
@@ -1456,7 +1458,7 @@ class Form(Fields):
 
         >>> form = Form(TextField("Name"))
         >>> form.edit()
-        '<form action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></div></div></form>'
+        '<form action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div></form>'
 
     """
 
