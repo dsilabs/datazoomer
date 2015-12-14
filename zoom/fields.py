@@ -23,6 +23,7 @@ from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown
 from helpers import attribute_escape
 from request import route
+from decimal import Decimal
 
 HINT_TPL = \
         """
@@ -441,11 +442,51 @@ class FloatField(TextField):
     def evaluate(self):
         return {self.name: self.value}
 
-    #def evaluate(self):
-        #if value == None:
-            #return {self.name: self.value}
-        #else:
-            #return {self.name: self.value}
+
+class DecimalField(TextField):
+    """
+    Decimal Field
+
+        >>> DecimalField('Count',value="2.1").show()
+        u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
+
+        >>> DecimalField('Count').edit()
+        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
+ 
+        >>> n = DecimalField('Size')
+        >>> n.assign('2.1')
+        >>> n.value
+        Decimal('2.1')
+
+        >>> n.assign(0)
+        >>> n.value
+        Decimal('0')
+
+        >>> n.assign('0')
+        >>> n.value
+        Decimal('0')
+
+        >>> n.assign('2.1')
+        >>> n.value
+        Decimal('2.1')
+
+        >>> n.assign('')
+        >>> n.evaluate()
+        {'SIZE': None}
+    """
+
+    size = maxlength = 10
+    css_class = 'decimal_field'
+    value = 0
+
+    def assign(self, value):
+        if value == '':
+            self.value = None
+        else:
+            self.value = Decimal(value)
+
+    def evaluate(self):
+        return {self.name: self.value}
 
 
 
