@@ -85,6 +85,16 @@ class Field(object):
     def edit(self):
         return self.visible and self.display_value()
 
+    def widget(self):
+        return self.display_value()
+
+    def edit(self):
+        content = HINT_TPL % dict(
+                widget=self.widget(),
+                hints=self.render_msg() + self.render_hint()
+                )
+        return layout_field(self.label, content)
+
     def __getattr__(self,name):
         if name == 'name' and hasattr(self,'label'):
             return name_for(self.label)
@@ -489,7 +499,6 @@ class DecimalField(TextField):
         return {self.name: self.value}
 
 
-
 class DateField(SimpleField):
     """
     Date Field
@@ -561,10 +570,6 @@ class CheckboxesField(Field):
             result.append('<li>%s<div>%s</div></li>' % (tag, value))
         result = '<ul class="checkbox_field">%s</ul>' % (''.join(result))
         return result
-
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
 
     def show(self):
         return layout_field(self.label, ', '.join(self.value))
@@ -675,10 +680,6 @@ class CheckboxField(TextField):
             Class='checkbox_field',
             )
         return tag
-
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
 
     def display_value(self):
         return self.value in ['yes','on',True] and self.options[0] or self.options[1] or ''
@@ -888,11 +889,6 @@ class PulldownField(TextField):
         result.append('</select>')
         return ''.join(result)
 
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
-
-
 class MultiselectField(TextField):
     """
     Multiselect Field
@@ -983,9 +979,6 @@ class MultiselectField(TextField):
         result.append('</select>')
         return ''.join(result)
 
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
 
 class ChosenMultiselectField(MultiselectField):
 
