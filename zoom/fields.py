@@ -1,4 +1,5 @@
 # Copyright (c) 2005-2011 Dynamic Solutions Inc. (support@dynamic-solutions.com)
+# coding=utf8
 #
 # This file is part of DataZoomer.
 #
@@ -71,7 +72,7 @@ class Field(object):
     validators = []
     style = ''
 
-    def __init__(self,label='',*validators,**keywords):
+    def __init__(self, label='', *validators, **keywords):
         self.__dict__ = keywords
         if 'value' in keywords:
             self.assign(keywords['value'])
@@ -80,9 +81,6 @@ class Field(object):
         self.id = self.name
 
     def show(self):
-        return self.visible and self.display_value()
-
-    def edit(self):
         return self.visible and self.display_value()
 
     def widget(self):
@@ -95,8 +93,8 @@ class Field(object):
                 )
         return layout_field(self.label, content)
 
-    def __getattr__(self,name):
-        if name == 'name' and hasattr(self,'label'):
+    def __getattr__(self, name):
+        if name == 'name' and hasattr(self, 'label'):
             return name_for(self.label)
         raise AttributeError             
 
@@ -113,7 +111,23 @@ class Field(object):
     def _initialize(self, values):
         self.assign(values.get(self.name.lower(), self.default))
 
-    def update(self,**values):
+    def update(self, **values):
+        """
+        Update field.
+
+            >>> name_field = Field('Name', value='Sam')
+            >>> name_field.value
+            'Sam'
+            >>> name_field.update(city='Vancouver')
+            >>> name_field.value
+            'Sam'
+            >>> name_field.update(name='Joe')
+            >>> name_field.value
+            'Joe'
+            >>> name_field.update(NaMe='Adam')
+            >>> name_field.value
+            'Adam'
+        """
         for value in values:
             if value.lower() == self.name.lower():
                 self.assign(values[value])
@@ -132,9 +146,34 @@ class Field(object):
         return {self.name: self}
 
     def __repr__(self):
+        """
+            >>> name_field = Field('Name', value='test')
+            >>> print name_field
+            NAME: test
+        """
         return '%s: %s' % (self.name, self.value)
 
     def display_value(self):
+        """
+        Display field value.
+
+            >>> name_field = Field('Name', default='default test')
+            >>> name_field.display_value()
+            'default test'
+
+            >>> name_field = Field('Name', value='test')
+            >>> name_field.display_value()
+            u'test'
+
+            >>> name_field = Field('Name', value='こんにちは')
+            >>> name_field.display_value()
+            u'\u3053\u3093\u306b\u3061\u306f'
+
+            >>> name_field.visible = False
+            >>> name_field.display_value()
+            ''
+
+        """
         return self.visible and websafe(self.value) or self.default or ''
 
     def render_hint(self):
@@ -184,6 +223,15 @@ class Field(object):
         return True        
 
     def validate(self, *a, **k):
+        """
+        Update and validate a field.
+
+            >>> name_field = TextField('Name',required)
+            >>> name_field.validate(city='Vancouver')
+            False
+            >>> name_field.validate(name='Fred')
+            True
+        """
         self.update(*a, **k)
         return self.valid()
 
@@ -191,6 +239,7 @@ class Field(object):
         return False
 
 class SimpleField(Field):
+
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and \
                 layout_field(self.label, self.display_value(), edit=False) or ''
