@@ -1276,16 +1276,16 @@ class EditField(Field):
     Large textedit.
 
         >>> EditField('Notes').edit()
-        '<div class="field"><div class="field_label">Notes</div><div class="field_edit"><built-in function input></div></div>'
+        '<div class="field"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA HEIGHT="6" CLASS="edit_field" SIZE="10" NAME="NOTES" ID="NOTES"></TEXTAREA></div></div>'
 
     """
     value=''
     height=6
     size=10
-    css_class = 'memo_field'
+    css_class = 'edit_field'
 
     def edit(self):
-        intput = tag_for(
+        input = tag_for(
                 'textarea',
                 content=self.value,
                 name=self.name,
