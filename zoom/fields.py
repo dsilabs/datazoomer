@@ -65,6 +65,7 @@ class Field(object):
     options=[]
     label=''
     hint=''
+    addon=''
     default = ''
     msg = ''
     required = False
@@ -579,6 +580,30 @@ class DecimalField(TextField):
     def evaluate(self):
         return {self.name: self.value}
 
+
+class MoneyField(DecimalField):
+
+    symbol = '$'
+
+    def widget(self):
+        t = """
+        <div class="input-group">
+          <span class="input-group-addon">{}</span>
+          {}
+        </div>
+        """
+        return t.format(
+                self.symbol,
+                tag_for(
+                    'input',
+                    name = self.name,
+                    id = self.id,
+                    size = self.size,
+                    maxlength=self.maxlength,
+                    value = self.value or self.default,
+                    Type = self._type,
+                    Class = self.css_class,
+                ))
 
 class DateField(SimpleField):
     """
