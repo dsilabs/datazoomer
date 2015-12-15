@@ -169,8 +169,8 @@ def bar(data, legend=None, options={}, *a, **k):
                 )
 
     if legend:
-        options['legend'] = dict(show='true', placement='outsideGrid')
-        options['series'] = [dict(label=label) for label in legend]
+        default_options['legend'] = dict(show='true', placement='outsideGrid')
+        default_options['series'] = [dict(label=label) for label in legend]
 
     v = dict (
         name = chart_name,
@@ -206,8 +206,8 @@ def hbar(data, legend=None, options={}, *a, **k):
                 )
 
     if legend:
-        options['legend'] = dict(show='true', placement='outsideGrid')
-        options['series'] = [dict(label=label) for label in legend]
+        default_options['legend'] = dict(show='true', placement='outsideGrid')
+        default_options['series'] = [dict(label=label) for label in legend]
 
     v = dict (
         name = chart_name,
@@ -236,7 +236,7 @@ def pie(data, legend=None, options={}, *a, **k):
         }
 
     if legend:
-        options['legend'] = dict(show='true', location='e')
+        default_options['legend'] = dict(show='true', location='e')
 
     v = dict (
         name = chart_name,
