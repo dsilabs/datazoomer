@@ -134,6 +134,38 @@ class MinimumLength(Validator):
         self.test = lambda a: (self.empty_allowed and a=='') or not len(a) < min_length
 
 
+class MinimumValue(Validator):
+    """
+    Minimum value validator
+
+        >>> v = MinimumValue(100)
+        >>> v.valid(50)
+        False
+        >>> v.valid(120)
+        True
+    """
+    def __init__(self, min_value, empty_allowed=True):
+        self.empty_allowed = empty_allowed
+        self.msg = 'value must be at least %s' % min_value
+        self.test = lambda a: (self.empty_allowed and a=='') or not a < min_value
+
+
+class MaximumValue(Validator):
+    """
+    Maximum value validator
+
+        >>> v = MaximumValue(100)
+        >>> v.valid(50)
+        True
+        >>> v.valid(120)
+        False
+    """
+    def __init__(self, min_value, empty_allowed=True):
+        self.empty_allowed = empty_allowed
+        self.msg = 'value must be at most %s' % min_value
+        self.test = lambda a: (self.empty_allowed and a=='') or not a > min_value
+
+
 def email_valid(email):
     if email=='': return True
     email_re = re.compile(
