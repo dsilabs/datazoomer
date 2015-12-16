@@ -450,6 +450,7 @@ class NumberField(TextField):
 
     size = maxlength = 10
     css_class = 'number_field'
+    units = ''
 
     def evaluate(self):
         return {self.name: str(self.value)}
@@ -462,8 +463,30 @@ class NumberField(TextField):
         except:
             self.value = None
 
+    def widget(self):
+        w = tag_for(
+                    'input',
+                    name = self.name,
+                    id = self.id,
+                    size = self.size,
+                    maxlength=self.maxlength,
+                    value = self.value or self.default,
+                    Type = self._type,
+                    Class = self.css_class,
+                )
 
-class IntegerField(TextField):
+        if self.units:
+            return """
+            <div class="input-group">
+              {w}
+              <span class="input-group-addon">{u}</span>
+            </div>
+            """.format(w=w, u=self.units)
+        else:
+            return w
+
+
+class IntegerField(NumberField):
     """
     Integer Field
 
@@ -486,7 +509,7 @@ class IntegerField(TextField):
     def assign(self, value):
         self.value = int(value)
 
-class FloatField(TextField):
+class FloatField(NumberField):
     """
     Float Field
 
@@ -532,7 +555,7 @@ class FloatField(TextField):
         return {self.name: self.value}
 
 
-class DecimalField(TextField):
+class DecimalField(NumberField):
     """
     Decimal Field
 
@@ -1584,6 +1607,8 @@ class ImageField(SimpleField):
 
     def evaluate(self):
         return self.value and {self.name: self.value} or {}
+
+
 
 
 class Form(Fields):
