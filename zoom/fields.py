@@ -446,6 +446,9 @@ class NumberField(TextField):
         >>> n.assign('2,123')
         >>> n.value
         2123
+        >>> n.evaluate()
+        {'SIZE': '2123'}
+
     """
 
     size = maxlength = 10
@@ -453,6 +456,12 @@ class NumberField(TextField):
     units = ''
 
     def evaluate(self):
+        #TODO: This method is unexpected.  Could be that it is meant to be a numeric
+        #      text field, in which case the name could be NumericTextField.
+        #      If it's meant to be able to be used as a number then it should just
+        #      return the number as it is stored (int).
+        #      It's heavily (mis-)used so will not change it now.  If you want an actual
+        #      integer field, then use IntegerField.
         return {self.name: str(self.value)}
 
     def assign(self, value):
@@ -486,7 +495,7 @@ class NumberField(TextField):
             return w
 
 
-class IntegerField(NumberField):
+class IntegerField(TextField):
     """
     Integer Field
 
@@ -500,6 +509,8 @@ class IntegerField(NumberField):
         >>> n.assign('2')
         >>> n.value
         2
+        >>> n.evaluate()
+        {'SIZE': 2}
     """
 
     size = maxlength = 10
