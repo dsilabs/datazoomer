@@ -1335,6 +1335,16 @@ class EditField(Field):
         return self.visible and (bool(self.value) or bool(self.default)) and layout_field(self.label,'<div class="textarea">%s</div>' % self.display_value(), edit=False) or ''
 
 class RangeSliderField(IntegerField):
+    """ jQuery UI Range Slider
+
+        >>> r = RangeSliderField('Price', min=0, max=1500)
+        >>> r.assign(0)
+        >>> r.value
+        (0, 1500)
+        >>> r.assign((10, 20))
+        >>> r.value
+        (10, 20)
+    """
     js_formatter = """var formatter = function(v) { return v;};"""
     js = """
 <script>
