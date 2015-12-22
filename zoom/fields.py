@@ -26,6 +26,7 @@ from helpers import attribute_escape
 from request import route
 from decimal import Decimal
 import uuid
+from zoom import system
 
 HINT_TPL = \
         """
@@ -101,7 +102,7 @@ class Field(object):
     def __getattr__(self, name):
         if name == 'name' and hasattr(self, 'label'):
             return name_for(self.label)
-        raise AttributeError             
+        raise AttributeError
 
     def initialize(self, *a, **k):
         if a:
@@ -225,7 +226,7 @@ class Field(object):
             if not v.valid(self.value):
                 self.msg = v.msg
                 return False
-        return True        
+        return True
 
     def validate(self, *a, **k):
         """
@@ -285,7 +286,7 @@ class TextField(SimpleField):
 
     def widget(self):
         return tag_for(
-            'input', 
+            'input',
             name = self.name,
             id = self.id,
             size = self.size,
@@ -429,7 +430,7 @@ class PasswordField(TextField):
 
     def show(self):
         return ''
-        
+
 
 class NumberField(TextField):
     """
@@ -508,7 +509,7 @@ class IntegerField(TextField):
 
         >>> IntegerField('Count').widget()
         '<INPUT NAME="COUNT" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
- 
+
         >>> n = IntegerField('Size')
         >>> n.assign('2')
         >>> n.value
@@ -533,7 +534,7 @@ class FloatField(NumberField):
 
         >>> FloatField('Count').widget()
         '<INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
- 
+
         >>> n = FloatField('Size')
         >>> n.assign(2.1)
         >>> n.value
@@ -579,10 +580,10 @@ class DecimalField(NumberField):
 
         >>> DecimalField('Count', value=Decimal('10.24')).widget()
         '<INPUT NAME="COUNT" VALUE="10.24" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
- 
+
         >>> DecimalField('Count').widget()
         '<INPUT NAME="COUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
- 
+
         >>> n = DecimalField('Size')
         >>> n.assign('2.1')
         >>> n.value
@@ -665,9 +666,9 @@ class DateField(SimpleField):
             try:
                 self.value = datetime.datetime.strptime(value,self.format).date()
             except:
-                self.value = None                
+                self.value = None
         else:
-            self.value = value            
+            self.value = value
 
     def edit(self):
         value = self.value and self.value.strftime(self.format) or self.default and self.default.strftime(self.format) or ''
@@ -931,7 +932,7 @@ class Pulldown(TextField):
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
             else:
-                label, value = option, option 
+                label, value = option, option
             if label == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
             else:
@@ -1032,7 +1033,7 @@ class PulldownField(TextField):
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
             else:
-                label, value = option, option 
+                label, value = option, option
             if value == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
             else:
@@ -1287,7 +1288,7 @@ class MemoField(Field):
                 Class=self.css_class,
                 )
         if self.hint or self.msg:
-            table_start  = '<table class="transparent" width=100%><tr><td width=10%>' 
+            table_start  = '<table class="transparent" width=100%><tr><td width=10%>'
             table_middle = '</td><td>'
             table_end    = '</td></tr></table>'
             return layout_field(self.label, table_start + input  + table_middle + self.render_msg() + self.render_hint() + table_end )
@@ -1337,6 +1338,72 @@ class EditField(Field):
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and layout_field(self.label,'<div class="textarea">%s</div>' % self.display_value(), edit=False) or ''
 
+class RangeSliderField(IntegerField):
+    """ jQuery UI Range Slider
+
+        >>> r = RangeSliderField('Price', min=0, max=1500)
+        >>> r.assign(0)
+        >>> r.value
+        (0, 1500)
+        >>> r.assign((10, 20))
+        >>> r.value
+        (10, 20)
+    """
+    js_formatter = """var formatter = function(v) { return v;};"""
+    js = """
+<script>
+  $(function() {
+    $( "#%(name)s" ).slider({
+      range: true,
+      min: %(tmin)s,
+      max: %(tmax)s,
+      values: [ %(minv)s, %(maxv)s ],
+      change: function( event, ui ) {
+        var v = ui.values,
+            t = v[0] + ',' + v[1];
+        $("input[name='%(name)s']").val(t);
+        %(formatter)s
+        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+      },
+      slide: function( event, ui ) {
+        var v = ui.values;
+        %(formatter)s
+        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+      }
+    });
+    $("#%(name)s").slider("values", $("#%(name)s").slider("values")); // set formatted label
+  });
+</script>
+    """
+    min = 0
+    max = 10
+    show_labels = True
+
+    def assign(self, v):
+        if v is None or not v or (isinstance(v,basestring) and v.strip()==','):
+            self.value = (self.min, self.max)
+        elif ',' in v:
+            self.value = map(int, v.split(','))
+        else:
+            self.value = (int(v[0]), int(v[1]))
+
+    def widget(self):
+        name = self.name
+        tmin, tmax = self.min, self.max
+
+        minv, maxv = self.value or (tmin, tmax)
+
+
+        formatter = self.js_formatter
+        system.tail.add(self.js % locals())
+        labels = """<div data-id="{}" class="{}"><span class="min pull-left">{}</span><span class="max pull-right">{}</span></div>""".format(
+            name,
+            not self.show_labels and "hidden" or "",
+            minv, maxv
+          )
+        return """<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>{}""".format(name, name, minv, maxv, labels)
 
 class FieldIterator:
 
@@ -1507,7 +1574,7 @@ class Section(Fields):
     def render_hint(self):
         if self.hint: return '<span class="hint">%s</span>' % self.hint
         else: return ''
-        
+
     def show(self):
         value = Fields.show(self)
         return bool(value) and ('<H2>%s</H2>\n%s' % (self.label,value)) or ''
@@ -1561,7 +1628,7 @@ class FileField(TextField):
 
 class ImageField(SimpleField):
     """ Display an image storage field
-    
+
     >>> ImageField('Photo').initialize(None)
     >>> Fields([ImageField('Photo')]).initialize({'hi':'dz'})   # support dict
     >>> i = ImageField('Photo')
@@ -1692,6 +1759,6 @@ class Form(Fields):
 if __name__ == '__main__':
 
     import doctest
-    doctest.testmod() 
+    doctest.testmod()
 
 
