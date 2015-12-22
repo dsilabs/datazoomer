@@ -25,12 +25,13 @@ from tools import htmlquote, websafe, markdown
 from helpers import attribute_escape
 from request import route
 from decimal import Decimal
+import uuid
 
 HINT_TPL = \
         """
         <table class="transparent">
             <tr>
-                <td nowrap>%(widget)s</td>
+                <td%(wrap)s>%(widget)s</td>
                 <td>
                     <div class="hint">%(hints)s</div>
                 </td>
@@ -61,6 +62,7 @@ def layout_field(label, content, edit=True):
 class Field(object):
     js_init = ''
     js = ''
+    css = ''
     value = ''
     options=[]
     label=''
@@ -72,6 +74,7 @@ class Field(object):
     visible = True
     validators = []
     style = ''
+    wrap = ' nowrap'
 
     def __init__(self, label='', *validators, **keywords):
         self.__dict__ = keywords
@@ -90,7 +93,8 @@ class Field(object):
     def edit(self):
         content = HINT_TPL % dict(
                 widget=self.widget(),
-                hints=self.render_msg() + self.render_hint()
+                hints=self.render_msg() + self.render_hint(),
+                wrap=self.wrap,
                 )
         return layout_field(self.label, content)
 
@@ -1620,6 +1624,26 @@ class ImageField(SimpleField):
         return self.value and {self.name: self.value} or {}
 
 
+
+class ImagesField(SimpleField):
+    """ Display a drag and drop multiple image storage field
+
+    >>> ImagesField('Photo').initialize(None)
+    >>> Fields([ImagesField('Photo')]).initialize({'hi':'dz'})   # support dict
+    >>> i = ImagesField('Photos', default='myimageid')
+    >>> i.display_value()
+    '<div url="" field_name="PHOTOS" field_value="myimageid" class="images_field dropzone"></div>'
+    """
+    _type = 'images'
+    css_class = 'images_field dropzone'
+    value = None
+    default = uuid.uuid4().hex
+    wrap = ''
+    url = ''
+
+    def display_value(self):
+        t = '<div url="{}" field_name="{}" field_value="{}" class="images_field dropzone"></div>'
+        return t.format(self.url, self.name, self.value or self.default)
 
 
 class Form(Fields):
