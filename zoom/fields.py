@@ -1433,6 +1433,24 @@ class Fields(object):
         >>> fields.as_dict()
         {'PHONE': PHONE: 2234567890, 'NAME': NAME: Amy}
 
+        >>> fields = Fields(TextField('Name'), ImagesField('Photos'))
+        >>> fields.validate({'NAME': 'Test'})
+        True
+        >>> d = fields.evaluate()
+        >>> d['NAME']
+        'Test'
+        >>> len(d['PHOTOS'])
+        32
+        >>> record = dict(name='Adam', photos='no photos')
+        >>> record
+        {'photos': 'no photos', 'name': 'Adam'}
+        >>> record.update(fields)
+        >>> record['name']
+        'Test'
+        >>> len(record['photos'])
+        32
+
+
     """
 
     def __init__(self,*a):
@@ -1697,21 +1715,57 @@ class ImagesField(SimpleField):
 
     >>> ImagesField('Photo').initialize(None)
     >>> Fields([ImagesField('Photo')]).initialize({'hi':'dz'})   # support dict
-    >>> i = ImagesField('Photos', default='myimageid')
+
+    >>> i = ImagesField('Photos', value='newid')
     >>> i.display_value()
-    '<div url="" field_name="PHOTOS" field_value="myimageid" class="images_field dropzone"></div>'
+    '<div url="" field_name="PHOTOS" field_value="newid" class="images_field dropzone"></div>'
+    >>> i.evaluate()
+    {'PHOTOS': 'newid'}
+
+    >>> i = ImagesField('Photos')
+    >>> len(i.display_value())
+    115
+    >>> t = i.evaluate()
+    >>> i.validate(**{'OTHERFIELD': 'test'})
+    True
+    >>> t == i.evaluate()
+    True
+    >>> i.validate(**{'PHOTOS': 'test'})
+    True
+    >>> i.evaluate()
+    {'PHOTOS': 'test'}
+
+    >>> i = ImagesField('Photos')
+    >>> v1 = i.evaluate()
+    >>> len(repr(v1))
+    46
+    >>> i.value
+    >>> v1['PHOTOS'] == i.value
+    False
+    >>> i.validate(**{'PHOTOS': 'fromdatabase'})
+    True
+    >>> v2 = i.evaluate()
+    >>> v1 <> v2
+    True
+    >>> v2
+    {'PHOTOS': 'fromdatabase'}
     """
     _type = 'images'
-    css_class = 'images_field dropzone'
     value = None
     default = uuid.uuid4().hex
     wrap = ''
     url = ''
 
     def display_value(self):
-        t = '<div url="{}" field_name="{}" field_value="{}" class="images_field dropzone"></div>'
-        return t.format(self.url, self.name, self.value or self.default)
+        t = '<div url="{url}" field_name="{name}" field_value="{value}" class="images_field dropzone"></div>'
+        return t.format(url=self.url, name=self.name, value=self.value or self.default)
 
+    def widget(self):
+        t = """
+        <div url="{url}" field_name="{name}" field_value="{value}" class="images_field dropzone"></div>
+        <input type="hidden" name="{name}" value="{value}" id="{name}">
+        """
+        return t.format(url=self.url, name=self.name, value=self.value or self.default)
 
 class Form(Fields):
     """

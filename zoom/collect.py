@@ -4,6 +4,8 @@ from zoom import *
 from zoom.response import PNGResponse
 from zoom.log import logger
 from exceptions import PageMissingException
+from buckets import Bucket
+from models import Attachment
 
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
@@ -34,6 +36,15 @@ def locate(c, key):
     return key.isdigit() and c.store.get(key) or \
             c.store.first(key=key) or \
             scan(c.store,key)
+
+def image_response(name, data):
+    _, ext = os.path.splitext(name.lower())
+    if ext == '.png':
+        return PNGResponse(data)
+    elif ext == '.jpg':
+        return JPGResponse(data)
+    elif ext == '.gif':
+        return GIFResponse(data)
 
 class CollectionView(View):
     def __init__(self, collection):
@@ -129,6 +140,25 @@ class CollectionView(View):
         if record:
             return PNGResponse(record[name])
 
+    def list_images(self, key=None, value=None):
+        """return list of images for an ImagesField value for this record"""
+        attachments = store(Attachment)
+        path = os.path.join(system.site.data_path, 'buckets')
+        bucket = Bucket(path)
+        t = [dict(
+            name=a.attachment_name,
+            size=a.attachment_size,
+            item_id=a.attachment_id,
+            url=url_for('get_image', item_id=a.attachment_id),
+            ) for a in attachments.find(field_value=value)]
+        return json.dumps(t)
+
+    def get_image(self, *a, **k):
+        """return one of the images from an ImagesField value"""
+        item_id = k.get('item_id',None)
+        path = os.path.join(system.site.data_path, 'buckets')
+        bucket = Bucket(path)
+        return image_response('house.png', bucket.get(item_id))
 
 
 
@@ -162,7 +192,6 @@ class CollectionController(Controller):
                         pass # can happen when key depends on database auto-increment value
                     c.store.put(record)
                     logger.activity(system.app.name, '%s added %s %s' % (user.link, c.item_name.lower(), record.linked_name))
-                    #return redirect_to(record.url or c.url)
                     return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
@@ -199,6 +228,66 @@ class CollectionController(Controller):
             del record[name]
             self.collection.store.put(record)
             return redirect_to(url_for(record.url,'edit'))
+
+    def add_image(self, *a, **k):
+        """upload and associate a dropzone image with a record"""
+        # k contains FieldStorage object containing filename and data
+        from StringIO import StringIO
+        from utils import Record
+        dummy = Record(
+                filename ='dummy.png',
+                file = StringIO('test'),
+                )
+
+        # put the uploaded image data in a bucket
+        path = os.path.join(system.site.data_path, 'buckets')
+        bucket = Bucket(path)
+        f = k.get('file', dummy)
+        name = f.filename
+        data = f.file.read()
+        item_id = bucket.put(data)
+
+        # attach the bucket to the current record
+        c = self.collection
+        key = a[0]
+        field_name = k.get('field_name', 'unknown')
+        field_value = k.get('field_value', 'unknown')
+        record = self.collection.locate(key)
+        attachment = Attachment(
+            record_id = record._id,
+            record_kind = c.store.kind,
+            field_name = field_name,
+            field_value = field_value,
+            attachment_id = item_id,
+            attachment_size = len(data),
+            attachment_name = name,
+            )
+        attachments = store(Attachment)
+        attachments.put(attachment)
+
+        return item_id
+
+    def remove_image(self, *a, **k):
+        """remove a dropzone image"""
+        # k contains item_id and filename for file to be removed
+        item_id = k.get('id', None)
+
+        # detach the image from the record
+        if item_id:
+            attachments = store(Attachment)
+            key = attachments.first(attachment_id=item_id)
+            if key:
+                attachments.delete(key)
+
+            # delete the bucket
+            path = os.path.join(system.site.data_path, 'buckets')
+            bucket = Bucket(path)
+            items = bucket.keys()
+            if item_id in bucket.keys():
+                bucket.delete(item_id)
+                return 'ok'
+            return 'empty'
+
 
 
 class CollectionRecord(DefaultRecord):
