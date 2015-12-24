@@ -97,6 +97,10 @@
     div.dropzone .dz-preview .dz-image {
         border-radius: 10px;
     }
+    .field_show > img, .field_edit > img {
+        border: 1px solid grey;
+        width: 490px;
+    }
 
     /* numeric fields */
     input.decimal_field {
