@@ -138,6 +138,7 @@ class Database(object):
             start = time.time()
         try:
             result = cursor.execute(sql, len(a)==1 and hasattr(a[0],'items') and a[0] or a)
+            self.rowcount = cursor.rowcount
         finally:
             if self.__debug:
                 print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, args)
