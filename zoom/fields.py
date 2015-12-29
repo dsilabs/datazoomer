@@ -604,6 +604,9 @@ class DecimalField(NumberField):
         >>> n.assign('')
         >>> n.evaluate()
         {'SIZE': None}
+
+        >>> DecimalField('Hours').evaluate()
+        {'HOURS': 0}
     """
 
     size = maxlength = 10
@@ -611,7 +614,7 @@ class DecimalField(NumberField):
     value = 0
 
     def assign(self, value):
-        if value == '':
+        if value == '' or value == None:
             self.value = None
         else:
             self.value = Decimal(value)
