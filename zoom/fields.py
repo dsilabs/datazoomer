@@ -658,6 +658,12 @@ class MoneyField(DecimalField):
         u'<div class="field"><div class="field_label">Amount</div><div class="field_show">\\xa31,000.00</div></div>'
         >>> f.widget()
         '<div class="input-group"><span class="input-group-addon">\\xc2\\xa3</span><INPUT NAME="AMOUNT" VALUE="1000" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="AMOUNT" SIZE="10" /></div>'
+        >>> f.units = 'per month'
+        >>> f.display_value()
+        u'\\xa31,000.00 per month'
+        >>> f.units = ''
+        >>> f.display_value()
+        u'\\xa31,000.00'
         >>> f.assign('')
         >>> f.display_value()
         ''
@@ -676,7 +682,8 @@ class MoneyField(DecimalField):
         if self.locale:
             locale.setlocale(locale.LC_ALL, self.locale)
             self.symbol = locale.localeconv()['currency_symbol']
-        t = '<div class="input-group"><span class="input-group-addon">{}</span>{}</div>'
+        t = '<div class="input-group"><span class="input-group-addon">{}</span>{}{}</div>'
+        tu = '<span class="input-group-addon">{}</span>'
         return t.format(
                 self.symbol,
                 tag_for(
@@ -688,7 +695,9 @@ class MoneyField(DecimalField):
                     value = self.value or self.default,
                     Type = self._type,
                     Class = self.css_class,
-                ))
+                ),
+                self.units and tu.format(self.units) or '',
+                )
 
     def display_value(self):
         if self.value == None: return ''
@@ -697,6 +706,8 @@ class MoneyField(DecimalField):
             v = websafe(locale.currency(self.value, grouping=True))
         else:
             v = self.symbol + ('{:20,.2f}'.format(self.value)).strip()
+        if self.units and self.value <> None:
+            v += ' '+self.units
         return websafe(v)
 
 
