@@ -3,7 +3,7 @@
     reference: http://getbootstrap.com/css/
 
 """
-from zoom import system, datetime
+from zoom import system, datetime, json
 from time import strptime
 from zoom.helpers import attribute_escape
 
@@ -174,3 +174,39 @@ class DateFilter(object):
         js = self.js() % ( dict(dmin=self.min, from_at=f, dmax=self.max, to_at=t) )
         system.tail.add(js)
         return date_filter_form(f,t)
+
+
+carousel_slide_indicator = """<li data-target="#{}" data-slide-to="{}" class="{}"></li>"""
+carousel_slide = """<div class="item {} img{}"><div class="carousel-caption">{}</div></div>"""
+
+def carousel(original_slides, id="homeCarousel", **kwarg):
+    """ return a bootstrap .js carousel """
+    indicators = ''.join([carousel_slide_indicator.format(id, i, i==0 and 'active' or '') for i,s in enumerate(original_slides)])
+    slides = ''.join([carousel_slide.format(i==0 and 'active' or '', i, s) for i,s in enumerate(original_slides)])
+    data = ' '.join(['data-{}={}'.format(k.lower(), json.dumps(v)) for k,v in kwarg.items()])
+
+    html_markup = """
+<div id="{id}" class="carousel slide" {data}>
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    {indicators}
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+
+    {slides}
+
+    <!-- Left and right controls -->
+    <a class="left carousel-control" href="#{id}" role="button" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#{id}" role="button" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+  </div>
+</div>""".format(**locals())
+    css = ''.join(["""#%s .carousel-inner .img%s { background-image: url('%s'); }""" % (id, i, s) for i,s in enumerate(original_slides)])
+    return (html_markup, css)
