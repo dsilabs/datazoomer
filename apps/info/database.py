@@ -31,13 +31,13 @@ def view(table_name=None):
     else:
             
         def show_table(table_name):
-            return link_to(table_name,'tables/%s' % table_name)
+            return link_to(table_name,'database/%s' % table_name)
 
         labels = 'Name', 'Records'
 
         data = [TableRecord(name=r[0]) for r in db('show tables')]
 
-        content = browse(data, labels=labels, on_click='show')
+        content = browse(data, labels=labels, on_click='show', title='Tables')
         dbinfo = browse([
             ('Host', system.config.get('database','dbhost')),
             ('Database', system.config.get('database','dbname')),
@@ -45,5 +45,5 @@ def view(table_name=None):
             ('Host', db._Database__connection.get_host_info()),
             ('Server OS', db._Database__connection.get_server_info()),
         ],labels=['Property','Value'])
-        return page('%s<H2>Database</H2>%s' % (content,dbinfo), title='Tables')
+        return page('%s%s' % (dbinfo, content), title='Database')
 
