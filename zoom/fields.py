@@ -26,6 +26,7 @@ from helpers import attribute_escape
 from request import route
 from decimal import Decimal
 import uuid
+import locale
 from zoom import system
 
 HINT_TPL = \
@@ -447,18 +448,27 @@ class NumberField(TextField):
         >>> n.value
         2
 
-        >>> n = NumberField('Size')
+        >>> n = NumberField('Size', units='units')
         >>> n.assign('2,123')
         >>> n.value
         2123
         >>> n.evaluate()
         {'SIZE': '2123'}
+        >>> n.display_value()
+        u'2123 units'
+
+        >>> n.assign(None)
+        >>> n.value == None
+        True
+        >>> n.display_value()
+        u''
 
     """
 
     size = maxlength = 10
     css_class = 'number_field'
     units = ''
+    converter = int
 
     def evaluate(self):
         #TODO: This method is unexpected.  Could be that it is meant to be a numeric
@@ -471,9 +481,9 @@ class NumberField(TextField):
 
     def assign(self, value):
         try:
-            if type(value) == str and ',' in value:
-                value = value.replace(',','')
-            self.value = int(value)
+            if type(value) == str:
+                value = ''.join(c for c in value if c in '0123456789.-')
+            self.value = self.converter(value)
         except:
             self.value = None
 
@@ -498,6 +508,15 @@ class NumberField(TextField):
             """.format(w=w, u=self.units)
         else:
             return w
+
+    def display_value(self):
+        if self.value == None:
+            v = ''
+        if self.units and self.value<>None:
+            v = '{} {}'.format(self.value, self.units)
+        else:
+            v = self.value
+        return websafe(v)
 
 
 class IntegerField(TextField):
@@ -560,12 +579,7 @@ class FloatField(NumberField):
     size = maxlength = 10
     css_class = 'float_field'
     value = 0
-
-    def assign(self, value):
-        if value == '':
-            self.value = None
-        else:
-            self.value = float(value)
+    converter = float
 
     def evaluate(self):
         return {self.name: self.value}
@@ -604,33 +618,72 @@ class DecimalField(NumberField):
         >>> n.assign('')
         >>> n.evaluate()
         {'SIZE': None}
+
+        >>> DecimalField('Hours').evaluate()
+        {'HOURS': 0}
     """
 
     size = maxlength = 10
     css_class = 'decimal_field'
     value = 0
-
-    def assign(self, value):
-        if value == '':
-            self.value = None
-        else:
-            self.value = Decimal(value)
+    converter = Decimal
 
     def evaluate(self):
         return {self.name: self.value}
 
 
 class MoneyField(DecimalField):
+    """
+    Money Field
 
+        >>> f = MoneyField("Amount")
+        >>> f.widget()
+        '<div class="input-group"><span class="input-group-addon">$</span><INPUT NAME="AMOUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="AMOUNT" SIZE="10" /></div>'
+        >>> f.display_value()
+        u'$0.00'
+        >>> f.assign(Decimal(1000))
+        >>> f.display_value()
+        u'$1,000.00'
+
+        >>> from platform import system
+        >>> l = system()=='Windows' and 'eng' or 'en_GB.utf8'
+        >>> f = MoneyField("Amount", locale=l)
+        >>> f.display_value()
+        u'\\xa30.00'
+
+        >>> f.assign(Decimal(1000))
+        >>> f.display_value()
+        u'\\xa31,000.00'
+        >>> f.show()
+        u'<div class="field"><div class="field_label">Amount</div><div class="field_show">\\xa31,000.00</div></div>'
+        >>> f.widget()
+        '<div class="input-group"><span class="input-group-addon">\\xc2\\xa3</span><INPUT NAME="AMOUNT" VALUE="1000" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="AMOUNT" SIZE="10" /></div>'
+        >>> f.units = 'per month'
+        >>> f.display_value()
+        u'\\xa31,000.00 per month'
+        >>> f.units = ''
+        >>> f.display_value()
+        u'\\xa31,000.00'
+        >>> f.assign('')
+        >>> f.display_value()
+        ''
+        >>> f.assign('0')
+        >>> f.display_value()
+        u'\\xa30.00'
+        >>> f.assign(' ')
+        >>> f.display_value()
+        ''
+    """
+
+    locale = None
     symbol = '$'
 
     def widget(self):
-        t = """
-        <div class="input-group">
-          <span class="input-group-addon">{}</span>
-          {}
-        </div>
-        """
+        if self.locale:
+            locale.setlocale(locale.LC_ALL, self.locale)
+            self.symbol = locale.localeconv()['currency_symbol']
+        t = '<div class="input-group"><span class="input-group-addon">{}</span>{}{}</div>'
+        tu = '<span class="input-group-addon">{}</span>'
         return t.format(
                 self.symbol,
                 tag_for(
@@ -642,7 +695,21 @@ class MoneyField(DecimalField):
                     value = self.value or self.default,
                     Type = self._type,
                     Class = self.css_class,
-                ))
+                ),
+                self.units and tu.format(self.units) or '',
+                )
+
+    def display_value(self):
+        if self.value == None: return ''
+        if self.locale:
+            locale.setlocale(locale.LC_ALL, self.locale)
+            v = websafe(locale.currency(self.value, grouping=True))
+        else:
+            v = self.symbol + ('{:20,.2f}'.format(self.value)).strip()
+        if self.units and self.value <> None:
+            v += ' '+self.units
+        return websafe(v)
+
 
 class DateField(SimpleField):
     """

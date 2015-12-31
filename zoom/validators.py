@@ -126,12 +126,39 @@ class PostalCodeValidator(RegexValidator):
         RegexValidator.__init__(self, 'enter a valid postal code', e)
 
 class MinimumLength(Validator):
-    """A minimum length validator"""
+    """A minimum length validator
+
+        >>> v = MinimumLength(2)
+        >>> v.test('')
+        False
+        >>> v.test(' ')
+        False
+        >>> v.test('  ')
+        False
+        >>> v.test('t')
+        False
+        >>> v.msg
+        'minimum length 2'
+        >>> v.test('te')
+        True
+    
+        >>> v = MinimumLength(2, True)
+        >>> v.test('')
+        True
+        >>> v.test(' ')
+        True
+        >>> v.test('  ')
+        True
+        >>> v.test('t')
+        False
+        >>> v.test('te')
+        True
+    """
 
     def __init__(self, min_length, empty_allowed=False):
         self.empty_allowed = empty_allowed
         self.msg = 'minimum length %s' % min_length
-        self.test = lambda a: (self.empty_allowed and a=='') or not len(a) < min_length
+        self.test = lambda a: (self.empty_allowed and a.strip()=='') or not len(a.strip()) < min_length
 
 
 class MinimumValue(Validator):

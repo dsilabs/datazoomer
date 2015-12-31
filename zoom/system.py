@@ -92,6 +92,10 @@ class System:
             db_params['passwd'] = db_pass
         self.db = db.database(**db_params)
 
+        # messages
+        from messages import Messages
+        self.messages = Messages(self.db)
+
         from store import EntityStore
         settings_store = EntityStore(self.database, settings.SystemSettings)
         self.settings = settings.Settings(settings_store, config, 'system')
