@@ -12,7 +12,6 @@ class MyView(View):
             return redirect_to('/settings')
 
         actions = 'Edit',
-
         load()
         content = system_settings_form.show()
         return page(content, title=self.title, actions=actions)
@@ -35,7 +34,6 @@ class MyView(View):
 class MyController(Controller):
 
     def save_button(self):
-
         if system_settings_form.validate(data):
             save(system_settings_form)
             return home()
@@ -43,6 +41,9 @@ class MyController(Controller):
     def set_to_defaults_button(self):
         return redirect_to(url_for('edit', reset_settings=True))
 
+    def reset_theme(self):
+        save( (('theme_name', get_defaults().get('theme_name')),) )
+        return home()
 
 view = MyView()
 controller = MyController()

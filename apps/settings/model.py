@@ -1,6 +1,7 @@
 
 
 from zoom import *
+from os import listdir
 
 class MyModel(Record):
     pass
@@ -14,12 +15,10 @@ system_settings_form = Form(
         EmailField('Owner Email', required),
         EmailField('Admin Email', required),
     ]),
-    #Section('Users',[
-    #    TextField('Default', default='guest'),
-    #    TextField('Administrator Group', default='administrators'),
-    #    TextField('Developer Group', default='developers'),
-    #    TextField('Managers Group', default='managers'),
-    #]),
+    Section('Theme',[
+        PulldownField('Name', name='THEME_NAME', options=listdir(system.themes_path)),
+        TextField('Template', name='THEME_TEMPLATE'),
+    ]),
     Section('Mail',[
         TextField('SMTP Host'),
         TextField('SMTP Port'),
@@ -35,6 +34,16 @@ system_settings_form = Form(
     Buttons(['Save', 'Set to Defaults'], cancel='/settings'),
     )
 
+user_settings_form = Form(
+    Section('Theme',[
+        PulldownField('Name', name='THEME_NAME', default='', options=listdir(system.themes_path)),
+    ]),
+    Section('System',[
+        PulldownField('Profiler', name='PROFILE', default='', options=['0','1'], hint="Enable the system profiler")
+    ]),
+    Buttons(['Save'], cancel='/settings/user'),
+    )
+
 system_settings_form
 
 def get_defaults():
@@ -48,8 +57,14 @@ def load():
     system_settings_form.initialize(get_defaults())
     system_settings_form.update(system.settings.load())
 
+def load_user():
+    user_settings_form.initialize(user.settings.defaults)
+    user_settings_form.update(user.settings.load())
+
 def save(values):
     values = dict((k.lower(),v) for k,v in values if v <> None)
     system.settings.save(values)
 
-
+def save_user(values):
+    values = dict((k.lower(),v) for k,v in values if v <> None)
+    user.settings.save(values)

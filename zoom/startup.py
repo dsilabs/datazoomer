@@ -78,6 +78,7 @@ def generate_response(instance_path):
             session = system.session
 
             user.setup()
+            if user.is_admin or user.is_developer: user.apply_settings()    # apply any user context settings to the system
             manager.setup()
 
             system.subject = get_subject()

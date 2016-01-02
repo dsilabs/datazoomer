@@ -5,5 +5,5 @@ app = zoom.App()
 
 zoom.system.app.menu = [
     ('', 'System', ''),
-    ('', 'List', 'list'),
+    ('user', 'User', 'user'),
 ]

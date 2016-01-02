@@ -126,12 +126,71 @@ class PostalCodeValidator(RegexValidator):
         RegexValidator.__init__(self, 'enter a valid postal code', e)
 
 class MinimumLength(Validator):
-    """A minimum length validator"""
+    """A minimum length validator
+
+        >>> v = MinimumLength(2)
+        >>> v.test('')
+        False
+        >>> v.test(' ')
+        False
+        >>> v.test('  ')
+        False
+        >>> v.test('t')
+        False
+        >>> v.msg
+        'minimum length 2'
+        >>> v.test('te')
+        True
+    
+        >>> v = MinimumLength(2, True)
+        >>> v.test('')
+        True
+        >>> v.test(' ')
+        True
+        >>> v.test('  ')
+        True
+        >>> v.test('t')
+        False
+        >>> v.test('te')
+        True
+    """
 
     def __init__(self, min_length, empty_allowed=False):
         self.empty_allowed = empty_allowed
         self.msg = 'minimum length %s' % min_length
-        self.test = lambda a: (self.empty_allowed and a=='') or not len(a) < min_length
+        self.test = lambda a: (self.empty_allowed and a.strip()=='') or not len(a.strip()) < min_length
+
+
+class MinimumValue(Validator):
+    """
+    Minimum value validator
+
+        >>> v = MinimumValue(100)
+        >>> v.valid(50)
+        False
+        >>> v.valid(120)
+        True
+    """
+    def __init__(self, min_value, empty_allowed=True):
+        self.empty_allowed = empty_allowed
+        self.msg = 'value must be at least %s' % min_value
+        self.test = lambda a: (self.empty_allowed and a=='') or not a < min_value
+
+
+class MaximumValue(Validator):
+    """
+    Maximum value validator
+
+        >>> v = MaximumValue(100)
+        >>> v.valid(50)
+        True
+        >>> v.valid(120)
+        False
+    """
+    def __init__(self, min_value, empty_allowed=True):
+        self.empty_allowed = empty_allowed
+        self.msg = 'value must be at most %s' % min_value
+        self.test = lambda a: (self.empty_allowed and a=='') or not a > min_value
 
 
 def email_valid(email):

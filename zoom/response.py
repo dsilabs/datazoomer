@@ -3,6 +3,7 @@
 __all__ = ['Response','HTMLResponse','PNGResponse','XMLResponse','TextResponse','JSONResponse', 'JavascriptResponse', 'RedirectResponse','FileResponse']
 
 import zoom.jsonz as json
+from hashlib import md5
 
 def render_headers(headers):
     return (''.join(["%s: %s\n" % (header, value) for header, value in headers.items()]))
@@ -27,6 +28,12 @@ class PNGResponse(Response):
     def __init__(self, content):
         Response.__init__(self, content)
         self.headers['Content-type']  = 'image/png'
+
+class PNGCachedResponse(PNGResponse):
+    def __init__(self, content, age=86400):
+        PNGResponse.__init__(self, content)
+        self.headers['Cache-Control'] = 'max-age={}'.format(age)
+        self.headers['ETag'] = md5(content).hexdigest()[:9]
 
 class JPGResponse(Response):
     def __init__(self, content):

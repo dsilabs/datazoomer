@@ -1,4 +1,5 @@
 # Copyright (c) 2005-2011 Dynamic Solutions Inc. (support@dynamic-solutions.com)
+# coding=utf8
 #
 # This file is part of DataZoomer.
 #
@@ -23,12 +24,16 @@ from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown
 from helpers import attribute_escape
 from request import route
+from decimal import Decimal
+import uuid
+import locale
+from zoom import system
 
 HINT_TPL = \
         """
         <table class="transparent">
             <tr>
-                <td nowrap>%(widget)s</td>
+                <td%(wrap)s>%(widget)s</td>
                 <td>
                     <div class="hint">%(hints)s</div>
                 </td>
@@ -59,18 +64,21 @@ def layout_field(label, content, edit=True):
 class Field(object):
     js_init = ''
     js = ''
+    css = ''
     value = ''
     options=[]
     label=''
     hint=''
+    addon=''
     default = ''
     msg = ''
     required = False
     visible = True
     validators = []
     style = ''
+    wrap = ' nowrap'
 
-    def __init__(self,label='',*validators,**keywords):
+    def __init__(self, label='', *validators, **keywords):
         self.__dict__ = keywords
         if 'value' in keywords:
             self.assign(keywords['value'])
@@ -81,13 +89,21 @@ class Field(object):
     def show(self):
         return self.visible and self.display_value()
 
-    def edit(self):
-        return self.visible and self.display_value()
+    def widget(self):
+        return self.display_value()
 
-    def __getattr__(self,name):
-        if name == 'name' and hasattr(self,'label'):
+    def edit(self):
+        content = HINT_TPL % dict(
+                widget=self.widget(),
+                hints=self.render_msg() + self.render_hint(),
+                wrap=self.wrap,
+                )
+        return layout_field(self.label, content)
+
+    def __getattr__(self, name):
+        if name == 'name' and hasattr(self, 'label'):
             return name_for(self.label)
-        raise AttributeError             
+        raise AttributeError
 
     def initialize(self, *a, **k):
         if a:
@@ -102,7 +118,23 @@ class Field(object):
     def _initialize(self, values):
         self.assign(values.get(self.name.lower(), self.default))
 
-    def update(self,**values):
+    def update(self, **values):
+        """
+        Update field.
+
+            >>> name_field = Field('Name', value='Sam')
+            >>> name_field.value
+            'Sam'
+            >>> name_field.update(city='Vancouver')
+            >>> name_field.value
+            'Sam'
+            >>> name_field.update(name='Joe')
+            >>> name_field.value
+            'Joe'
+            >>> name_field.update(NaMe='Adam')
+            >>> name_field.value
+            'Adam'
+        """
         for value in values:
             if value.lower() == self.name.lower():
                 self.assign(values[value])
@@ -121,9 +153,34 @@ class Field(object):
         return {self.name: self}
 
     def __repr__(self):
+        """
+            >>> name_field = Field('Name', value='test')
+            >>> print name_field
+            NAME: test
+        """
         return '%s: %s' % (self.name, self.value)
 
     def display_value(self):
+        """
+        Display field value.
+
+            >>> name_field = Field('Name', default='default test')
+            >>> name_field.display_value()
+            'default test'
+
+            >>> name_field = Field('Name', value='test')
+            >>> name_field.display_value()
+            u'test'
+
+            >>> name_field = Field('Name', value='こんにちは')
+            >>> name_field.display_value()
+            u'\u3053\u3093\u306b\u3061\u306f'
+
+            >>> name_field.visible = False
+            >>> name_field.display_value()
+            ''
+
+        """
         return self.visible and websafe(self.value) or self.default or ''
 
     def render_hint(self):
@@ -170,9 +227,18 @@ class Field(object):
             if not v.valid(self.value):
                 self.msg = v.msg
                 return False
-        return True        
+        return True
 
     def validate(self, *a, **k):
+        """
+        Update and validate a field.
+
+            >>> name_field = TextField('Name',required)
+            >>> name_field.validate(city='Vancouver')
+            False
+            >>> name_field.validate(name='Fred')
+            True
+        """
         self.update(*a, **k)
         return self.valid()
 
@@ -180,6 +246,7 @@ class Field(object):
         return False
 
 class SimpleField(Field):
+
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and \
                 layout_field(self.label, self.display_value(), edit=False) or ''
@@ -192,8 +259,8 @@ class TextField(SimpleField):
         >>> TextField('Name',value="John Doe").show()
         u'<div class="field"><div class="field_label">Name</div><div class="field_show">John Doe</div></div>'
 
-        >>> TextField('Name',value='John Doe').edit()
-        '<div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="John Doe" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></div></div>'
+        >>> TextField('Name',value='John Doe').widget()
+        '<INPUT NAME="NAME" VALUE="John Doe" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
         >>> TextField('Name',value="Dan").show()
         u'<div class="field"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
@@ -201,8 +268,8 @@ class TextField(SimpleField):
         >>> TextField('Name',default="Dan").show()
         '<div class="field"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
 
-        >>> TextField('Name',hint="required").edit()
-        '<div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /><span class="hint">required</span></div></div>'
+        >>> TextField('Name',hint="required").widget()
+        '<INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
         >>> f = TextField('Title')
         >>> f.update(**{"TITLE": "Joe's Pool Hall"})
@@ -218,9 +285,9 @@ class TextField(SimpleField):
     _type = 'text'
     css_class = 'text_field'
 
-    def edit(self):
-        input = tag_for(
-            'input', 
+    def widget(self):
+        return tag_for(
+            'input',
             name = self.name,
             id = self.id,
             size = self.size,
@@ -229,10 +296,19 @@ class TextField(SimpleField):
             Type = self._type,
             Class = self.css_class,
         )
-        return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
 
 
 class Hidden(SimpleField):
+    """
+    Hidden field.
+
+        >>> Hidden('Hide Me').show()
+        ''
+
+        >>> Hidden('Hide Me', value='test').edit()
+        '<INPUT TYPE="hidden" NAME="HIDE_ME" VALUE="test" ID="HIDE_ME" />'
+
+    """
     visible = False
     size=maxlength=40
     def edit(self):
@@ -240,6 +316,12 @@ class Hidden(SimpleField):
 
 
 class EmailField(TextField):
+    """
+    Email field.
+
+        >>> EmailField('Email').widget()
+        '<INPUT NAME="EMAIL" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="EMAIL" SIZE="40" />'
+    """
 
     def __init__(self, label, *validators, **keywords):
         TextField.__init__(self, label, valid_email, *validators, **keywords)
@@ -255,6 +337,12 @@ class EmailField(TextField):
 
 
 class PostalCodeField(TextField):
+    """
+    Postal code field.
+
+        >>> PostalCodeField('Postal Code').widget()
+        '<INPUT NAME="POSTAL_CODE" VALUE="" CLASS="text_field" MAXLENGTH="7" TYPE="text" ID="POSTAL_CODE" SIZE="7" />'
+    """
 
     size = maxlength = 7
 
@@ -264,7 +352,15 @@ class PostalCodeField(TextField):
 
 
 class TwitterField(TextField):
+    """
+    Twitter field.
 
+        >>> TwitterField('Twitter').widget()
+        '<INPUT NAME="TWITTER" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="TWITTER" SIZE="40" />'
+
+        >>> TwitterField('Twitter', value='dsilabs').display_value()
+        '<a target="_window" href="http://www.twitter.com/dsilabs">@dsilabs</a>'
+    """
     def display_value(self):
         twitter_id = (self.value or self.default).strip().strip('@')
         return self.visible and twitter_id and '<a target="_window" href="http://www.twitter.com/%(twitter_id)s">@%(twitter_id)s</a>' % locals() or ''
@@ -326,8 +422,8 @@ class PasswordField(TextField):
         >>> PasswordField('Password').show()
         ''
 
-        >>> PasswordField('Password').edit()
-        '<div class="field"><div class="field_label">Password</div><div class="field_edit"><INPUT NAME="PASSWORD" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="password" ID="PASSWORD" SIZE="40" /></div></div>'
+        >>> PasswordField('Password').widget()
+        '<INPUT NAME="PASSWORD" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="password" ID="PASSWORD" SIZE="40" />'
     """
 
     size = maxlength = 40
@@ -335,7 +431,7 @@ class PasswordField(TextField):
 
     def show(self):
         return ''
-        
+
 
 class NumberField(TextField):
     """
@@ -344,33 +440,83 @@ class NumberField(TextField):
         >>> NumberField('Size',value=2).show()
         u'<div class="field"><div class="field_label">Size</div><div class="field_show">2</div></div>'
 
-        >>> NumberField('Size').edit()
-        '<div class="field"><div class="field_label">Size</div><div class="field_edit"><INPUT NAME="SIZE" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="SIZE" SIZE="10" /></div></div>'
+        >>> NumberField('Size').widget()
+        '<INPUT NAME="SIZE" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="SIZE" SIZE="10" />'
 
         >>> n = NumberField('Size')
         >>> n.assign('2')
         >>> n.value
         2
 
-        >>> n = NumberField('Size')
+        >>> n = NumberField('Size', units='units')
         >>> n.assign('2,123')
         >>> n.value
         2123
+        >>> n.evaluate()
+        {'SIZE': '2123'}
+        >>> n.display_value()
+        u'2123 units'
+
+        >>> n.assign(None)
+        >>> n.value == None
+        True
+        >>> n.display_value()
+        u''
+
     """
 
     size = maxlength = 10
     css_class = 'number_field'
+    units = ''
+    converter = int
 
     def evaluate(self):
+        #TODO: This method is unexpected.  Could be that it is meant to be a numeric
+        #      text field, in which case the name could be NumericTextField.
+        #      If it's meant to be able to be used as a number then it should just
+        #      return the number as it is stored (int).
+        #      It's heavily (mis-)used so will not change it now.  If you want an actual
+        #      integer field, then use IntegerField.
         return {self.name: str(self.value)}
 
     def assign(self, value):
         try:
-            if type(value) == str and ',' in value:
-                value = value.replace(',','')
-            self.value = int(value)
+            if type(value) == str:
+                value = ''.join(c for c in value if c in '0123456789.-')
+            self.value = self.converter(value)
         except:
             self.value = None
+
+    def widget(self):
+        w = tag_for(
+                    'input',
+                    name = self.name,
+                    id = self.id,
+                    size = self.size,
+                    maxlength=self.maxlength,
+                    value = self.value or self.default,
+                    Type = self._type,
+                    Class = self.css_class,
+                )
+
+        if self.units:
+            return """
+            <div class="input-group">
+              {w}
+              <span class="input-group-addon">{u}</span>
+            </div>
+            """.format(w=w, u=self.units)
+        else:
+            return w
+
+    def display_value(self):
+        if self.value == None:
+            v = ''
+        if self.units and self.value<>None:
+            v = '{} {}'.format(self.value, self.units)
+        else:
+            v = self.value
+        return websafe(v)
 
 
 class IntegerField(TextField):
@@ -380,13 +526,15 @@ class IntegerField(TextField):
         >>> IntegerField('Count',value=2).show()
         u'<div class="field"><div class="field_label">Count</div><div class="field_show">2</div></div>'
 
-        >>> IntegerField('Count').edit()
-        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
- 
+        >>> IntegerField('Count').widget()
+        '<INPUT NAME="COUNT" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
+
         >>> n = IntegerField('Size')
         >>> n.assign('2')
         >>> n.value
         2
+        >>> n.evaluate()
+        {'SIZE': 2}
     """
 
     size = maxlength = 10
@@ -396,16 +544,16 @@ class IntegerField(TextField):
     def assign(self, value):
         self.value = int(value)
 
-class FloatField(TextField):
+class FloatField(NumberField):
     """
     Float Field
 
         >>> FloatField('Count',value=2.1).show()
         u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
 
-        >>> FloatField('Count').edit()
-        '<div class="field"><div class="field_label">Count</div><div class="field_edit"><INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" /></div></div>'
- 
+        >>> FloatField('Count').widget()
+        '<INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
+
         >>> n = FloatField('Size')
         >>> n.assign(2.1)
         >>> n.value
@@ -431,22 +579,136 @@ class FloatField(TextField):
     size = maxlength = 10
     css_class = 'float_field'
     value = 0
-
-    def assign(self, value):
-        if value == '':
-            self.value = None
-        else:
-            self.value = float(value)
+    converter = float
 
     def evaluate(self):
         return {self.name: self.value}
 
-    #def evaluate(self):
-        #if value == None:
-            #return {self.name: self.value}
-        #else:
-            #return {self.name: self.value}
 
+class DecimalField(NumberField):
+    """
+    Decimal Field
+
+        >>> DecimalField('Count',value="2.1").show()
+        u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
+
+        >>> DecimalField('Count', value=Decimal('10.24')).widget()
+        '<INPUT NAME="COUNT" VALUE="10.24" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
+
+        >>> DecimalField('Count').widget()
+        '<INPUT NAME="COUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
+
+        >>> n = DecimalField('Size')
+        >>> n.assign('2.1')
+        >>> n.value
+        Decimal('2.1')
+
+        >>> n.assign(0)
+        >>> n.value
+        Decimal('0')
+
+        >>> n.assign('0')
+        >>> n.value
+        Decimal('0')
+
+        >>> n.assign('2.1')
+        >>> n.value
+        Decimal('2.1')
+
+        >>> n.assign('')
+        >>> n.evaluate()
+        {'SIZE': None}
+
+        >>> DecimalField('Hours').evaluate()
+        {'HOURS': 0}
+    """
+
+    size = maxlength = 10
+    css_class = 'decimal_field'
+    value = 0
+    converter = Decimal
+
+    def evaluate(self):
+        return {self.name: self.value}
+
+
+class MoneyField(DecimalField):
+    """
+    Money Field
+
+        >>> f = MoneyField("Amount")
+        >>> f.widget()
+        '<div class="input-group"><span class="input-group-addon">$</span><INPUT NAME="AMOUNT" VALUE="" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="AMOUNT" SIZE="10" /></div>'
+        >>> f.display_value()
+        u'$0.00'
+        >>> f.assign(Decimal(1000))
+        >>> f.display_value()
+        u'$1,000.00'
+
+        >>> from platform import system
+        >>> l = system()=='Windows' and 'eng' or 'en_GB.utf8'
+        >>> f = MoneyField("Amount", locale=l)
+        >>> f.display_value()
+        u'\\xa30.00'
+
+        >>> f.assign(Decimal(1000))
+        >>> f.display_value()
+        u'\\xa31,000.00'
+        >>> f.show()
+        u'<div class="field"><div class="field_label">Amount</div><div class="field_show">\\xa31,000.00</div></div>'
+        >>> f.widget()
+        '<div class="input-group"><span class="input-group-addon">\\xc2\\xa3</span><INPUT NAME="AMOUNT" VALUE="1000" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="AMOUNT" SIZE="10" /></div>'
+        >>> f.units = 'per month'
+        >>> f.display_value()
+        u'\\xa31,000.00 per month'
+        >>> f.units = ''
+        >>> f.display_value()
+        u'\\xa31,000.00'
+        >>> f.assign('')
+        >>> f.display_value()
+        ''
+        >>> f.assign('0')
+        >>> f.display_value()
+        u'\\xa30.00'
+        >>> f.assign(' ')
+        >>> f.display_value()
+        ''
+    """
+
+    locale = None
+    symbol = '$'
+
+    def widget(self):
+        if self.locale:
+            locale.setlocale(locale.LC_ALL, self.locale)
+            self.symbol = locale.localeconv()['currency_symbol']
+        t = '<div class="input-group"><span class="input-group-addon">{}</span>{}{}</div>'
+        tu = '<span class="input-group-addon">{}</span>'
+        return t.format(
+                self.symbol,
+                tag_for(
+                    'input',
+                    name = self.name,
+                    id = self.id,
+                    size = self.size,
+                    maxlength=self.maxlength,
+                    value = self.value or self.default,
+                    Type = self._type,
+                    Class = self.css_class,
+                ),
+                self.units and tu.format(self.units) or '',
+                )
+
+    def display_value(self):
+        if self.value == None: return ''
+        if self.locale:
+            locale.setlocale(locale.LC_ALL, self.locale)
+            v = websafe(locale.currency(self.value, grouping=True))
+        else:
+            v = self.symbol + ('{:20,.2f}'.format(self.value)).strip()
+        if self.units and self.value <> None:
+            v += ' '+self.units
+        return websafe(v)
 
 
 class DateField(SimpleField):
@@ -471,9 +733,9 @@ class DateField(SimpleField):
             try:
                 self.value = datetime.datetime.strptime(value,self.format).date()
             except:
-                self.value = None                
+                self.value = None
         else:
-            self.value = value            
+            self.value = value
 
     def edit(self):
         value = self.value and self.value.strftime(self.format) or self.default and self.default.strftime(self.format) or ''
@@ -502,6 +764,13 @@ class BirthdateField(DateField):
 
 
 class CheckboxesField(Field):
+    """
+    Checkboxes field.
+
+        >>> cb = CheckboxesField('Select',values=['One','Two','Three'], hint='test hint')
+        >>> cb.widget()
+        '<ul class="checkbox_field"><li><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="SELECT" VALUE="One" ID="SELECT" /><div>One</div></li><li><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="SELECT" VALUE="Two" ID="SELECT" /><div>Two</div></li><li><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="SELECT" VALUE="Three" ID="SELECT" /><div>Three</div></li></ul>'
+    """
 
     def widget(self):
         result = []
@@ -520,10 +789,6 @@ class CheckboxesField(Field):
             result.append('<li>%s<div>%s</div></li>' % (tag, value))
         result = '<ul class="checkbox_field">%s</ul>' % (''.join(result))
         return result
-
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
 
     def show(self):
         return layout_field(self.label, ', '.join(self.value))
@@ -635,10 +900,6 @@ class CheckboxField(TextField):
             )
         return tag
 
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
-
     def display_value(self):
         return self.value in ['yes','on',True] and self.options[0] or self.options[1] or ''
 
@@ -738,7 +999,7 @@ class Pulldown(TextField):
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
             else:
-                label, value = option, option 
+                label, value = option, option
             if label == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
             else:
@@ -839,18 +1100,13 @@ class PulldownField(TextField):
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
             else:
-                label, value = option, option 
+                label, value = option, option
             if value == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
             else:
                 result.append('<option value="%s">%s</option>' % (value,label))
         result.append('</select>')
         return ''.join(result)
-
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
-
 
 class MultiselectField(TextField):
     """
@@ -942,11 +1198,16 @@ class MultiselectField(TextField):
         result.append('</select>')
         return ''.join(result)
 
-    def edit(self):
-        content = HINT_TPL % dict(widget=self.widget(), hints=self.render_msg() + self.render_hint())
-        return layout_field(self.label, content)
 
 class ChosenMultiselectField(MultiselectField):
+    """
+    Chosen Multiselect field.
+
+        >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint')
+        >>> f.widget()
+        '<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
+    """
 
     def widget(self):
         current_labels = self._scan(self.value or self.default, lambda a: a[0])
@@ -1057,11 +1318,24 @@ class Buttons(Field):
 
 
 class PhoneField(TextField):
+    """
+    Phone field
+
+        >>> PhoneField('Phone').widget()
+        '<INPUT NAME="PHONE" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="PHONE" SIZE="20" />'
+
+
+    """
     size=20
 
 
 class MemoField(Field):
-    """Paragraph of text."""
+    """
+    Paragraph of text.
+
+        >>> MemoField('Notes').edit()
+        '<div class="field"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA ROWS="6" NAME="NOTES" COLS="60" ID="NOTES" CLASS="memo_field" SIZE="10"></TEXTAREA></div></div>'
+    """
     value=''
     height=6
     size=10
@@ -1081,7 +1355,7 @@ class MemoField(Field):
                 Class=self.css_class,
                 )
         if self.hint or self.msg:
-            table_start  = '<table class="transparent" width=100%><tr><td width=10%>' 
+            table_start  = '<table class="transparent" width=100%><tr><td width=10%>'
             table_middle = '</td><td>'
             table_end    = '</td></tr></table>'
             return layout_field(self.label, table_start + input  + table_middle + self.render_msg() + self.render_hint() + table_end )
@@ -1104,14 +1378,20 @@ class MarkdownField(MemoField):
         return markdown(self.value)
 
 class EditField(Field):
-    """Large textedit."""
+    """
+    Large textedit.
+
+        >>> EditField('Notes').edit()
+        '<div class="field"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA HEIGHT="6" CLASS="edit_field" SIZE="10" NAME="NOTES" ID="NOTES"></TEXTAREA></div></div>'
+
+    """
     value=''
     height=6
     size=10
-    css_class = 'memo_field'
+    css_class = 'edit_field'
 
     def edit(self):
-        intput = tag_for(
+        input = tag_for(
                 'textarea',
                 content=self.value,
                 name=self.name,
@@ -1125,6 +1405,72 @@ class EditField(Field):
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and layout_field(self.label,'<div class="textarea">%s</div>' % self.display_value(), edit=False) or ''
 
+class RangeSliderField(IntegerField):
+    """ jQuery UI Range Slider
+
+        >>> r = RangeSliderField('Price', min=0, max=1500)
+        >>> r.assign(0)
+        >>> r.value
+        (0, 1500)
+        >>> r.assign((10, 20))
+        >>> r.value
+        (10, 20)
+    """
+    js_formatter = """var formatter = function(v) { return v;};"""
+    js = """
+<script>
+  $(function() {
+    $( "#%(name)s" ).slider({
+      range: true,
+      min: %(tmin)s,
+      max: %(tmax)s,
+      values: [ %(minv)s, %(maxv)s ],
+      change: function( event, ui ) {
+        var v = ui.values,
+            t = v[0] + ',' + v[1];
+        $("input[name='%(name)s']").val(t);
+        %(formatter)s
+        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+      },
+      slide: function( event, ui ) {
+        var v = ui.values;
+        %(formatter)s
+        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+      }
+    });
+    $("#%(name)s").slider("values", $("#%(name)s").slider("values")); // set formatted label
+  });
+</script>
+    """
+    min = 0
+    max = 10
+    show_labels = True
+
+    def assign(self, v):
+        if v is None or not v or (isinstance(v,basestring) and v.strip()==','):
+            self.value = (self.min, self.max)
+        elif ',' in v:
+            self.value = map(int, v.split(','))
+        else:
+            self.value = (int(v[0]), int(v[1]))
+
+    def widget(self):
+        name = self.name
+        tmin, tmax = self.min, self.max
+
+        minv, maxv = self.value or (tmin, tmax)
+
+
+        formatter = self.js_formatter
+        system.tail.add(self.js % locals())
+        labels = """<div data-id="{}" class="{}"><span class="min pull-left">{}</span><span class="max pull-right">{}</span></div>""".format(
+            name,
+            not self.show_labels and "hidden" or "",
+            minv, maxv
+          )
+        return """<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>{}""".format(name, name, minv, maxv, labels)
 
 class FieldIterator:
 
@@ -1142,7 +1488,37 @@ class FieldIterator:
 
 
 class Fields(object):
-    """A collection of field objects."""
+    """
+    A collection of field objects.
+
+
+        >>> fields = Fields(TextField('Name'), PhoneField('Phone'))
+        >>> fields.edit()
+        '<div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div><div class="field"><div class="field_label">Phone</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="PHONE" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="PHONE" SIZE="20" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div>'
+
+        >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
+        >>> fields.as_dict()
+        {'PHONE': PHONE: 2234567890, 'NAME': NAME: Amy}
+
+        >>> fields = Fields(TextField('Name'), ImagesField('Photos'))
+        >>> fields.validate({'NAME': 'Test'})
+        True
+        >>> d = fields.evaluate()
+        >>> d['NAME']
+        'Test'
+        >>> len(d['PHOTOS'])
+        32
+        >>> record = dict(name='Adam', photos='no photos')
+        >>> record
+        {'photos': 'no photos', 'name': 'Adam'}
+        >>> record.update(fields)
+        >>> record['name']
+        'Test'
+        >>> len(record['photos'])
+        32
+
+
+    """
 
     def __init__(self,*a):
         if len(a) == 1 and type(a[0]) == types.ListType:
@@ -1163,6 +1539,12 @@ class Fields(object):
         return result
 
     def initialize(self, *a, **k):
+        """
+            >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
+            >>> fields.initialize(phone='987654321')
+            >>> fields.as_dict()
+            {'PHONE': PHONE: 987654321, 'NAME': NAME: }
+        """
         if a:
             values = a[0]
         elif k:
@@ -1174,6 +1556,12 @@ class Fields(object):
                 field.initialize(values)
 
     def update(self,*a,**k):
+        """
+            >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
+            >>> fields.update(phone='987654321')
+            >>> fields.as_dict()
+            {'PHONE': PHONE: 987654321, 'NAME': NAME: Amy}
+        """
         if a:
             values = a[0]
         elif k:
@@ -1185,6 +1573,11 @@ class Fields(object):
                 field.update(**values)
 
     def display_value(self):
+        """
+            >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
+            >>> fields.display_value()
+            {'PHONE': u'2234567890', 'NAME': u'Amy'}
+        """
         result = {}
         for field in self.fields:
             if hasattr(field, 'name'):
@@ -1194,6 +1587,11 @@ class Fields(object):
         return result
 
     def as_list(self):
+        """
+            >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
+            >>> fields.as_list()
+            [NAME: Amy, PHONE: 2234567890]
+        """
         result = []
         for field in self.fields:
             if hasattr(field, 'name'):
@@ -1212,6 +1610,11 @@ class Fields(object):
         return result
 
     def evaluate(self):
+        """
+            >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
+            >>> fields.evaluate()
+            {'PHONE': '2234567890', 'NAME': 'Amy'}
+        """
         result = {}
         for field in self.fields:
             result = dict(result,**field.evaluate())
@@ -1256,7 +1659,7 @@ class Section(Fields):
     def render_hint(self):
         if self.hint: return '<span class="hint">%s</span>' % self.hint
         else: return ''
-        
+
     def show(self):
         value = Fields.show(self)
         return bool(value) and ('<H2>%s</H2>\n%s' % (self.label,value)) or ''
@@ -1291,6 +1694,12 @@ class Fieldset(Fields):
 
 
 class FileField(TextField):
+    """
+    File
+
+        >>> FileField('Document').widget()
+        '<INPUT NAME="DOCUMENT" VALUE="None" CLASS="file_field" MAXLENGTH="40" TYPE="file" ID="DOCUMENT" SIZE="40" />'
+    """
     value = default = None
     _type = 'file'
     css_class = 'file_field'
@@ -1304,7 +1713,7 @@ class FileField(TextField):
 
 class ImageField(SimpleField):
     """ Display an image storage field
-    
+
     >>> ImageField('Photo').initialize(None)
     >>> Fields([ImageField('Photo')]).initialize({'hi':'dz'})   # support dict
     >>> i = ImageField('Photo')
@@ -1367,13 +1776,71 @@ class ImageField(SimpleField):
         return self.value and {self.name: self.value} or {}
 
 
+
+class ImagesField(SimpleField):
+    """ Display a drag and drop multiple image storage field
+
+    >>> ImagesField('Photo').initialize(None)
+    >>> Fields([ImagesField('Photo')]).initialize({'hi':'dz'})   # support dict
+
+    >>> i = ImagesField('Photos', value='newid')
+    >>> i.display_value()
+    '<div url="" field_name="PHOTOS" field_value="newid" class="images_field dropzone"></div>'
+    >>> i.evaluate()
+    {'PHOTOS': 'newid'}
+
+    >>> i = ImagesField('Photos')
+    >>> len(i.display_value())
+    115
+    >>> t = i.evaluate()
+    >>> i.validate(**{'OTHERFIELD': 'test'})
+    True
+    >>> t == i.evaluate()
+    True
+    >>> i.validate(**{'PHOTOS': 'test'})
+    True
+    >>> i.evaluate()
+    {'PHOTOS': 'test'}
+
+    >>> i = ImagesField('Photos')
+    >>> v1 = i.evaluate()
+    >>> len(repr(v1))
+    46
+    >>> i.value
+    >>> v1['PHOTOS'] == i.value
+    False
+    >>> i.validate(**{'PHOTOS': 'fromdatabase'})
+    True
+    >>> v2 = i.evaluate()
+    >>> v1 <> v2
+    True
+    >>> v2
+    {'PHOTOS': 'fromdatabase'}
+    """
+    _type = 'images'
+    value = None
+    default = uuid.uuid4().hex
+    wrap = ''
+    url = ''
+
+    def display_value(self):
+        t = '<div url="{url}" field_name="{name}" field_value="{value}" class="images_field dropzone"></div>'
+        return t.format(url=self.url, name=self.name, value=self.value or self.default)
+
+    def widget(self):
+        t = """
+        <div url="{url}" field_name="{name}" field_value="{value}" class="images_field dropzone"></div>
+        <input type="hidden" name="{name}" value="{value}" id="{name}">
+        """
+        return t.format(url=self.url, name=self.name, value=self.value or self.default)
+
 class Form(Fields):
     """
     An HTML form.
 
         >>> form = Form(TextField("Name"))
         >>> form.edit()
-        '<form action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></div></div></form>'
+        '<form action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div></form>'
 
     """
 
@@ -1413,6 +1880,6 @@ class Form(Fields):
 if __name__ == '__main__':
 
     import doctest
-    doctest.testmod() 
+    doctest.testmod()
 
 

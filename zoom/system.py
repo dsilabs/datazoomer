@@ -30,6 +30,7 @@ class NoApp:
     keywords = ''
     description = ''
     title = name
+    theme = ''
 
 class Site:
     def __init__(self,**k):
@@ -91,6 +92,10 @@ class System:
             db_params['passwd'] = db_pass
         self.db = db.database(**db_params)
 
+        # messages
+        from messages import Messages
+        self.messages = Messages(self.db)
+
         from store import EntityStore
         settings_store = EntityStore(self.database, settings.SystemSettings)
         self.settings = settings.Settings(settings_store, config, 'system')
@@ -150,7 +155,7 @@ class System:
 
         # load theme
         self.themes_path = existing(config.get('theme', 'path', os.path.join(self.root,'themes')))
-        self.theme = self.themes_path and config.get('theme','name','default')
+        self.theme = self.themes_path and self.settings.get('theme_name') or config.get('theme','name','default')
         self.set_theme(self.theme)
 
         self.app = NoApp()
@@ -186,7 +191,7 @@ class System:
         self.theme = self.themes_path and theme_name
         self.theme_path = existing(self.themes_path, self.theme)
         self.default_theme_path = existing(self.themes_path, 'default')
-        self.default_template = config.get('theme', 'template', 'default')
+        self.default_template = self.settings.get('theme_template') or config.get('theme', 'template', 'default')
 
         # theme templates
         self.template_path = existing(self.theme_path, 'templates')

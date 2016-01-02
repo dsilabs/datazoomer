@@ -8,7 +8,7 @@ system.app.menu = [
     ('errors','Errors','errors'),
     ('top-users','Top Users','top-users'),
     ('addresses','Addresses','addresses'),
-    ('tables','Tables','tables'),
+    ('database','Database','database'),
     ('environment','Environment','environment'),
     ('python','Python','python')]
     

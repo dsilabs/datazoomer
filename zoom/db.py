@@ -138,6 +138,7 @@ class Database(object):
             start = time.time()
         try:
             result = cursor.execute(sql, len(a)==1 and hasattr(a[0],'items') and a[0] or a)
+            self.rowcount = cursor.rowcount
         finally:
             if self.__debug:
                 print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, args)
@@ -164,6 +165,12 @@ class Database(object):
         else:
             self.lastrowid = cursor.lastrowid
             return self.lastrowid
+
+    def use(self, name):
+        """use another database on the same instance"""
+        args = list(self.__args)
+        keywords = dict(self.__keywords, db=name)
+        return Database(self.__factory, *args, **keywords)
 
 
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):

@@ -10,25 +10,102 @@
         padding: 2px 0;
         line-height: 2em;
         min-height: 2em;
-        display:block;
-        width:100%;
+        display: block;
+        width: 100%;
         font-size: 14px;
         clear: both;
     }
-    .field_label { float:left; text-align:right; padding-right:10px; line-height:2em; min-width:25%; width:25%; color: #666; }
-    .field_edit, .field_show { float:left; width:70%; line-height:2em; min-height:2em; margin-bottom: 0.25em; }
-
-    .text_field { height: 2em; border: 1px solid #aaaaaa; }
-    textarea.memo_field { border: 1px solid #aaaaaa; }
-    .field_edit .text_field  { height: 2em; border: 1px solid #aaaaaa; }
-    .field_edit .number_field { height: 2em; border: 1px solid #aaaaaa; }
-    .field_edit .date_field  { height: 2em; border: 1px solid #aaaaaa; }
-    .field_show .textarea    { border: 0px solid #aaaaaa; width:100%;  line-height: 1.25em; padding-top: 0.5em; }
-    .field_edit .textarea    { border: 1px solid #aaaaaa; width:100%; height:8em; }
-    .field_edit .memo_field  { border: 1px solid #aaaaaa; cols:60; min-height:8em; }
-    .field_edit .multiselect { border: 1px solid #aaaaaa; min-height:8em; min-width:180px; background: white; }
+    .field_label { 
+        float: left;
+        text-align: right;
+        padding-right: 10px;
+        line-height: 2em;
+        min-width: 25%;
+        width: 25%;
+        color: #666;
+    }
+    .field_edit,
+    .field_show {
+        float:left;
+        width:70%;
+        line-height:2em;
+        min-height:2em;
+        margin-bottom:
+        0.25em;
+    }
+    .field_edit input,
+    .field_edit select,
+    .field_edit textarea {
+        border: 1px solid #ccc;
+        height: 2em;
+        display: table-cell;
+    }
+    .field_edit ul.checkbox_field {
+        padding-left: 0;
+    }
+    .field_edit .input-group input {
+        border-radius: 0;
+    }
+    .field_edit .input-group input:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    .field_edit .input-group input:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    .field_show .textarea {
+        border: 0px solid #aaaaaa;
+        width: 100%;
+        line-height: 1.25em;
+        padding-top: 0.5em;
+    }
+    .field_edit .textarea    { width:100%; height:8em; }
+    .field_edit .memo_field  { cols:60; min-height:8em; }
+    .field_edit .edit_field  { width:100%; min-height:25em; }
     .field_edit .pulldown    { height: 2em; min-width: 10em; }
     .field_edit .chosen-container { margin-right: 5px; }
+    .field_edit .multiselect {
+        min-height: 8em;
+        min-width: 180px;
+        background: white;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top: 1px solid #ccc;
+        sborder-right: 0;
+    }
+
+    /* image fields */
+    .field_edit .images_field, .field_show .images_field {
+        width: 100%;
+        display: table-cell;
+        border: 1px solid #ccc;
+        min-height: 400px;
+        width: 490px;
+        border-radius: 4px;
+        padding: 10px;
+    }
+    .field_show .images_field {
+        border: 0;
+    }
+    .content .field_edit td {
+        border : 0;
+    }
+    .field_edit .images_field td {
+        border: 0;
+    }
+    div.dropzone .dz-preview .dz-image {
+        border-radius: 10px;
+    }
+    .field_show > img, .field_edit > img {
+        border: 1px solid grey;
+        width: 490px;
+    }
+
+    /* numeric fields */
+    input.decimal_field {
+        text-align: right;
+    }
 
     /* checkbox */
     .field_edit input.checkbox_field {
@@ -74,10 +151,9 @@
     input[type="color"],
     .uneditable-input {
         display: inline-block;
-        height: 2em;
+        height: 30px;
         padding: 2px 6px;
         margin: 0;
-        smargin-right: 0.5em;
         font-size: 14px;
         line-height: 20px;
         color: #555;
@@ -88,10 +164,6 @@
     }
 
     /* margin for hints */
-    .field_edit input,
-    .field_edit textarea,
-    .field_edit select
-    { margin-right: 0.5em; }
 
     div.content div.field_show p { margin: 0; padding: 0; }
     div.content div.field_edit ul { margin: 0; }
@@ -107,7 +179,7 @@
     }
 
     div input { padding-right: 5px; padding-left: 5px; }
-    div textarea { padding: 5px; }
+    div textarea { padding: 0 5px; }
 
     span.radio { margin-right:10px; display: inline; padding: 0; }
     .content span.radio input[type="radio"] {
@@ -268,7 +340,14 @@
     .user_info { font-size: 0.8em; display:inline; height:40px; }
     .meta { color: #555; font-size: 0.8em; }
     .wrong { color: red; font-size: 0.8em; margin-right: 1em;}
-    .hint { color: #555; font-size: 1em; line-height: 1.2em; margin-top: 0.42em; }
+    .hint {
+        color: #555;
+        font-size: 1em;
+        line-height: 1.2em;
+        margin-top: 0.42em;
+        margin-left: 4px;
+        font-size: 0.9em;
+    }
 
 /* Message Boxes
 ==========================*/
@@ -575,6 +654,7 @@
 ==========================*/
     div.container-title {
         padding-left: 0;
+        padding-right: 0;
     }
     #title_bar {
         background: none;
