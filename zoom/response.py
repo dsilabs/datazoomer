@@ -97,6 +97,11 @@ class JSONResponse(TextResponse):
         TextResponse.__init__(self,content)
         self.headers['Content-type'] = 'application/json;charset=utf-8'
 
+class CSSResponse(Response):
+    def __init__(self, content, **kwargs):
+        Response.__init__(self, content)
+        self.headers['Content-type'] = 'text/css;charset=utf-8'
+
 class RedirectResponse(Response):
     def __init__(self,url):
         Response.__init__(self,'')

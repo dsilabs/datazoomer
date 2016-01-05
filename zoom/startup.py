@@ -1,15 +1,14 @@
 #
 # This module is responsible for initializing the system, running the application
 # and capturing and rendering all output.
-# 
-
-import sys
+# import sys
 import os
 import StringIO
 import traceback
 import datetime
 import cProfile
 import pstats
+import sys
 
 from system import system
 from log import logger
@@ -17,7 +16,7 @@ from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
 from session import SessionExpiredException, get_subject
-from request import request, data
+from request import request, data, route
 from user import user
 from manager import manager
 from visits import visited
@@ -63,6 +62,7 @@ Content-type: text/html
 <pre>%s</pre>
 """
 
+
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
 def generate_response(instance_path):
@@ -78,6 +78,7 @@ def generate_response(instance_path):
             session = system.session
 
             user.setup()
+
             if user.is_admin or user.is_developer: user.apply_settings()    # apply any user context settings to the system
             manager.setup()
 
@@ -107,8 +108,15 @@ def generate_response(instance_path):
                 if profiler:
                     profiler.enable()
 
+                #print system.root
                 #if system.settings.get('application_database_log'):
                 #    system.db('SET GLOBAL general_log = "ON"')
+
+                #return HTMLResponse('<pre>{}</pre>'.format(
+                #    ''.join('{}: {}\n'.format(k,v) for k,v in system.__dict__.items())
+                #    ))
+
+                #return HTMLResponse('<pre>{}</pre>'.format(str(system)))
 
                 response = system.app.run()
 
@@ -116,6 +124,7 @@ def generate_response(instance_path):
 
                 if profiler:
                     profiler.disable()
+
 
             elif not requested_app_name:
                 app = manager.get_app(default_app_name)
@@ -193,6 +202,19 @@ def run_as_cgi(instance_path='..'):
     else:
         response = generate_response(instance_path)
     sys.stdout.write(response.render())
+
+def run_as_app(req):
+    request.__dict__ = req.__dict__
+    data.update(request.data)
+    del route[:]
+    route.extend(request.route)
+    #for i in request.route: route.append(i)
+
+    if not os.path.exists(os.path.join(request.instance, 'dz.conf')):
+        response = HTMLResponse(NEW_INSTALL_MESSAGE)
+    else:
+        response = generate_response(request.instance)
+    return response
 
 run = run_as_cgi
 

@@ -7,9 +7,9 @@ import db
 import config
 from StringIO import StringIO
 #from response import PNGResponse, JPGResponse, HTMLResponse, CSSResponse, JavascriptResponse
-from response import PNGResponse, JPGResponse, HTMLResponse
+from response import PNGResponse, JPGResponse, HTMLResponse, CSSResponse, JavascriptResponse
 
-import page
+#import page
 
 
 form = """<br><br>
@@ -84,23 +84,26 @@ def app2(request):
 
 def app2(request):
     import zoom.startup
-    instance = '/home/herb/work/web'
-    if not os.path.exists(os.path.join(instance, 'dz.conf')):
+    #instance = '/home/herb/work/web'
+    if not os.path.exists(os.path.join(request.instance, 'dz.conf')):
         response = HTMLResponse('New Install')
     else:
         response = zoom.startup.generate_response(instance)
     doc = response.render_doc()
     status = '200 OK'
     headers = response.headers.items() + [('Content-length', '%s' % len(doc))]
-    #return status, headers, doc
+    return status, headers, doc
     #import zoom
     #p = page.page('test123')
     #r = p.render()
-    return '200 OK', [], repr(response.__dict__)
+    return status, [], repr(response.__dict__)
 
 def app(request):
-    import zoom.startup
-    return zoom.startup.run_as_app(request)
+    from zoom.startup import run_as_app
+    response = run_as_app(request)
+    doc = response.render_doc()
+    headers = response.headers.items() + [('Content-length', '%s' % len(doc))]
+    return '200 OK', headers, doc
 
 def capture_stdout(request, handler, *rest):
     real_stdout = sys.stdout
@@ -121,8 +124,8 @@ def serve_response(filename):
             jpg=JPGResponse,
             gif=PNGResponse,
             ico=PNGResponse,
-            #css=CSSResponse,
-            #js=JavascriptResponse,
+            css=CSSResponse,
+            js=JavascriptResponse,
             )
     if os.path.exists(filename):
         fn = filename.lower()
@@ -138,7 +141,8 @@ def serve_response(filename):
 
 def serve_static(request, handler, *rest):
     if request.path.startswith('/static/'):
-        root_dir = request.root
+        #root_dir = request.root
+        root_dir = '/home/herb/work/web/www'
         filename = os.path.join(root_dir, request.path[1:])
         return serve_response(filename)
     else:
@@ -147,7 +151,9 @@ def serve_static(request, handler, *rest):
 
 def serve_themes(request, handler, *rest):
     if request.path.startswith('/themes/'):
-        root_dir = request.root
+        #root_dir = request.root
+        #root_dir = request.home
+        root_dir = '/home/herb/work/web'
         filename = os.path.join(root_dir, request.path[1:])
         return serve_response(filename)
     else:
@@ -180,14 +186,14 @@ def _handle(request, handler, *rest):
 
 
 def handle(request, handlers=None):
-    import zoom.config
     default_handlers = (
         trap_errors,
         serve_favicon,
         serve_static,
         serve_themes,
-        capture_stdout,
-        trap_errors,
+        #capture_stdout,
+        #trap_errors,
+        #debug,
         app,
         )
     return _handle(request, *(handlers or default_handlers))

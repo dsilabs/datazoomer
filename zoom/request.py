@@ -22,7 +22,6 @@ import urllib
 import Cookie
 from types import ListType
 
-
 def calc_domain(host):
     if host:
         return host.split(':')[-1:][0].split('www.')[-1:][0]
@@ -82,13 +81,25 @@ class Webvars:
 
 
 class Request:
-    def __init__(self, env=os.environ):
+    def __init__(self, env=os.environ, instance=None):
+        self.setup(env, instance)
 
+    def setup(self, env, instance=None):
         path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
         route = path != '/' and path.split('/')[1:] or []
 
+        module = env.get('wsgi.version',None) and 'wsgi' or 'cgi'
+
+        if module == 'wsgi':
+            server = env.get('HTTP_HOST').split(':')[0]
+            home = os.getcwd()
+        else:
+            server = env.get('SERVER_NAME','localhost')
+            home = os.path.dirname(env.get('SCRIPT_FILENAME',''))
+
         # gather some commonly required environment variables
         request = dict(
+            instance = instance,
             path = path,
             host = env.get('HTTP_HOST'),
             domain = calc_domain(env.get('HTTP_HOST')),
@@ -97,12 +108,13 @@ class Request:
             ip = env.get('REMOTE_ADDR'),
             user = env.get('REMOTE_USER'),
             port = env.get('SERVER_PORT'),
-            server = env.get('SERVER_NAME','localhost'),
+            #server = env.get('SERVER_NAME','localhost'),
+            server = server,
             script = env.get('SCRIPT_FILENAME'),
-            home = os.path.dirname(env.get('SCRIPT_FILENAME','')),
+            home = home,
             agent  = env.get('HTTP_USER_AGENT'),
             method = env.get('REQUEST_METHOD'),
-            module = env.get('wsgi.version',None) and 'wsgi' or 'cgi',
+            module = module,
             mode = env.get('mod_wsgi.process_group', None) and 'daemon' or 'embedded',
             protocol = env.get('HTTPS','off') == 'on' and 'https' or 'http',
             referrer = env.get('HTTP_REFERER'),
