@@ -1121,6 +1121,12 @@ class MultiselectField(TextField):
         >>> MultiselectField('Type',value=['One','Three'],options=['One','Two','Three']).widget()
         '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option><option value="Three" selected>Three</option></select>'
 
+        >>> MultiselectField('Type',default=['One'],options=['One','Two','Three']).widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
+        >>> MultiselectField('Type',default=['One','Two'],options=['One','Two','Three']).widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two" selected>Two</option><option value="Three">Three</option></select>'
+
         >>> f = MultiselectField('Type',value='One',options=[('One','uno'),('Two','dos')])
         >>> f.widget()
         '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="uno" selected>One</option><option value="dos">Two</option></select>'
