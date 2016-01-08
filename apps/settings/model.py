@@ -16,7 +16,7 @@ system_settings_form = Form(
         EmailField('Admin Email', required),
     ]),
     Section('Theme',[
-        PulldownField('Name', name='THEME_NAME', options=listdir(system.themes_path)),
+        PulldownField('Name', name='THEME_NAME', options=sorted(listdir(system.themes_path))),
         TextField('Template', name='THEME_TEMPLATE'),
     ]),
     Section('Mail',[
@@ -36,7 +36,7 @@ system_settings_form = Form(
 
 user_settings_form = Form(
     Section('Theme',[
-        PulldownField('Name', name='THEME_NAME', default='', options=listdir(system.themes_path)),
+        PulldownField('Name', name='THEME_NAME', default='', options=sorted(listdir(system.themes_path))),
     ]),
     Section('System',[
         PulldownField('Profiler', name='PROFILE', default='', options=['0','1'], hint="Enable the system profiler")
