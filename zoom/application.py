@@ -20,36 +20,63 @@ import response
 import ConfigParser
 from system import system
 
+default_settings = dict(
+         title = '',
+         icon = 'blank_doc',
+         version = 0.0,
+         enabled = True,
+         visible = True,
+         theme = '',
+         description = '',
+         categories = '',
+         tags = '',
+         keywords = '',
+         in_development = False,
+         )
 
 def list_it(iter):
     return [a.strip() for a in iter.split(',') if a]
 
 class Application:
-    def __init__(self,name,path):
+    def __init__(self, name, path):
         self.name    = name
-        self.get = self.read_config
+        self.get     = self.read_config # remove?
         self.path    = path
         self.dir     = os.path.split(path)[0]
-        #self.settings = system.settings.app(name)
-        from zoom import manager, EntityStore
-        from settings import Settings, ApplicationSettings
-        self.settings = Settings(
-            EntityStore(system.db, ApplicationSettings),
-            self,
-            name
-          )
-        get = self.settings.get
-        self.theme   = get('theme')
-        self.enabled = get('enabled')
-        self.version = get('version')
-        self.icon    = get('icon')
-        self.title   = get('title') or name.capitalize()
-        self.visible = get('visible')
-        self.description = get('description', '')
-        self.categories = list_it(get('categories',''))
-        self.tags = list_it(get('tags',''))
-        self.keywords = get('keywords','')
-        self.in_development = get('in_development')
+
+        self.__dict__.update(self.get_settings())
+
+        self.title      = self.title or name.capitalize()
+        self.categories = list_it(self.categories)
+        self.tags       = list_it(self.tags)
+
+    def get_settings(self):
+        """
+        get settings specific to this application
+        """
+        negative = ['NO', 'No', 'nO', 'no', 'N', 'n', False, '0', 0]
+
+        config_file1 = os.path.join(self.dir,'config.ini')
+        config1 = ConfigParser.ConfigParser()
+        config1.read(config_file1)
+
+        config_file2 = os.path.join(os.path.split(self.dir)[0],'default.ini')
+        config2 = ConfigParser.ConfigParser()
+        config2.read(config_file2)
+
+        result = {}
+        for key, default in default_settings.items():
+            try:
+                value = config1.get('settings', key)
+            except:
+                try:
+                    value = config2.get('settings', key)
+                except:
+                    value = default
+            if type(default) == bool:
+                value = value not in negative
+            result[key] = value
+        return result
 
     def read_config(self,section,key,default=None):
         config_file1 = os.path.join(self.dir,'config.ini')
