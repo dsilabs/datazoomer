@@ -83,7 +83,7 @@ class Field(object):
         if 'value' in keywords:
             self.assign(keywords['value'])
         self.label = label
-        self.validators = validators
+        self.validators = list(validators) + self.validators
         self.id = self.name
 
     def show(self):
@@ -760,7 +760,8 @@ class DateField(SimpleField):
 
 
 class BirthdateField(DateField):
-    size=maxlength=10
+    size=maxlength=12
+    css_class = 'birthdate_field'
 
 
 class CheckboxesField(Field):
@@ -1333,6 +1334,7 @@ class PhoneField(TextField):
 
     """
     size=20
+    validators = [valid_phone]
 
 
 class MemoField(Field):
