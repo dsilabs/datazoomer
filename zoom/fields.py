@@ -388,6 +388,16 @@ class URLField(TextField):
         >>> f.display_value()
         u'<a target="_window" href="http://www.dsilabs.ca">www.dsilabs.ca</a>'
 
+        >>> f = URLField('Website', default='www.google.com')
+        >>> f.assign('https://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="https://www.dsilabs.ca/">https://www.dsilabs.ca/</a>'
+
+        >>> f = URLField('Website', default='www.google.com', trim=True)
+        >>> f.assign('https://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="https://www.dsilabs.ca">www.dsilabs.ca</a>'
+
     """
 
     size = 60
@@ -402,10 +412,12 @@ class URLField(TextField):
         if url:
             if not (url.startswith('http') or url.startswith('ftp:')):
                 url = 'http://' + url
-        if not self.trim and not (text.startswith('http://') or text.startswith('ftp:')):
-            text = 'http://' + text
+                if not self.trim:
+                    text = 'http://' + text
         if self.trim and text.startswith('http://'):
             text = text[7:]
+        if self.trim and text.startswith('https://'):
+            text = text[8:]
         if self.trim and text.endswith('/'):
             text = text[:-1]
             url = url[:-1]
