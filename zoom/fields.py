@@ -1745,6 +1745,7 @@ class ImageField(SimpleField):
     _type = 'file'
     css_class = 'image_field'
     no_image_url = '/static/dz/images/no_photo.png'
+    binary_image_data = None
 
     def _initialize(self, values):
         name = self.name.lower()
@@ -1786,14 +1787,15 @@ class ImageField(SimpleField):
     def assign(self, value):
         try:
             try:
-                self.value = value.value
+                self.binary_image_data = value.value
             except AttributeError:
                 self.value = value
         except AttributeError:
             self.value = None
 
     def evaluate(self):
-        return self.value and {self.name: self.value} or {}
+        value = self.binary_image_data
+        return value and {self.name: value} or {}
 
 
 
