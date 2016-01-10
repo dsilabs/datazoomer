@@ -76,6 +76,14 @@
     }
 
     /* image fields */
+    .field_edit img.image-field-image {
+        margin: 0;
+    }
+    .field_edit div.image-field-delete-link {
+        text-align: center;
+        margin: 1em 0 0 0;
+        width: 490px;
+    }
     .field_edit .images_field, .field_show .images_field {
         width: 100%;
         display: table-cell;
