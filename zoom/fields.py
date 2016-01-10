@@ -1739,7 +1739,7 @@ class ImageField(SimpleField):
     >>> i = ImageField('Photo')
     >>> i.initialize({'photo':'data blob', 't':12})
     >>> i.value
-    '<img alt="PHOTO" src="image?name=photo">'
+    '<img class="image-field-image" alt="PHOTO" src="image?name=photo">'
     """
     size = maxlength = 40
     _type = 'file'
@@ -1757,7 +1757,7 @@ class ImageField(SimpleField):
             url = 'image?name=' + name
         else:
             url = self.no_image_url
-        self.value = '<img alt="{}" src="{}">'.format(
+        self.value = '<img class="image-field-image" alt="{}" src="{}">'.format(
                 alt,
                 url,
                 )
@@ -1775,9 +1775,9 @@ class ImageField(SimpleField):
             Type = self._type,
             Class = self.css_class,
         )
-        delete_link = '<a href="delete_image?name=%s">delete %s</a>' % (self.name.lower(), self.label.lower())
+        delete_link = '<div class="image-field-delete-link"><a href="delete_image?name=%s">delete %s</a></div>' % (self.name.lower(), self.label.lower())
         if self.value:
-            input += '<br>' + delete_link + ' <br>' + self.display_value()
+            input += delete_link + self.display_value()
         return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
 
     def requires_multipart_form(self):
