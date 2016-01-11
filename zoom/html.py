@@ -18,7 +18,7 @@
 
 def li(items):
     """
-        produced HTML for list items
+    generate list items
 
         >>> li(['this','that'])
         '<li>this</li><li>that</li>'
@@ -28,7 +28,7 @@ def li(items):
 
 def ul(items, Class=''):
     """
-        produced HTML for an unordered list
+    generate an unordered list
         
         >>> ul(['this','that'])
         '<ul><li>this</li><li>that</li></ul>'
@@ -38,7 +38,13 @@ def ul(items, Class=''):
     return '<ul%s>%s</ul>' % (class_attr, ''.join('<li>%s</li>' % item for item in items))
 
 def tag(tag_text,content='',*args,**keywords):
-    """Generates an HTML tag"""
+    """
+    generates an HTML tag
+
+        >>> tag('div', 'some content')
+        '<div>some content</div>'
+
+    """
     tag_type = tag_text.lower()
     singles = ''.join([' %s' % arg.lower() for arg in args])
     attribute_text = ''.join([' %s="%s"' % (key.lower(),keywords[key]) for key in keywords])
@@ -48,16 +54,12 @@ def tag(tag_text,content='',*args,**keywords):
         return '<%s%s%s />' % (tag_type,singles,attribute_text)
      
 def div(content,**keywords):
+    """
+    generates an div tag
+
+        >>> div('some content')
+        '<div>some content</div>'
+
+    """
     return tag('div',content,**keywords)
      
-if __name__ == '__main__':
-    import unittest
-    class Tests(unittest.TestCase):
-        
-        def test_ul(self):
-            self.assertEqual(ul(['this','that']),'<ul><li>this</li><li>that</li></ul>')
-            
-    unittest.main()
-    
-                    
-    
