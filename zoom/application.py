@@ -44,17 +44,41 @@ class Application:
         self.path    = path
         self.dir     = os.path.split(path)[0]
 
-        self.__dict__.update(self.get_settings())
+        #self.settings = system.settings.app(name)
 
-        self.title      = self.title or name.capitalize()
-        self.categories = list_it(self.categories)
-        self.tags       = list_it(self.tags)
+        from zoom import manager, EntityStore
+        from settings import Settings, ApplicationSettings
+        self.settings = Settings(
+            EntityStore(system.db, ApplicationSettings),
+            self,
+            name
+          )
+        get = self.settings.get
+        self.theme   = get('theme')
+        self.enabled = get('enabled')
+        self.version = get('version')
+        self.icon    = get('icon')
+        self.title   = get('title') or name.capitalize()
+        self.visible = get('visible')
+        self.description = get('description', '')
+        self.categories = list_it(get('categories',''))
+        self.tags = list_it(get('tags',''))
+        self.keywords = get('keywords','')
+        self.in_development = get('in_development')
+
+        #self.__dict__.update(self.get_settings())
+
+        #self.title      = self.title or name.capitalize()
+        #self.categories = list_it(self.categories)
+        #self.tags       = list_it(self.tags)
 
     def get_settings(self):
         """
         get settings specific to this application
         """
         negative = ['NO', 'No', 'nO', 'no', 'N', 'n', False, '0', 0]
+
+        #self.settings = system.settings.app(self.name)
 
         config_file1 = os.path.join(self.dir,'config.ini')
         config1 = ConfigParser.ConfigParser()

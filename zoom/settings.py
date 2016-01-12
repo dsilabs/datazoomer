@@ -41,6 +41,25 @@ class UserSystemSettings(Record):
             profile         = config.get('system','profile',''),
         )
 
+class ApplicationSettings(Record):
+    @classmethod
+    def defaults(cls, config):
+        negative = ['NO', 'No', 'nO', 'no', 'N', 'n', False, '0', 0]
+        return dict(
+            title   = config.get('settings','title',''),
+            icon    = config.get('settings','icon','blank_doc'),
+            version = config.get('settings','version',0.0),
+            enabled = config.get('settings','enabled',True) not in negative,
+            visible = config.get('settings','visible',True) not in negative,
+            theme   = config.get('settings','theme',''),
+            description = config.get('settings','description',''),
+            categories = config.get('settings','categories',''),
+            tags =config.get('settings','tags',''),
+            keywords = config.get('settings','keywords',''),
+            in_development = config.get('settings','in_development',False) not in negative,
+        )
+
+
 
 class Settings(object):
     """manage settings
@@ -63,6 +82,17 @@ class Settings(object):
         >>> settings.set('site_name', 'datazoomer.com')
         >>> settings.get('site_name', 'no_site')
         'datazoomer.com'
+
+        >>> app_store = EntityStore(system.database, ApplicationSettings)
+        >>> myapp = Application('myapp', 'apps/activity/app.py')
+        >>> myapp.get = myapp.read_config
+        >>> myapp_settings = Settings(app_store, myapp, 'myapp')
+        >>> myapp_settings.get('visible', False)
+        True
+        >>> myapp_settings.get('title', 'testing')
+        'Activity'
+        >>> myapp_settings.get('theme', 'came_out_blank')
+        'came_out_blank'
 
     """
 
