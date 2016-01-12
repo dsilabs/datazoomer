@@ -91,8 +91,16 @@ class Settings(object):
         True
         >>> myapp_settings.get('title', 'testing')
         'Activity'
+        >>> myapp_settings.reset('theme')
         >>> myapp_settings.get('theme', 'came_out_blank')
         'came_out_blank'
+        >>> myapp_settings.put('theme', 'sometheme')
+        >>> myapp_settings.get('theme', 'came_out_blank')
+        'sometheme'
+        >>> myapp_settings.reset('theme')
+        >>> myapp_settings.get('theme', 'came_out_blank')
+        'came_out_blank'
+
 
     """
 
