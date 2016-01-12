@@ -1224,7 +1224,7 @@ class ChosenMultiselectField(MultiselectField):
 
         >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint')
         >>> f.widget()
-        '<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+        '<select multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
 
     """
 
@@ -1232,7 +1232,7 @@ class ChosenMultiselectField(MultiselectField):
         current_labels = self._scan(self.value or self.default, lambda a: a[0])
         result = []
         name = self.name
-        result.append('<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="%s" id="%s">\n'%(name,name))
+        result.append('<select multiple="multiple" class="chosen" name="%s" id="%s">\n'%(name,name))
         for option in self.options:
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option

@@ -65,6 +65,10 @@
     .field_edit .edit_field  { width:100%; min-height:25em; }
     .field_edit .pulldown    { height: 2em; min-width: 10em; }
     .field_edit .chosen-container { margin-right: 5px; }
+    .field_edit .chosen {
+        width: 300px;
+        margin-right: 5px;
+    }
     .field_edit .multiselect {
         min-height: 8em;
         min-width: 180px;
