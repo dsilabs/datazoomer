@@ -94,6 +94,11 @@ def app():
 
         fields.update(**data)
         if fields.valid():
+            def test_account(email):
+                return 'test' in email and (
+                    email.endswith('@datazoomer.com') or
+                    email.endswith('@testco.com')
+                )
             err = get_errors(data)
             if not err:
                 r = Registration(**data)
@@ -107,8 +112,12 @@ def app():
                 recipient = data['EMAIL']
                 msg = viewfill(tpl,callback)
                 try:
-                    if recipient <> 'testuser@datazoomer.com':
+                    if test_account(recipient):
+                        logger.warning('no email sent to test account')
+                    else:
                         send(recipient, site_name()+' registration',msg)
+                        logger.info(
+                            'registration email sent: {}'.format(recipient))
                 except:
                     logger.error('Registration error sending %s to %s' % (token, recipient))
                     msg = 'fail'
@@ -119,7 +128,7 @@ def app():
                 return Page(msg)
 
             else:
-               error(*err) 
+               error(*err)
 
     if experiment('welcome_message'):
         msg = 'You\'re just seconds from your new <dz:site_name> account.  <strong>Thanks for choosing <dz:site_name>!</strong>'
