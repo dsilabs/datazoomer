@@ -11,7 +11,6 @@ Used as a decorator.
 """
 
 import time
-import hashlib
 
 from .store import store
 from .store import Entity
