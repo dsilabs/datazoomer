@@ -1,29 +1,46 @@
+# -*- coding: utf-8 -*-
+
 """
-    cache.py
+zoom.cache - experimental
+~~~~~~~~~~
 
-    experimental
+Provides a cache mechanism that can be used to add automatic caching
+to functions and methods.  Handy for caching generated pages.
 
+Used as a decorator.
 """
 
 import time
-from zoom import store, Entity, system, message
 import hashlib
 
+from .store import store
+from .store import Entity
+from .system import system
+from .helpers import message
 
-DEFAULT_CACHE_LIFE = 3600 # one hour expiry
+__all__ = ['cached', 'clear_cache']
+
+
+DEFAULT_CACHE_LIFE = 3600  # one hour expiry
 debugging = False
 
-class CacheEntry(Entity): pass
+
+class CacheEntry(Entity):
+    pass
+
+
 Entry = CacheEntry
+
 
 def load(key):
     entries = store(Entry)
-    entry = entries.first(key=key) 
+    entry = entries.first(key=key)
     now = time.time()
     result = entry and entry.expiry > now and entry.value
     if debugging and result:
         message('cache hit!')
     return result
+
 
 def save(key, value, expire=DEFAULT_CACHE_LIFE):
     entries = store(Entry)
@@ -40,14 +57,17 @@ def save(key, value, expire=DEFAULT_CACHE_LIFE):
     entries.put(entry)
     return value
 
+
 def calc_key(method_name, *a):
     return repr((system.app.name, method_name, a))
+
 
 def clear_cache(method_name, *keys):
     entries = store(Entry)
     for entry in entries:
         entries.delete(entry)
-    
+
+
 def cached(*keys, **kv):
     """
         decorator that caches method results
@@ -84,11 +104,9 @@ def cached(*keys, **kv):
     def cached_decorator_with_params(func):
         def wrapper(*args, **kwargs):
             expire = kv.pop('expire', DEFAULT_CACHE_LIFE)
-            #message('new expire ' + repr(expire))
-            #expiry = 5 #kv.pop('expiry', DEFAULT_CACHE_LIFE)
             full_key = calc_key(func.__name__, keys, args[1:], kwargs)
-            #message(full_key)
-            return load(full_key) or save(full_key, func(*args, **kwargs), expire=expire)
+            return load(full_key) or \
+                save(full_key, func(*args, **kwargs), expire=expire)
         return wrapper
 
     if len(keys) == 1 and callable(keys[0]):
