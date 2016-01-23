@@ -10,7 +10,7 @@ import logging
 from zoom import json, Record, EntityStore
 
 __all__ = [
-    'Messages',
+    'Queues',
     'Topic',
     'EmptyException',
     'WaitException',
@@ -36,7 +36,7 @@ Message = SystemMessage
 def setup_test():
     from zoom.store import setup_test
     db = setup_test()
-    return Messages(db)
+    return Queues(db)
 
 
 class TopicIterator(object):
@@ -463,7 +463,7 @@ class Topic(object):
         """
         return self.handle(f, timeout, one_pass=True)
 
-class Messages(object):
+class Queues(object):
     """
     messages
 
