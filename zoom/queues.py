@@ -129,7 +129,7 @@ class Topic(object):
                     select min(row_id) as row_id 
                     from attributes where kind=%s and row_id>%s
                     """
-                rec = self.documents.db(cmd, self.messages.kind, top_one)
+                rec = db(cmd, self.messages.kind, top_one)
             if type(rec) == long:
                 row_id = 0
             else:
@@ -358,6 +358,23 @@ class Topic(object):
             hey!
             you!
             2L
+
+            >>> t1 = messages.topic('test_topic1')
+            >>> t2 = messages.topic('test_topic2')
+            >>> t3 = messages.topic(None)
+
+            >>> t1.put('hey!')
+            3L
+            >>> t2.put('you!')
+            4L
+            >>> def echo(m):
+            ...     print m
+            ...     return m == 'you!'
+            >>> t3.listen(echo)
+            hey!
+            you!
+            2L
+
         """
         n = 0L
         done = False
