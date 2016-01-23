@@ -486,6 +486,26 @@ class Messages(object):
     def topic(self, name, newest=None):
         return Topic(name, newest, self.db)
 
+    def topics(self):
+        cmd = """
+            select distinct value
+            from attributes
+            where kind=%s and attribute="topic"
+            order by value
+            """
+        kind = EntityStore(self.db, Message).kind
+        return [a for a, in self.db(cmd, kind)]
+
+    def stats(self):
+        cmd = """
+            select value, count(*) as count
+            from attributes
+            where kind=%s and attribute="topic"
+            group by value
+            """
+        kind = EntityStore(self.db, Message).kind
+        return self.db(cmd, kind)
+
     def __call__(self, name, newest=None):
         return Topic(name, newest, self.db)
 
