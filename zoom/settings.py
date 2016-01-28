@@ -6,7 +6,6 @@
 
 from utils import Record
 
-
 class SystemSettings(Record):
     @classmethod
     def defaults(cls, config):
@@ -61,6 +60,7 @@ class ApplicationSettings(Record):
         )
 
 
+
 class Settings(object):
     """manage settings
 
@@ -91,8 +91,17 @@ class Settings(object):
         True
         >>> myapp_settings.get('title', 'testing')
         'Activity'
+        >>> myapp_settings.reset('theme')
         >>> myapp_settings.get('theme', 'came_out_blank')
         'came_out_blank'
+        >>> myapp_settings.put('theme', 'sometheme')
+        >>> myapp_settings.get('theme', 'came_out_blank')
+        'sometheme'
+        >>> myapp_settings.reset('theme')
+        >>> myapp_settings.get('theme', 'came_out_blank')
+        'came_out_blank'
+
+
     """
 
     def __init__(self, store, config, context):
@@ -116,7 +125,7 @@ class Settings(object):
         self.defaults = self.klass.defaults(config)
         self.values = dict((r['key'],r['value']) for r in self.store)
 
-    def set(self, key, value):
+    def put(self, key, value):
         k = '.'.join((self.context,key))
         r = self.store.first(key=k)
         if not r:
@@ -124,6 +133,9 @@ class Settings(object):
         r['value'] = value
         self.store.put(r)
         self.values[k] = value
+
+    def set(self, key, value):
+        return self.put(key, value)
 
     def get(self, key, default=None):
         k = '.'.join((self.context,key))
@@ -148,4 +160,5 @@ class Settings(object):
         return dict(
                 (r['key'][len(prefix):],r['value'])
                 for r in self.store if r['key'].startswith(prefix))
+
 

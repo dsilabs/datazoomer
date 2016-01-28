@@ -65,6 +65,10 @@
     .field_edit .edit_field  { width:100%; min-height:25em; }
     .field_edit .pulldown    { height: 2em; min-width: 10em; }
     .field_edit .chosen-container { margin-right: 5px; }
+    .field_edit .chosen {
+        width: 300px;
+        margin-right: 5px;
+    }
     .field_edit .multiselect {
         min-height: 8em;
         min-width: 180px;
@@ -76,6 +80,14 @@
     }
 
     /* image fields */
+    .field_edit img.image-field-image {
+        margin: 0;
+    }
+    .field_edit div.image-field-delete-link {
+        text-align: center;
+        margin: 1em 0 0 0;
+        width: 490px;
+    }
     .field_edit .images_field, .field_show .images_field {
         width: 100%;
         display: table-cell;

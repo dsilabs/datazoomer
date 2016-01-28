@@ -10,7 +10,7 @@ import logging
 from zoom import json, Record, EntityStore
 
 __all__ = [
-    'Messages',
+    'Queues',
     'Topic',
     'EmptyException',
     'WaitException',
@@ -36,7 +36,7 @@ Message = SystemMessage
 def setup_test():
     from zoom.store import setup_test
     db = setup_test()
-    return Messages(db)
+    return Queues(db)
 
 
 class TopicIterator(object):
@@ -129,7 +129,7 @@ class Topic(object):
                     select min(row_id) as row_id 
                     from attributes where kind=%s and row_id>%s
                     """
-                rec = self.documents.db(cmd, self.messages.kind, top_one)
+                rec = db(cmd, self.messages.kind, top_one)
             if type(rec) == long:
                 row_id = 0
             else:
@@ -358,6 +358,23 @@ class Topic(object):
             hey!
             you!
             2L
+
+            >>> t1 = messages.topic('test_topic1')
+            >>> t2 = messages.topic('test_topic2')
+            >>> t3 = messages.topic(None)
+
+            >>> t1.put('hey!')
+            3L
+            >>> t2.put('you!')
+            4L
+            >>> def echo(m):
+            ...     print m
+            ...     return m == 'you!'
+            >>> t3.listen(echo)
+            hey!
+            you!
+            2L
+
         """
         n = 0L
         done = False
@@ -463,7 +480,7 @@ class Topic(object):
         """
         return self.handle(f, timeout, one_pass=True)
 
-class Messages(object):
+class Queues(object):
     """
     messages
 
@@ -485,6 +502,26 @@ class Messages(object):
 
     def topic(self, name, newest=None):
         return Topic(name, newest, self.db)
+
+    def topics(self):
+        cmd = """
+            select distinct value
+            from attributes
+            where kind=%s and attribute="topic"
+            order by value
+            """
+        kind = EntityStore(self.db, Message).kind
+        return [a for a, in self.db(cmd, kind)]
+
+    def stats(self):
+        cmd = """
+            select value, count(*) as count
+            from attributes
+            where kind=%s and attribute="topic"
+            group by value
+            """
+        kind = EntityStore(self.db, Message).kind
+        return self.db(cmd, kind)
 
     def __call__(self, name, newest=None):
         return Topic(name, newest, self.db)

@@ -54,7 +54,7 @@ class Collection:
             for rec in store:
                 if rec.key == key or rec.href_id == key:
                     return rec
-        return key.isdigit() and cls.store.get(key) or cls.store.find(key=key) or scan(cls.store,key)
+        return key.isdigit() and cls.store.get(key) or cls.store.first(key=key) or scan(cls.store,key)
 
     @classmethod
     def match(cls, text):

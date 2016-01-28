@@ -83,7 +83,7 @@ class Field(object):
         if 'value' in keywords:
             self.assign(keywords['value'])
         self.label = label
-        self.validators = validators
+        self.validators = list(validators) + self.validators
         self.id = self.name
 
     def show(self):
@@ -388,6 +388,16 @@ class URLField(TextField):
         >>> f.display_value()
         u'<a target="_window" href="http://www.dsilabs.ca">www.dsilabs.ca</a>'
 
+        >>> f = URLField('Website', default='www.google.com')
+        >>> f.assign('https://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="https://www.dsilabs.ca/">https://www.dsilabs.ca/</a>'
+
+        >>> f = URLField('Website', default='www.google.com', trim=True)
+        >>> f.assign('https://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="https://www.dsilabs.ca">www.dsilabs.ca</a>'
+
     """
 
     size = 60
@@ -402,10 +412,12 @@ class URLField(TextField):
         if url:
             if not (url.startswith('http') or url.startswith('ftp:')):
                 url = 'http://' + url
-        if not self.trim and not (text.startswith('http://') or text.startswith('ftp:')):
-            text = 'http://' + text
+                if not self.trim:
+                    text = 'http://' + text
         if self.trim and text.startswith('http://'):
             text = text[7:]
+        if self.trim and text.startswith('https://'):
+            text = text[8:]
         if self.trim and text.endswith('/'):
             text = text[:-1]
             url = url[:-1]
@@ -760,7 +772,8 @@ class DateField(SimpleField):
 
 
 class BirthdateField(DateField):
-    size=maxlength=10
+    size=maxlength=12
+    css_class = 'birthdate_field'
 
 
 class CheckboxesField(Field):
@@ -1211,7 +1224,7 @@ class ChosenMultiselectField(MultiselectField):
 
         >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint')
         >>> f.widget()
-        '<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+        '<select multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
 
     """
 
@@ -1219,7 +1232,7 @@ class ChosenMultiselectField(MultiselectField):
         current_labels = self._scan(self.value or self.default, lambda a: a[0])
         result = []
         name = self.name
-        result.append('<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="%s" id="%s">\n'%(name,name))
+        result.append('<select multiple="multiple" class="chosen" name="%s" id="%s">\n'%(name,name))
         for option in self.options:
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
@@ -1333,6 +1346,7 @@ class PhoneField(TextField):
 
     """
     size=20
+    validators = [valid_phone]
 
 
 class MemoField(Field):
@@ -1725,12 +1739,13 @@ class ImageField(SimpleField):
     >>> i = ImageField('Photo')
     >>> i.initialize({'photo':'data blob', 't':12})
     >>> i.value
-    '<img alt="PHOTO" src="image?name=photo">'
+    '<img class="image-field-image" alt="PHOTO" src="image?name=photo">'
     """
     size = maxlength = 40
     _type = 'file'
     css_class = 'image_field'
     no_image_url = '/static/dz/images/no_photo.png'
+    binary_image_data = None
 
     def _initialize(self, values):
         name = self.name.lower()
@@ -1743,7 +1758,7 @@ class ImageField(SimpleField):
             url = 'image?name=' + name
         else:
             url = self.no_image_url
-        self.value = '<img alt="{}" src="{}">'.format(
+        self.value = '<img class="image-field-image" alt="{}" src="{}">'.format(
                 alt,
                 url,
                 )
@@ -1761,9 +1776,9 @@ class ImageField(SimpleField):
             Type = self._type,
             Class = self.css_class,
         )
-        delete_link = '<a href="delete_image?name=%s">delete %s</a>' % (self.name.lower(), self.label.lower())
+        delete_link = '<div class="image-field-delete-link"><a href="delete_image?name=%s">delete %s</a></div>' % (self.name.lower(), self.label.lower())
         if self.value:
-            input += '<br>' + delete_link + ' <br>' + self.display_value()
+            input += delete_link + self.display_value()
         return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
 
     def requires_multipart_form(self):
@@ -1772,14 +1787,15 @@ class ImageField(SimpleField):
     def assign(self, value):
         try:
             try:
-                self.value = value.value
+                self.binary_image_data = value.value
             except AttributeError:
                 self.value = value
         except AttributeError:
             self.value = None
 
     def evaluate(self):
-        return self.value and {self.name: self.value} or {}
+        value = self.binary_image_data
+        return value and {self.name: value} or {}
 
 
 
