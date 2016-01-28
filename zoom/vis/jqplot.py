@@ -161,12 +161,10 @@ def bar(data, legend=None, options={}, *a, **k):
 
     if len(data)>1:
         labels, data = data[0], data[1:]
-        options['axes'] = dict(
-                xaxis=dict(
-                    renderer='$.jqplot.CategoryAxisRenderer',
-                    ticks=labels,
-                    )
-                )
+        options.setdefault('axes', {})
+        options['axes'].setdefault('xaxis', {})
+        options['axes']['xaxis'].setdefault('renderer', '$.jqplot.CategoryAxisRenderer')
+        options['axes']['xaxis'].setdefault('ticks', labels)
 
     if legend:
         default_options['legend'] = dict(show='true', placement='outsideGrid')
@@ -198,12 +196,10 @@ def hbar(data, legend=None, options={}, *a, **k):
 
     if len(data)>1:
         labels, data = data[0], data[1:]
-        options['axes'] = dict(
-                yaxis=dict(
-                    renderer='$.jqplot.CategoryAxisRenderer',
-                    ticks=labels,
-                    )
-                )
+        options.setdefault('axes', {})
+        options['axes'].setdefault('yaxis', {})
+        options['axes']['yaxis'].setdefault('renderer', '$.jqplot.CategoryAxisRenderer')
+        options['axes']['yaxis'].setdefault('ticks', labels)
 
     if legend:
         default_options['legend'] = dict(show='true', placement='outsideGrid')
