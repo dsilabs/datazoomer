@@ -1,5 +1,6 @@
 
 from os import environ as env
+
 from zoom import *
 from zoom.response import PNGResponse
 from zoom.log import logger
@@ -296,15 +297,10 @@ class CollectionRecord(DefaultRecord):
     link = property(lambda self: link_to(self.name, self.url))
 
 
+
 class Collection(object):
 
-    def is_manager(self):
-        return user.is_member(['managers'])
-
     name_column = 'name'
-    sort_by = lambda t,a: a.name_column
-    can_edit = is_manager
-    order = lambda t,a: a[a.sort_by].lower()
 
     def __init__(self, item_name, fields, entity, url=None):
         self.item_name = item_name
@@ -315,6 +311,12 @@ class Collection(object):
         self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
         self.store = store(entity)
         self.url = url or '/{}/{}'.format(system.app.name, id_for(self.name))
+
+    def can_edit(self, user=user):
+        return user.is_member(['managers'])
+
+    def order(self, item):
+        return item.name.lower()
 
     def locate(self, key):
         def scan(store, key):
