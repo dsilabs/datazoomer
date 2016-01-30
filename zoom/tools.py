@@ -388,7 +388,7 @@ def markdown(content):
     def url_builder(label,base,end):
         return make_page_name(label) + '.html'
 
-    extras = ['tables','def_list','wikilinks']
+    extras = ['tables','def_list','wikilinks','toc']
     configs = {'wikilinks':[('build_url',url_builder)]}
     md = Markdown(extensions=extras,extension_configs=configs)
     return md.convert(unisafe(content))
