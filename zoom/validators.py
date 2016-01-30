@@ -186,6 +186,15 @@ class MaximumValue(Validator):
         True
         >>> v.valid(120)
         False
+
+        >>> from datetime import date
+        >>> v = MaximumValue(date(2015,1,1))
+        >>> v.valid(date(2015,1,1))
+        True
+        >>> v.valid(date(2015,1,2))
+        False
+        >>> v.msg
+        'value must be at most 2015-01-01'
     """
     def __init__(self, min_value, empty_allowed=True):
         self.empty_allowed = empty_allowed
