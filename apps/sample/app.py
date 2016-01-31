@@ -2,4 +2,4 @@
 from zoom import *
 
 app = App()
-app.menu = 'Content', 'Fields'
+app.menu = 'Content', 'Fields', 'Collection'
