@@ -767,17 +767,23 @@ class DateField(SimpleField):
         >>> DateField("Start Date").widget()
         '<INPUT NAME="START_DATE" VALUE="" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" />'
 
-        >>> from datetime import date
+        >>> from datetime import date, datetime
 
         >>> f = DateField("Start Date", value=date(2015,1,1))
         >>> f.value
         datetime.date(2015, 1, 1)
 
+        >>> f = DateField("Start Date", value=datetime(2015,1,1))
+        >>> f.value
+        datetime.datetime(2015, 1, 1, 0, 0)
+        >>> f.evaluate()
+        {'START_DATE': datetime.date(2015, 1, 1)}
+
         >>> f.assign('Jan 01, 2015') # forms assign with strings
         >>> f.display_value()
         'Jan 01, 2015'
         >>> f.evaluate()
-        {'START_DATE': datetime.datetime(2015, 1, 1, 0, 0)}
+        {'START_DATE': datetime.date(2015, 1, 1)}
 
         >>> f.assign(date(2015,1,31))
         >>> f.display_value()
@@ -800,16 +806,17 @@ class DateField(SimpleField):
 
     value = default = None
     size=maxlength=12
+    input_format = '%b %d, %Y'
     format = '%b %d, %Y'
     _type = 'date'
     css_class = 'date_field'
     validators = [valid_date]
 
-    def display_value(self):
+    def display_value(self, alt_format=None):
         strftime = datetime.datetime.strftime
         if self.value:
-            if type(self.value) == datetime.date:
-                value = strftime(self.value, self.format)
+            if type(self.value) in [datetime.date, datetime.datetime]:
+                value = strftime(self.value, alt_format or self.format)
             else:
                 value = self.value
         else:
@@ -817,7 +824,7 @@ class DateField(SimpleField):
         return value
 
     def widget(self):
-        value = self.display_value()
+        value = self.display_value(self.input_format)
         return tag_for(
                     'input',
                     name=self.name,
@@ -834,10 +841,12 @@ class DateField(SimpleField):
     def evaluate(self):
         if self.value:
             if type(self.value) == datetime.datetime:
+                value = self.value.date()
+            elif type(self.value) == datetime.date:
                 value = self.value
             else:
                 strptime = datetime.datetime.strptime
-                value = strptime(self.value, self.format)
+                value = strptime(self.value, self.input_format).date()
             return {self.name: value or self.default}
 
 
