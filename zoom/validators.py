@@ -15,7 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, imghdr, cgi
+import re
+import imghdr
+import cgi
+import datetime
 
 class Validator:
     """A content validator."""
@@ -124,6 +127,41 @@ class PostalCodeValidator(RegexValidator):
     def __init__(self):
         e = '^[A-Za-z][0-9][A-Za-z]\s*[0-9][A-Za-z][0-9]$'
         RegexValidator.__init__(self, 'enter a valid postal code', e)
+
+class DateValidator(Validator):
+    """
+    Date validator
+
+        >>> v = DateValidator()
+        >>> v.valid('asdf')
+        False
+        >>> v.msg
+        'enter valid date in "Jan 31, 2016" format'
+
+        >>> v.valid('Jan 1, 2016')
+        True
+
+        >>> v.valid('Jan 41, 2016')
+        False
+
+    """
+    def __init__(self, format='%b %d, %Y'):
+        strftime = datetime.datetime.strftime
+        strptime = datetime.datetime.strptime
+
+        def test(date):
+            try:
+                strptime(date, format)
+            except ValueError:
+                return False
+            else:
+                return True
+
+        msg = 'enter valid date in "{}" format'.format(strftime(
+            datetime.date(2016,1,31),
+            format,
+        ))
+        Validator.__init__(self, msg, test)
 
 class MinimumLength(Validator):
     """A minimum length validator
@@ -280,6 +318,7 @@ valid_password = MinimumLength(6)
 valid_new_password = MinimumLength(8)
 valid_url = URLValidator()
 valid_postal_code = PostalCodeValidator()
+valid_date = DateValidator()
 image_mime_type = Validator("a supported image is required (gif, jpeg, png)", image_mime_type_valid)
 valid_number = Validator("enter a numeric value", number_valid)
 valid_latitude = Validator("enter a number between -90 and 90", latitude_valid)
