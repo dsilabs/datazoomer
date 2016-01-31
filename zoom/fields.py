@@ -1294,15 +1294,26 @@ class ChosenMultiselectField(MultiselectField):
 
         >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint')
         >>> f.widget()
-        '<select multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+        '<select data-placeholder="Select Choose" multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
+        >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint', placeholder='my placeholder')
+        >>> f.widget()
+        '<select data-placeholder="my placeholder" multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
 
     """
+
+    def __init__(self, *a, **k):
+        MultiselectField.__init__(self, *a, **k)
+        if not 'placeholder' in k:
+            self.placeholder = 'Select ' + self.label
 
     def widget(self):
         current_labels = self._scan(self.value or self.default, lambda a: a[0])
         result = []
         name = self.name
-        result.append('<select multiple="multiple" class="chosen" name="%s" id="%s">\n'%(name,name))
+        tpl = '<select data-placeholder="{}" multiple="multiple" class="chosen" name="{}" id="{}">\n'
+        result.append(tpl.format(self.placeholder, name, name))
         for option in self.options:
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
