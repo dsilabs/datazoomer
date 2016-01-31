@@ -44,6 +44,9 @@ def tag(tag_text,content='',*args,**keywords):
         >>> tag('div', 'some content')
         '<div>some content</div>'
 
+        >>> tag('a', href='http://www.google.com')
+        '<a href="http://www.google.com" />'
+    
     """
     tag_type = tag_text.lower()
     singles = ''.join([' %s' % arg.lower() for arg in args])
