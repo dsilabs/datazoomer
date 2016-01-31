@@ -115,7 +115,9 @@
     }
 
     /* numeric fields */
-    input.decimal_field {
+    input.decimal_field,
+    input.float_field,
+    input.number_field {
         text-align: right;
     }
 
