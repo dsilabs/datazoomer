@@ -17,16 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Fields for HTML forms"""
-import datetime, types
-from validators import *
+import uuid
+import types
+import locale
+import datetime
+from decimal import Decimal
 
+from validators import *
 from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown
 from helpers import attribute_escape
 from request import route
-from decimal import Decimal
-import uuid
-import locale
 from zoom import system
 
 HINT_TPL = \
@@ -106,6 +107,29 @@ class Field(object):
         raise AttributeError
 
     def initialize(self, *a, **k):
+        """
+        Initialize field value.
+
+            Set field value according to value passed in as parameter
+            or if there is not value for this field, set it to the
+            default value for the field.
+
+            >>> f = Field('test', default='zero')
+
+            >>> f.initialize(test='one')
+            >>> f.value
+            'one'
+
+            >>> r = dict(test='two')
+            >>> f.initialize(r)
+            >>> f.value
+            'two'
+
+            >>> r = dict(not_test='two')
+            >>> f.initialize(r)
+            >>> f.value
+            'zero'
+        """
         if a:
             values = a[0]
         elif k:
@@ -144,8 +168,11 @@ class Field(object):
 
     def evaluate(self):
         """
-        Return the value of the field expressed as a key value pair (dict)
-        ususally to be combined with other fields.
+        Evaluate field value.
+
+            Return the value of the field expressed as key value pair (dict)
+            ususally to be combined with other fields in the native type where
+            the value is the native data type for the field type.
         """
         return {self.name: self.value or self.default}
 
@@ -727,8 +754,48 @@ class DateField(SimpleField):
     """
     Date Field
 
-        >>> DateField("Start Date").edit()
-        '<div class="field"><div class="field_label">Start Date</div><div class="field_edit"><INPUT NAME="START_DATE" VALUE="" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" /></div></div>'
+        DatField values can be either actual dates (datetime.date) or string
+        representations of dates.  Values coming from databases or from code
+        will typically be dates, while dates coming in from forms will
+        typically be strings.
+
+        DateFields always evaluate to date types and always display as string
+        representations of those dates formatted according to the specified
+        format.
+
+
+        >>> DateField("Start Date").widget()
+        '<INPUT NAME="START_DATE" VALUE="" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" />'
+
+        >>> from datetime import date
+
+        >>> f = DateField("Start Date", value=date(2015,1,1))
+        >>> f.value
+        datetime.date(2015, 1, 1)
+
+        >>> f.assign('Jan 01, 2015') # forms assign with strings
+        >>> f.display_value()
+        'Jan 01, 2015'
+        >>> f.evaluate()
+        {'START_DATE': datetime.datetime(2015, 1, 1, 0, 0)}
+
+        >>> f.assign(date(2015,1,31))
+        >>> f.display_value()
+        'Jan 31, 2015'
+
+        >>> f.assign('TTT 01, 2015')
+        >>> f.display_value()
+        'TTT 01, 2015'
+        >>> failed = False
+        >>> try:
+        ...     f.evaluate()
+        ... except ValueError:
+        ...     failed = True
+        >>> failed
+        True
+
+        >>> DateField("Start Date", value=date(2015,1,1)).widget()
+        '<INPUT NAME="START_DATE" VALUE="Jan 01, 2015" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" />'
     """
 
     value = default = None
@@ -736,24 +803,22 @@ class DateField(SimpleField):
     format = '%b %d, %Y'
     _type = 'date'
     css_class = 'date_field'
+    validators = [valid_date]
 
     def display_value(self):
-        return self.value and self.value.strftime(self.format) or ''
-
-    def assign(self,value):
-        if type(value)==types.StringType:
-            try:
-                self.value = datetime.datetime.strptime(value,self.format).date()
-            except:
-                self.value = None
+        strftime = datetime.datetime.strftime
+        if self.value:
+            if type(self.value) == datetime.date:
+                value = strftime(self.value, self.format)
+            else:
+                value = self.value
         else:
-            self.value = value
+            value = self.default and self.default.strftime(self.format) or ''
+        return value
 
-    def edit(self):
-        value = self.value and self.value.strftime(self.format) or self.default and self.default.strftime(self.format) or ''
-        return layout_field(
-                self.label,
-                tag_for(
+    def widget(self):
+        value = self.display_value()
+        return tag_for(
                     'input',
                     name=self.name,
                     id=self.id,
@@ -761,14 +826,19 @@ class DateField(SimpleField):
                     value=value,
                     Type='text',
                     Class=self.css_class,
-                    )+self.render_msg()+self.render_hint()
                 )
 
     def show(self):
         return self.visible and bool(self.value) and layout_field(self.label,self.display_value()) or ''
 
     def evaluate(self):
-        return {self.name: self.value or self.default}
+        if self.value:
+            if type(self.value) == datetime.datetime:
+                value = self.value
+            else:
+                strptime = datetime.datetime.strptime
+                value = strptime(self.value, self.format)
+            return {self.name: value or self.default}
 
 
 class BirthdateField(DateField):
