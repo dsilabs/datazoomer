@@ -848,6 +848,7 @@ class DateField(SimpleField):
                 strptime = datetime.datetime.strptime
                 value = strptime(self.value, self.input_format).date()
             return {self.name: value or self.default}
+        return {self.name: self.default}
 
 
 class BirthdateField(DateField):

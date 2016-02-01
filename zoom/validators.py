@@ -150,6 +150,7 @@ class DateValidator(Validator):
         strptime = datetime.datetime.strptime
 
         def test(date):
+            if not date: return True
             try:
                 strptime(date, format)
             except ValueError:
