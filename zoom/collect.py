@@ -309,7 +309,7 @@ class Collection(object):
         self.entity = entity
         self.labels = [f.label for f in fields.as_list()]
         self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
-        self.store = store(entity)
+        self.store = EntityStore(system.db, entity)
         self.url = url or '/{}/{}'.format(system.app.name, id_for(self.name))
 
     def can_edit(self, user=user):
