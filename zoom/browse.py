@@ -24,6 +24,8 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
         except:
             raise
 
+    items = list(items)
+
     if labels:
         if not columns:
             if len(items) and hasattr(items[0], 'get'):
