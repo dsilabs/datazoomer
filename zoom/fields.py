@@ -1566,35 +1566,36 @@ class RangeSliderField(IntegerField):
     """
     js_formatter = """var formatter = function(v) { return v;};"""
     js = """
-<script>
-  $(function() {
-    $( "#%(name)s" ).slider({
-      range: true,
-      min: %(tmin)s,
-      max: %(tmax)s,
-      values: [ %(minv)s, %(maxv)s ],
-      change: function( event, ui ) {
-        var v = ui.values,
-            t = v[0] + ',' + v[1];
-        $("input[name='%(name)s']").val(t);
-        %(formatter)s
-        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
-        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
-      },
-      slide: function( event, ui ) {
-        var v = ui.values;
-        %(formatter)s
-        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
-        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
-      }
-    });
-    $("#%(name)s").slider("values", $("#%(name)s").slider("values")); // set formatted label
-  });
-</script>
+    <script>
+      $(function() {
+        $( "#%(name)s" ).slider({
+          range: true,
+          min: %(tmin)s,
+          max: %(tmax)s,
+          values: [ %(minv)s, %(maxv)s ],
+          change: function( event, ui ) {
+            var v = ui.values,
+                t = v[0] + ',' + v[1];
+            $("input[name='%(name)s']").val(t);
+            %(formatter)s
+            $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+            $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+          },
+          slide: function( event, ui ) {
+            var v = ui.values;
+            %(formatter)s
+            $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+            $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+          }
+        });
+        $("#%(name)s").slider("values", $("#%(name)s").slider("values")); // set formatted label
+      });
+    </script>
     """
     min = 0
     max = 10
     show_labels = True
+    css_class = 'range-slider'
 
     def assign(self, v):
         if v is None or not v or (isinstance(v,basestring) and v.strip()==','):
@@ -1607,9 +1608,7 @@ class RangeSliderField(IntegerField):
     def widget(self):
         name = self.name
         tmin, tmax = self.min, self.max
-
         minv, maxv = self.value or (tmin, tmax)
-
 
         formatter = self.js_formatter
         system.tail.add(self.js % locals())
@@ -1618,7 +1617,8 @@ class RangeSliderField(IntegerField):
             not self.show_labels and "hidden" or "",
             minv, maxv
           )
-        return """<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>{}""".format(name, name, minv, maxv, labels)
+        slider = '<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>'.format(name, name, minv, maxv)
+        return '<div class="{}">{}{}</div>'.format(self.css_class, slider, labels)
 
 class FieldIterator:
 

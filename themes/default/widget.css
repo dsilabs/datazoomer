@@ -103,6 +103,10 @@
     .content .field_edit td {
         border : 0;
     }
+    .content .field_edit td div.range-slider {
+        width: 400px;
+        margin: 0 10px;
+    }
     .field_edit .images_field td {
         border: 0;
     }

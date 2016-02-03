@@ -31,6 +31,7 @@ form1 = Form(
         MultiselectField('Multiselect', options=['One','Two','Three'], hint='test hint'),
         ChosenMultiselectField('Sizes', options=['One','Two','Three', 'Four'],
                                hint='test hint', placeholder='Choose as you wish'),
+        RangeSliderField('Price', min=0, max=1500),
         ButtonField('Okay!', hint='test hint'),
         MemoField('Memo', hint='test hint'),
         MarkdownField('Markdown', hint='test hint'),
