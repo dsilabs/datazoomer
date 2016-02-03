@@ -144,6 +144,12 @@ class DateValidator(Validator):
         >>> v.valid('Jan 41, 2016')
         False
 
+        >>> v.valid('2016-01-14')
+        True
+
+        >>> v.valid('2016-01-41')
+        False
+
     """
     def __init__(self, format='%b %d, %Y'):
         strftime = datetime.datetime.strftime
@@ -154,7 +160,12 @@ class DateValidator(Validator):
             try:
                 strptime(date, format)
             except ValueError:
-                return False
+                try:
+                    strptime(date, '%Y-%m-%d')
+                except:
+                    return False
+                else:
+                    return True
             else:
                 return True
 

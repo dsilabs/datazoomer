@@ -763,7 +763,6 @@ class DateField(SimpleField):
         representations of those dates formatted according to the specified
         format.
 
-
         >>> DateField("Start Date").widget()
         '<INPUT NAME="START_DATE" VALUE="" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" />'
 
@@ -807,6 +806,7 @@ class DateField(SimpleField):
     value = default = None
     size=maxlength=12
     input_format = '%b %d, %Y'
+    alt_input_format = '%Y-%m-%d'
     format = '%b %d, %Y'
     _type = 'date'
     css_class = 'date_field'
@@ -846,7 +846,10 @@ class DateField(SimpleField):
                 value = self.value
             else:
                 strptime = datetime.datetime.strptime
-                value = strptime(self.value, self.input_format).date()
+                try:
+                    value = strptime(self.value, self.input_format).date()
+                except ValueError:
+                    value = strptime(self.value, self.alt_input_format).date()
             return {self.name: value or self.default}
         return {self.name: self.default}
 
