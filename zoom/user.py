@@ -219,7 +219,7 @@ class User:
                 self.is_member(system.managers)
         self.is_developer = \
                 self.is_member(system.developers)
-        self.is_anonymous = self.login_id == system.guest
+        self.is_guest = self.is_anonymous = self.login_id == system.guest
         self.is_authenticated = not self.is_anonymous
 
         # determine default app
