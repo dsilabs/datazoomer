@@ -1208,6 +1208,22 @@ class MultiselectField(TextField):
         >>> MultiselectField('Type',value='One',options=['One','Two']).display_value()
         'One'
 
+        >>> f = MultiselectField('Type', default='One', options=['One','Two'])
+        >>> f.evaluate()
+        {'TYPE': []}
+        >>> f.display_value()
+        ''
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option></select>'
+        >>> f.value
+        >>> f.assign([])
+        >>> f.value
+        []
+        >>> f.evaluate()
+        {'TYPE': []}
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One">One</option><option value="Two">Two</option></select>'
+
         >>> MultiselectField('Type',value='One',options=['One','Two']).widget()
         '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option></select>'
 
@@ -1255,8 +1271,12 @@ class MultiselectField(TextField):
         {'TYPE': ['uno', 'dos']}
     """
 
+    value = None
+    default = []
+    css_class = 'multiselect'
+
     def _scan(self, t, f):
-        SEQUENCE_TYPES = [types.ListType,types.TupleType]
+        SEQUENCE_TYPES = [types.ListType, types.TupleType]
         if t:
             if not type(t) == types.ListType:
                 t = [t]
@@ -1272,21 +1292,33 @@ class MultiselectField(TextField):
         return []
 
     def evaluate(self):
-        return {self.name:self._scan(self.value or self.default, lambda a: a[1])}
+        return {self.name: self._scan(self.value, lambda a: a[1])}
 
     def display_value(self):
-        return '; '.join(self._scan(self.value or self.default, lambda a: a[0]))
+        return '; '.join(self._scan(self.value, lambda a: a[0]))
 
     def assign(self, new_value):
         self.value = self._scan(new_value, lambda a: a[1])
 
+    def update(self, **values):
+        for value in values:
+            if value.lower() == self.name.lower():
+                self.assign(values[value])
+                return
+        self.assign([])
+
     def widget(self):
-        current_labels = self._scan(self.value or self.default, lambda a: a[0])
+        if self.value == None:
+            current_values = self.default
+        else:
+            current_values = self.value
+        current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
-        result.append('<select multiple="multiple" class="multiselect" name="%s" id="%s">\n'%(name,name))
+        tpl = '<select multiple="multiple" class="%s" name="%s" id="%s">\n'
+        result.append(tpl%(self.css_class, name, name))
         for option in self.options:
-            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+            if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
@@ -1312,6 +1344,7 @@ class ChosenMultiselectField(MultiselectField):
 
 
     """
+    css_class = 'chosen'
 
     def __init__(self, *a, **k):
         MultiselectField.__init__(self, *a, **k)
@@ -1319,11 +1352,15 @@ class ChosenMultiselectField(MultiselectField):
             self.placeholder = 'Select ' + self.label
 
     def widget(self):
-        current_labels = self._scan(self.value or self.default, lambda a: a[0])
+        if self.value == None:
+            current_values = self.default
+        else:
+            current_values = self.value
+        current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
-        tpl = '<select data-placeholder="{}" multiple="multiple" class="chosen" name="{}" id="{}">\n'
-        result.append(tpl.format(self.placeholder, name, name))
+        tpl = '<select data-placeholder="{}" multiple="multiple" class="{}" name="{}" id="{}">\n'
+        result.append(tpl.format(self.placeholder, self.css_class, name, name))
         for option in self.options:
             if type(option) in [types.ListType,types.TupleType] and len(option)==2:
                 label, value = option
