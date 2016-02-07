@@ -1,4 +1,6 @@
 
+import os
+
 from fill import fill
 from request import route
 from response import HTMLResponse
@@ -8,7 +10,7 @@ from tools import as_actions, unisafe, websafe
 from html import ul
 import helpers, tools
 from system import system
-import os
+from user import user
 import log
 
 HEADER_LAYOUT = """
@@ -115,7 +117,7 @@ class Page(object):
 
         DEFAULT_TEMPLATE = os.path.join(system.root,'themes','default','default.html')
 
-        self.theme = self.theme or system.app.theme or system.theme
+        self.theme = self.theme or system.app.theme or user.theme or system.theme
         if self.theme != system.theme:
             system.set_theme(self.theme)
 

@@ -153,6 +153,8 @@ class User:
             self.initialize(login_id)
         self.is_developer = False
         self.is_administrator = False
+        self.theme = None
+        self.profile = False
 
     def login(self, login_id, password, remember_me=False):
         if authenticate(login_id, password):
@@ -226,10 +228,11 @@ class User:
         if self.is_anonymous:
             self.default_app = system.index
         else:
-            self.get_settings()
             self.default_app = system.home
             if self.default_app not in self.apps:
                 self.default_app = system.index
+
+        self.get_settings()
 
     def get_groups(self,user_id=None):
         def get_memberships(group,memberships,depth=0):
@@ -269,22 +272,6 @@ class User:
         self.theme = get('theme_name')
         self.profile = get('profile')
 
-    def apply_settings(self):
-        """apply the user context settings to the system"""
-        if user.is_admin or user.is_developer:
-            if hasattr(self, 'theme') and self.theme and self.theme<>system.theme:
-                system.theme = self.theme
-                system.set_theme(system.theme)
-            if hasattr(self, 'profile') and self.profile in ['0','1']:
-                system.profile = self.profile == '1'
 
 user = User()
-
-#if __name__ != '__main__':
-#    import os
-#    user = User(get_current_username())
-#
-#else:
-#    current_user = system.config.get('users','default','guest')
-
 

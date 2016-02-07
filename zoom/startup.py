@@ -74,14 +74,14 @@ def generate_response(instance_path):
     sys.stdout = StringIO.StringIO()
     try:
         try:
+            # initialize context
             system.setup(instance_path)
-            session = system.session
-
             user.setup()
-            if user.is_admin or user.is_developer: user.apply_settings()    # apply any user context settings to the system
             manager.setup()
 
             system.subject = get_subject()
+
+            session = system.session
 
             visited(system.subject, session.sid)
 
@@ -103,7 +103,7 @@ def generate_response(instance_path):
             if manager.can_run(requested_app_name):
                 system.app = manager.get_app(requested_app_name)
 
-                profiler = system.profile and cProfile.Profile()
+                profiler = (system.profile or user.profile) and cProfile.Profile()
                 if profiler:
                     profiler.enable()
 
