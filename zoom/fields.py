@@ -1272,11 +1272,23 @@ class MultiselectField(TextField):
         'One; Two'
         >>> f.evaluate()
         {'TYPE': ['uno', 'dos']}
+        >>> f.option_style('zero','nada')
+        ''
+
+        >>> s = lambda label, value: value.startswith('d') and 's1' or 's0'
+        >>> f = MultiselectField('Type',value=['uno','dos'],options=[('One','uno'),('Two','dos')], styler=s)
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option class="s0" value="uno" selected>One</option><option class="s1" value="dos" selected>Two</option></select>'
+        >>> f.styler('test','dos')
+        's1'
+        >>> f.option_style('zero','nada')
+        'class="s0" '
     """
 
     value = None
     default = []
     css_class = 'multiselect'
+    styler = None
 
     def _scan(self, t, f):
         SEQUENCE_TYPES = [types.ListType, types.TupleType]
@@ -1310,6 +1322,11 @@ class MultiselectField(TextField):
                 return
         self.assign([])
 
+    def option_style(self, label, value):
+        if self.styler != None:
+            return 'class="{}" '.format(self.styler(label, value))
+        return ''
+
     def widget(self):
         if self.value == None:
             current_values = self.default
@@ -1325,10 +1342,11 @@ class MultiselectField(TextField):
                 label, value = option
             else:
                 label, value = option, option
+            style = self.option_style(label, value)
             if label in current_labels:
-                result.append('<option value="%s" selected>%s</option>' % (value,label))
+                result.append('<option %svalue="%s" selected>%s</option>' % (style,value,label))
             else:
-                result.append('<option value="%s">%s</option>' % (value,label))
+                result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
         return ''.join(result)
 
@@ -1369,10 +1387,11 @@ class ChosenMultiselectField(MultiselectField):
                 label, value = option
             else:
                 label, value = option, option
+            style = self.option_style(label, value)
             if label in current_labels:
-                result.append('<option value="%s" selected>%s</option>' % (value,label))
+                result.append('<option %svalue="%s" selected>%s</option>' % (style, value,label))
             else:
-                result.append('<option value="%s">%s</option>' % (value,label))
+                result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
         return ''.join(result)
 
