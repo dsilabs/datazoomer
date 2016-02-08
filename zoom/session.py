@@ -33,25 +33,8 @@ SUBJECT_COOKIE_NAME = 'dz4sub'
 
 class SessionExpiredException(Exception): pass
 
-sessionLife = 60 # time in minutes
+session_life = 60 # time in minutes
 
-def get_session_cookie():
-    return get_cookie(SESSION_COOKIE_NAME)
-
-def get_subject():
-    value = get_cookie(SUBJECT_COOKIE_NAME)
-    if not value or value == 'None':
-        return uuid.uuid4().hex
-    return value
-
-def get_cookie(name):
-    raw_cookie = os.environ.get("HTTP_COOKIE", "")
-    cookie = Cookie.SimpleCookie(raw_cookie)
-    try:
-        value = cookie[name].value
-    except KeyError:
-        value = None
-    return value
 
 class Session(object):
     tablename = 'dz_sessions'
@@ -106,7 +89,7 @@ class Session(object):
             db(cmd,time.time())
 
 
-    def new_session(self,timeout=sessionLife):
+    def new_session(self, timeout=session_life):
         def trysid(sid):
             db = self._system.database
             cmd = "INSERT INTO %s VALUES (%s,%s,'A','')" % (self.tablename,'%s','%s')
@@ -155,14 +138,14 @@ class Session(object):
                     self.__dict__[key] = values[key]
                 return True
 
-        self.sid = sid = get_session_cookie()
+        self.sid = sid = request.session_token
         valid_sid = sid and len(sid)==32 and self.sid.isalnum()
 
         if not (valid_sid and load_existing(sid) and self.ip==request.ip):
             self.new_session()
 
 
-    def save_session(self, response, sid=None, timeout=sessionLife):
+    def save_session(self, response, sid=None, timeout=session_life):
         sid = sid or self.sid
         timeout_in_seconds = self.__dict__.get('lifetime', timeout * 60)
         expiry = time.time() + timeout_in_seconds

@@ -16,7 +16,7 @@ from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import SessionExpiredException, get_subject
+from session import SessionExpiredException
 from request import request, data
 from user import user
 from manager import manager
@@ -79,11 +79,9 @@ def generate_response(instance_path):
             user.setup()
             manager.setup()
 
-            system.subject = get_subject()
-
             session = system.session
 
-            visited(system.subject, session.sid)
+            visited(request.subject, session.sid)
 
             csrf_token = data.pop('csrf_token',None)
             if request.method == 'POST' and system.csrf_validation:

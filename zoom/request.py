@@ -98,7 +98,7 @@ class Request:
             ip = env.get('REMOTE_ADDR'),
             user = env.get('REMOTE_USER'),
             cookies = cookies,
-            session_id = cookies.get(SESSION_COOKIE_NAME, None),
+            session_token = cookies.get(SESSION_COOKIE_NAME, None),
             subject = cookies.get(SUBJECT_COOKIE_NAME, None),
             port = env.get('SERVER_PORT'),
             server = env.get('SERVER_NAME','localhost'),
