@@ -16,7 +16,7 @@ from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import SessionExpiredException, session_life
+from session import SessionExpiredException, SESSION_LIFE
 from request import request, data
 from user import user
 from manager import manager
@@ -129,12 +129,12 @@ def generate_response(instance_path):
                 response = Page(PAGE_MISSING_MESSAGE).render()
                 response.status = '404'
 
-            session.save_session(response)
+            session.save_session()
             set_session_cookie(
                 response,
                 session.sid,
                 request.subject,
-                session_life,
+                SESSION_LIFE,
                 system.secure_cookies,
             )
 

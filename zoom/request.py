@@ -93,6 +93,8 @@ class Request:
         path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
         route = path != '/' and path.split('/')[1:] or []
         cookies = zoom.cookies.get_cookies(env.get('HTTP_COOKIE'))
+        self.ip_address = None
+        self.session_token = None
 
         # gather some commonly required environment variables
         request = dict(
@@ -101,7 +103,8 @@ class Request:
             domain = calc_domain(env.get('HTTP_HOST')),
             uri = env.get('REQUEST_URI','index.py'),
             query = env.get('QUERY_STRING'),
-            ip = env.get('REMOTE_ADDR'),
+            ip = env.get('REMOTE_ADDR'), # deprecated
+            ip_address = env.get('REMOTE_ADDR'),
             user = env.get('REMOTE_USER'),
             cookies = cookies,
             session_token = cookies.get(SESSION_COOKIE_NAME, None),
