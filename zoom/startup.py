@@ -65,6 +65,8 @@ Content-type: text/html
 <pre>%s</pre>
 """
 
+PAGE_MISSING_MESSAGE = '<H1>Page Missing</H1>Page not found'
+
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
 def generate_response(instance_path):
@@ -124,7 +126,7 @@ def generate_response(instance_path):
                 response = redirect_to('/')
 
             else:
-                response = Page('<H1>Page Missing</H1>Page not found').render()
+                response = Page(PAGE_MISSING_MESSAGE).render()
                 response.status = '404'
 
             session.save_session(response)
