@@ -28,8 +28,6 @@ import uuid
 
 from request import request
 
-SESSION_COOKIE_NAME = 'dz4sid'
-SUBJECT_COOKIE_NAME = 'dz4sub'
 
 class SessionExpiredException(Exception): pass
 
@@ -42,31 +40,13 @@ class Session(object):
     def __init__(self, system):
         self._system = system
 
+
     def __repr__(self):
         return ', '.join(['%s="%s"' % (k,v) for (k,v) in zip(self.__dict__,self.__dict__.values()) if k[0]!='_'])
 
 
     def __str__(self):
         return repr(self)
-
-
-    def set_session_cookie(self, response, sid, host, lifespan, secure=True):
-        cookie = Cookie.SimpleCookie()
-
-        cookie[SESSION_COOKIE_NAME] = sid
-        cookie[SESSION_COOKIE_NAME]['httponly'] = True
-        cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
-
-        cookie[SUBJECT_COOKIE_NAME] = self._system.subject
-        cookie[SUBJECT_COOKIE_NAME]['httponly'] = True
-        cookie[SUBJECT_COOKIE_NAME]['expires'] = 365 * 24 * 60 * 60
-
-        if secure:
-            cookie[SESSION_COOKIE_NAME]['secure'] = True
-            cookie[SUBJECT_COOKIE_NAME]['secure'] = True
-
-        k,v = str(cookie).split(':',1)
-        response.headers[k] = v
 
 
     def create_session_database(self):
@@ -157,7 +137,6 @@ class Session(object):
         cmd = 'UPDATE %s SET expiry=%s, value=%s WHERE sesskey=%s' % (self.tablename,'%s','%s','%s')
         db = self._system.database
         curs = db(cmd,expiry,value,sid)
-        self.set_session_cookie(response, self.sid, request.host, timeout_in_seconds / 60, self._system.secure_cookies)
 
 
     def destroy_session(self, sid=None):

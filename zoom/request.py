@@ -19,6 +19,8 @@ import os
 import sys
 import cgi
 import urllib
+import uuid
+
 from types import ListType
 
 import zoom.cookies
@@ -26,6 +28,10 @@ import zoom.cookies
 
 SESSION_COOKIE_NAME = zoom.cookies.SESSION_COOKIE_NAME
 SUBJECT_COOKIE_NAME = zoom.cookies.SUBJECT_COOKIE_NAME
+
+
+def new_subject():
+    return uuid.uuid4().hex
 
 
 def calc_domain(host):
@@ -99,7 +105,7 @@ class Request:
             user = env.get('REMOTE_USER'),
             cookies = cookies,
             session_token = cookies.get(SESSION_COOKIE_NAME, None),
-            subject = cookies.get(SUBJECT_COOKIE_NAME, None),
+            subject = cookies.get(SUBJECT_COOKIE_NAME, new_subject()),
             port = env.get('SERVER_PORT'),
             server = env.get('SERVER_NAME','localhost'),
             script = env.get('SCRIPT_FILENAME'),

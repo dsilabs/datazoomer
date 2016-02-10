@@ -16,11 +16,13 @@ from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import SessionExpiredException
+from session import SessionExpiredException, session_life
 from request import request, data
 from user import user
 from manager import manager
 from visits import visited
+from zoom.cookies import set_session_cookie
+
 
 NEW_INSTALL_MESSAGE = """
 <head>
@@ -126,6 +128,13 @@ def generate_response(instance_path):
                 response.status = '404'
 
             session.save_session(response)
+            set_session_cookie(
+                response,
+                session.sid,
+                request.subject,
+                session_life,
+                system.secure_cookies,
+            )
 
         except CrossSiteRequestForgeryAttempt:
             logger.security('cross site forgery attempt')
