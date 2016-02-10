@@ -49,19 +49,6 @@ class Session(object):
         return repr(self)
 
 
-    def create_session_database(self):
-        cmd = """
-            create table %s (
-                sesskey varchar(32) NOT NULL default '',
-                expiry int(11) NOT NULL default '0',
-                status char(1) not null default 'D',
-                value text NOT NULL,
-                PRIMARY KEY (sesskey)
-            ) type=MyISAM;
-        """ % self.tablename
-        self.exec_SQL(cmd)
-
-
     def gc(self):
         if self._system.config.get('session', 'destroy', True):
             cmd = 'DELETE FROM %s WHERE (expiry < %s) or (status="D")' % (self.tablename,'%s')
@@ -161,40 +148,4 @@ class Session(object):
             return self.__dict__[name]
         else:
             return None
-
-if __name__ == '__main__':
-    import unittest
-
-    debug = 1
-
-    class SessionTest(unittest.TestCase):
-        def test(self):
-
-            #Create session object
-            session = Session()
-
-            #Create new session
-            id = session.new_session()
-            self.assert_(id!='Session error')
-            session.MyName = 'Test'
-            session.Message = 'This is a test session'
-            session.Number = 123
-
-            #Save session
-            session.save_session(id)
-            self.assertEqual(len(db('select * from '+session.tablename+' where sesskey="'+id+'"').__dict__['data']),1)
-
-            # Create new session object
-            session2 = Session()
-
-            # Load above session
-            session2.load_session(id)
-            self.assertEqual(session2.Number,123)
-            self.assertEqual(session2.MyName,'Test')
-            self.assertEqual(session2.Message,'This is a test session')
-            session2.destroy_session(id)
-            if not debug:
-               self.assertEqual(len(session.exec_SQL('select * from '+session.tablename+' where sesskey="'+id+'"').__dict__['data']),0)
-
-    unittest.main()
 
