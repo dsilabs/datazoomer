@@ -14,7 +14,7 @@ import logging
 from zoom.config import Config
 
 
-class TestConfig(unittest.TestCase):
+class TestConfig(unittest.TestCase): #pylint: disable=R0904
     """test config module"""
 
     def test_create(self):
