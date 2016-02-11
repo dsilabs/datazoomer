@@ -268,9 +268,8 @@ class User:
             system.config,
             self.login_id   # hash this or something
           )
-        get = self.settings.get
-        self.theme = get('theme_name')
-        self.profile = get('profile')
+        self.theme = self.settings.get('theme_name')
+        self.profile = self.settings.get_bool('profile')
 
 
 user = User()

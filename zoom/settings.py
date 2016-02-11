@@ -142,6 +142,9 @@ class Settings(object):
         #return self.values.get(k, self.defaults.get(key, default))
         return self.values.get(k, self.defaults.get(key, default) or default)
 
+    def get_bool(self, key, default=''):
+        return self.get(key, default).lower() in ['1','y','yes','on']
+
     def defaults(self):
         return self.defaults
 
