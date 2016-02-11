@@ -72,6 +72,10 @@ chart_js = """
             var plot1 = $.jqplot('chart_%(name)s', data, options);
 
             $( window ).resize(function() {
+              // workaround unpatched jqplot bug for bar width resize
+              $.each(plot1.series, function(index, series) {
+                series.barWidth = undefined;
+              });
               plot1.replot( { resetAxes: true } );
             });
           });
