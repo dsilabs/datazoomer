@@ -21,7 +21,7 @@ import datetime
 from system import system
 from auth import ctx, DataZoomerSaltedHash, BcryptDataZoomerSaltedHash
 
-TWO_WEEKS = 14 * 24 * 60 * 60
+TWO_WEEKS = 14 * 24 * 60 * 60 # in seconds
 
 def get_current_username():
     return \

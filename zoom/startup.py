@@ -129,12 +129,12 @@ def generate_response(instance_path):
                 response = Page(PAGE_MISSING_MESSAGE).render()
                 response.status = '404'
 
-            session.save_session()
+            timeout = session.save_session()
             set_session_cookie(
                 response,
                 session.sid,
                 request.subject,
-                SESSION_LIFE,
+                timeout,
                 system.secure_cookies,
             )
 

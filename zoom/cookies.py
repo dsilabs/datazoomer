@@ -32,7 +32,7 @@ def get_value(cookie):
 def set_session_cookie(response, session_id, subject, lifespan, secure=True):
     ONE_YEAR = 365 * 24 * 60 * 60
     cookie = make_cookie()
-    add_value(cookie, SESSION_COOKIE_NAME, session_id, 60 * lifespan, secure)
+    add_value(cookie, SESSION_COOKIE_NAME, session_id, lifespan, secure)
     add_value(cookie, SUBJECT_COOKIE_NAME, subject, ONE_YEAR, secure)
     k,v = str(cookie).split(':',1)
     response.headers[k] = v

@@ -135,7 +135,10 @@ class Session(object):
     def save_session(self, sid=None, timeout=SESSION_LIFE):
         """save a session"""
         sid = sid or self.sid
+
+        # using __dict__ method because getattr is overridden
         timeout_in_seconds = self.__dict__.get('lifetime', timeout * 60)
+
         expiry = time.time() + timeout_in_seconds
         values = {}
         for key in self.__dict__.keys():
@@ -145,6 +148,7 @@ class Session(object):
         cmd = 'update dz_sessions set expiry=%s, value=%s where sesskey=%s'
         database = self._system.database
         database(cmd, expiry, value, sid)
+        return timeout_in_seconds
 
 
     def destroy_session(self, sid=None):
