@@ -1131,11 +1131,14 @@ class PulldownField(TextField):
         'One'
 
         >>> PulldownField('Type',value='One',options=['One','Two']).widget()
-        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="One" selected>One</option><option value="Two">Two</option></select>'
+        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option></select>'
+
+        >>> PulldownField('Type',options=['One','Two']).widget()
+        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="One">One</option><option value="Two">Two</option></select>'
 
         >>> f = PulldownField('Type',value='One',options=[('One','uno'),('Two','dos')])
         >>> f.widget()
-        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="uno" selected>One</option><option value="dos">Two</option></select>'
+        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value="uno" selected>One</option><option value="dos">Two</option></select>'
 
         >>> f.value
         'uno'
@@ -1187,20 +1190,21 @@ class PulldownField(TextField):
         current_value = self.value or self.default or ''
         result = []
         name = self.name
+        found = False
         result.append('<select class="pulldown" name="%s" id="%s">\n'%(name,name))
-        if not current_value:
-            result.append('<option value="" selected></option>')
-        else:
-            result.append('<option value=""></option>')
         for option in self.options:
-            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+            if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
             if value == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
+                found = True
             else:
                 result.append('<option value="%s">%s</option>' % (value,label))
+        if not found and not current_value:
+            blank_option = '<option value=""></option>'
+            result.insert(1, blank_option)
         result.append('</select>')
         return ''.join(result)
 
