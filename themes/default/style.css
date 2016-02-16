@@ -30,7 +30,8 @@ x.content input[type="checkbox"] {
 .system_menu { line-height: 40px; }
 div.app-menu {
     padding: 0px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     font-size: 12px;
     font-weight: 200;
     line-height: 40px;
