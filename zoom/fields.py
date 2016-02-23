@@ -1136,6 +1136,36 @@ class PulldownField(TextField):
         >>> PulldownField('Type',options=['One','Two']).widget()
         '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="One">One</option><option value="Two">Two</option></select>'
 
+        >>> f = PulldownField('Type', options=[('',''),('One',1),('Two',2)])
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value="" selected></option><option value="1">One</option><option value="2">Two</option></select>
+
+        >>> f.assign(2)
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
+        >>> f.assign('2')
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
+        >>> f = PulldownField('Type', options=[('',''),('One','1'),('Two','2')])
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value="" selected></option><option value="1">One</option><option value="2">Two</option></select>
+
+        >>> f.assign(2)
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
+        >>> f.assign('2')
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
         >>> f = PulldownField('Type',value='One',options=[('One','uno'),('Two','dos')])
         >>> f.widget()
         '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value="uno" selected>One</option><option value="dos">Two</option></select>'
@@ -1187,7 +1217,7 @@ class PulldownField(TextField):
                     self.value = value
 
     def widget(self):
-        current_value = self.value or self.default or ''
+        current_value = str(self.value or self.default) or ''
         result = []
         name = self.name
         found = False
@@ -1197,7 +1227,7 @@ class PulldownField(TextField):
                 label, value = option
             else:
                 label, value = option, option
-            if value == current_value:
+            if str(value) == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
                 found = True
             else:
