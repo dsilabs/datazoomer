@@ -9,7 +9,11 @@
 
     $(function() {
 
-        $('.date_field').datepicker({ dateFormat: 'M d, yy', changeMonth: true, changeYear: true });
+        $('.date_field').datepicker({
+            dateFormat: 'M d, yy',
+            changeMonth: true,
+            changeYear: true
+        });
 
         $('.birthdate_field').datepicker({ dateFormat: 'M d, yy', changeMonth: true, changeYear: true, yearRange: '-120:+00' });
 

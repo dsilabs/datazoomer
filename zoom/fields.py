@@ -764,7 +764,7 @@ class DateField(SimpleField):
         format.
 
         >>> DateField("Start Date").widget()
-        '<INPUT NAME="START_DATE" VALUE="" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" />'
+        '<INPUT NAME="START_DATE" VALUE="" CLASS="date_field" MAXLENGTH="12" TYPE="text" ID="START_DATE" />'
 
         >>> from datetime import date, datetime
 
@@ -800,7 +800,8 @@ class DateField(SimpleField):
         True
 
         >>> DateField("Start Date", value=date(2015,1,1)).widget()
-        '<INPUT NAME="START_DATE" VALUE="Jan 01, 2015" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" />'
+        '<INPUT NAME="START_DATE" VALUE="Jan 01, 2015" CLASS="date_field" MAXLENGTH="12" TYPE="text" ID="START_DATE" />'
+
     """
 
     value = default = None
@@ -811,6 +812,7 @@ class DateField(SimpleField):
     _type = 'date'
     css_class = 'date_field'
     validators = [valid_date]
+    min = max = None
 
     def display_value(self, alt_format=None):
         strftime = datetime.datetime.strftime
@@ -825,8 +827,7 @@ class DateField(SimpleField):
 
     def widget(self):
         value = self.display_value(self.input_format)
-        return tag_for(
-                    'input',
+        parameters = dict(
                     name=self.name,
                     id=self.id,
                     maxlength=self.maxlength,
@@ -834,6 +835,22 @@ class DateField(SimpleField):
                     Type='text',
                     Class=self.css_class,
                 )
+        if self.min != None:
+            js = """
+            $(function(){
+                $('#%s').datepicker('option', 'minDate', '%s');
+            });
+            """
+            system.js.add(js % (self.id, self.min.strftime(self.input_format)))
+
+        if self.max != None:
+            js = """
+            $(function(){
+                $('#%s').datepicker('option', 'maxDate', '%s');
+            });
+            """
+            system.js.add(js % (self.id, self.max.strftime(self.input_format)))
+        return tag_for('input', **parameters)
 
     def show(self):
         return self.visible and bool(self.value) and layout_field(self.label,self.display_value()) or ''

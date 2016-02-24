@@ -1,9 +1,14 @@
 # coding=utf8
 
+import datetime
+
 from zoom import *
 from zoom.buckets import Bucket
 from zoom.response import *
 from zoom.collect import *
+
+date1 = datetime.date(2015, 1, 1)
+date2 = datetime.date(2016, 12, 31)
 
 form1 = Form(
         TextField('Name', addon='$', hint='test hint'),
@@ -22,6 +27,7 @@ form1 = Form(
         MoneyField('Amount', hint='test hint'),
         MoneyField('Foreign Amount', symbol='£', hint='test hint'),
         DateField('Date', hint='test hint'),
+        DateField('Min Max Date', min=date1, max=date2, hint='test hint'),
         DateField('Formatted Date', format='%Y-%m-%d (%A)', hint='test hint'),
         BirthdateField('Birth Date', hint='test hint'),
         CheckboxesField('Select', values=['One','Two','Three'], hint='test hint'),
@@ -54,6 +60,7 @@ sample = dict(
         amount = Decimal('12341232.32432'),
         foreign_amount = Decimal('121232.432'),
         date = datetime.date(2015,4,2),
+        min_max_date = datetime.date(2015,4,2),
         formatted_date = datetime.date(2015,4,2),
         birth_date = datetime.date(2073,2,18),
         select = 'One',
