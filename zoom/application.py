@@ -44,16 +44,9 @@ class Application:
         self.path    = path
         self.dir     = os.path.split(path)[0]
 
-        #self.settings = system.settings.app(name)
-
-        from zoom import manager, EntityStore
-        from settings import Settings, ApplicationSettings
-        self.settings = Settings(
-            EntityStore(system.db, ApplicationSettings),
-            self,
-            name
-          )
+        self.settings = system.settings.app_settings(self, default_settings)
         get = self.settings.get
+
         self.theme   = get('theme')
         self.enabled = get('enabled')
         self.version = get('version')

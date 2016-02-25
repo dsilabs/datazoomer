@@ -261,13 +261,7 @@ class User:
 
     def get_settings(self):
         """load and set the user/context settings"""
-        from zoom import manager, EntityStore
-        from settings import Settings, UserSystemSettings
-        self.settings = Settings(
-            EntityStore(system.db, UserSystemSettings),
-            system.config,
-            self.login_id   # hash this or something
-          )
+        self.settings = system.settings.user_settings(self, system.config)
         self.theme = self.settings.get('theme_name')
         self.profile = self.settings.get_bool('profile')
 
