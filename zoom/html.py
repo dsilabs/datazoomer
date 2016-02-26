@@ -66,3 +66,12 @@ def div(content,**keywords):
     """
     return tag('div',content,**keywords)
      
+def h1(text):
+    return '<h1>{}</h1>'.format(text)
+
+def h2(text):
+    return '<h2>{}</h2>'.format(text)
+
+def h3(text):
+    return '<h3>{}</h3>'.format(text)
+
