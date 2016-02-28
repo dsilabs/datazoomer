@@ -65,7 +65,10 @@ def respond(content):
 
 
 class Application(object):
-    """Application Class"""
+    """Application"""
+
+    # pylint: disable=too-many-instance-attributes
+    # It's reasonable in this case.
 
     def __init__(self, name, path):
         self.name = name
