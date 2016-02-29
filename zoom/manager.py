@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+from os import listdir
+from os.path import isdir, join, exists, abspath
 from application import Application
 from system import system
 from user import user
@@ -25,20 +26,33 @@ import tools
 DEFAULT_SYSTEM_APPS = ['register','profile','login','logout']
 DEFAULT_MAIN_APPS   = ['home','apps','users','groups','info']
 
+
 def get_apps(app_paths):
+
+    def get_app_names(path):
+        return [name.lower() for name in listdir(path) if name[0]!='.' and isdir(join(path, name))]
+
     apps = {}
     for path in app_paths:
-        app_names = [name.lower() for name in os.listdir(path) if name[0]!='.' and os.path.isdir(os.path.join(path,name))]
-        for name in app_names:
-            if os.path.exists(os.path.join(path,name,'app.py')) and not name in apps:
-                apps[name] = Application(name,os.path.join(path,name,'app.py'))
+        for name in get_app_names(path):
+            pathname = join(path, name, 'app.py')
+            if exists(pathname) and not name in apps:
+                apps[name] = Application(name, pathname)
+
+            elif isdir(join(path, name, 'apps')):
+                system_apps_path = join(path, name, 'apps')
+                for system_app_name in get_app_names(system_apps_path):
+                    system_app_pathname = join(system_apps_path, system_app_name, 'app.py')
+                    if exists(system_app_pathname) and not system_app_name in apps:
+                        apps[system_app_name] = Application(system_app_name, system_app_pathname)
     return apps
+
 
 class Manager:
 
     def setup(self):
         self.app_path  = system.config.get('apps','path')
-        self.app_paths = [os.path.abspath(path) for path in self.app_path.split(';') if os.path.isdir(path)]
+        self.app_paths = [abspath(path) for path in self.app_path.split(';') if isdir(path)]
         self.apps = get_apps(self.app_paths)
         if not self.apps:
             raise Exception('Applications Missing')
