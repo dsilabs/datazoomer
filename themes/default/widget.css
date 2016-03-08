@@ -679,7 +679,7 @@
         background: none;
         width: 100%;
         padding: 0.2em;
-        margin: 0;
+        margin: 12px 0;
         border: none;
     }
     #title_bar_left, #title_bar_right {

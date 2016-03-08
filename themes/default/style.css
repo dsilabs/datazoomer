@@ -116,10 +116,6 @@ div.footer li { display: inline; margin-right:10px; }
 /*
  * misc
  */
-#title_bar {
-    margin: 12px 0;
-}
-
 div.user-info {
     float: right;
     padding-right: 20px;
