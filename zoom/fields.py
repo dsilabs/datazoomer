@@ -768,6 +768,13 @@ class DateField(SimpleField):
 
         >>> from datetime import date, datetime
 
+        >>> f = DateField("Start Date")
+        >>> f.display_value()
+        ''
+        >>> f.assign('')
+        >>> f.display_value()
+        ''
+
         >>> f = DateField("Start Date", value=date(2015,1,1))
         >>> f.value
         datetime.date(2015, 1, 1)
@@ -783,6 +790,12 @@ class DateField(SimpleField):
         'Jan 01, 2015'
         >>> f.evaluate()
         {'START_DATE': datetime.date(2015, 1, 1)}
+
+        >>> f.assign('2015-12-31') # forms assign with strings
+        >>> f.display_value()
+        'Dec 31, 2015'
+        >>> f.evaluate()
+        {'START_DATE': datetime.date(2015, 12, 31)}
 
         >>> f.assign(date(2015,1,31))
         >>> f.display_value()
@@ -815,15 +828,16 @@ class DateField(SimpleField):
     min = max = None
 
     def display_value(self, alt_format=None):
-        strftime = datetime.datetime.strftime
+        format = alt_format or self.format
         if self.value:
-            if type(self.value) in [datetime.date, datetime.datetime]:
-                value = strftime(self.value, alt_format or self.format)
-            else:
-                value = self.value
+            strftime = datetime.datetime.strftime
+            try:
+                result = strftime(self.evaluate()[self.name], format)
+            except ValueError:
+                result = self.value
         else:
-            value = self.default and self.default.strftime(self.format) or ''
-        return value
+            result = self.default and self.default.strftime(format) or ''
+        return result
 
     def widget(self):
         value = self.display_value(self.input_format)
