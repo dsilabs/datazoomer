@@ -120,12 +120,6 @@ div.footer li { display: inline; margin-right:10px; }
     margin: 12px 0;
 }
 
-legend {
-    width: auto;
-    border-bottom: none;
-}
-
-
 div.user-info {
     float: right;
     padding-right: 20px;
