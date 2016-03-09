@@ -14,15 +14,15 @@ from user import user
 import log
 
 HEADER_LAYOUT = """
-<div class="container-fluid container-title">
-    <div id="title_bar" class="row">
-        <div id="title_bar_left" class="col-xs-12 col-md-4">
-            <H1>%(title)s</H1>
-            %(subtitle)s
-        </div>
-        <div id="title_bar_right" class="col-xs-12 col-md-8">
+<div class="title-container">
+    <div id="title_bar" class="title-bar">
+        <div id="title_bar_right" class="title-bar-right">
             %(actions)s
             %(search)s
+        </div>
+        <div id="title_bar_left" class="title-bar-left">
+            <H1>%(title)s</H1>
+            %(subtitle)s
         </div>
     </div>
 </div>

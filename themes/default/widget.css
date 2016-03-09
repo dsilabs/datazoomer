@@ -168,6 +168,7 @@
     input[type="tel"],
     input[type="color"],
     .uneditable-input {
+        border: 1px solid #ccc;
         display: inline-block;
         height: 30px;
         padding: 2px 6px;
@@ -261,7 +262,7 @@
         position: relative;
         display: inline;
         float: right;
-        margin-right: -3px;
+        margin-right: 3px;
     }
     div.search form {
         display: block;
@@ -276,7 +277,7 @@
     }
     div.content input.search_button {
         height: 37px;
-        margin-left: 9px;
+        margin-left: 5px;
         margin-right: 5px;
         display: inline;
     }
@@ -669,33 +670,47 @@
     }
 
 
-/* Title
+/* Title Bar
 ==========================*/
-    div.container-title {
-        padding-left: 0;
-        padding-right: 0;
-    }
-    #title_bar {
-        background: none;
+#title_bar {
+    width: 100%;
+}
+
+#title_bar_left {
+    width: auto;
+    overflow: auto;
+}
+
+#title_bar_right {
+    width: auto;
+    float: right;
+    margin-top: 1.5em;
+}
+
+@media only screen and (max-width: 768px) {
+    #title_bar_left {
         width: 100%;
-        padding: 0.2em;
-        margin: 12px 0;
-        border: none;
     }
-    #title_bar_left, #title_bar_right {
-        height: 100%;
-        vertical-align: middle;
-        padding: 0;
-        margin: 0;
-        border: none;
-        background: none;
-    }
-    #title_bar_right {
-        text-align: right;
-    }
-    #title_bar h1 {
-        margin: 0;
-    }
+}
+
+#title_bar .actions ul {
+    margin: 0;
+    padding: 0;
+}
+
+#title_bar .actions {
+    float: right;
+    sborder: 1px solid blue;
+}
+
+#title_bar .search {
+    sborder: 1px solid purple;
+}
+
+#title_bar .search form {
+    width: auto;
+}
+
 
 
 /* Price Boxes
