@@ -981,6 +981,15 @@ class CheckboxField(TextField):
         >>> f.evaluate()
         {'DONE': True}
 
+        >>> f = CheckboxField('Done', options=['yep','nope'], default=True)
+        >>> f.evaluate()
+        {'DONE': True}
+        >>> f.widget()
+        '<INPUT CHECKED  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+        >>> f.update(other='test')
+        >>> f.widget()
+        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+
         >>> f = CheckboxField('Done', options=['yep','nope'])
         >>> f.evaluate()
         {'DONE': None}
@@ -1013,9 +1022,11 @@ class CheckboxField(TextField):
     """
     options = ['yes','no']
     default = None
+    value = None
 
     def widget(self):
-        checked = self.value and 'checked ' or ''
+        value = self.value == None and self.default or self.value 
+        checked = value and 'checked ' or ''
         tag = tag_for(
             'input',
             None,
