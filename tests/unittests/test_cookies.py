@@ -19,14 +19,13 @@ from zoom.cookies import (
 )
 
 
-
 class TestRequest(unittest.TestCase): #pylint: disable=R0904
     """test system cookies"""
 
+    #pylint: disable=missing-docstring
+    # method names are more useful for testing
+
     def test_create_cookie(self):
-        """
-        Create a secure session and subject cookie
-        """
         logger = logging.getLogger('zoom.cookies')
 
         cookie = make_cookie()
@@ -48,9 +47,6 @@ class TestRequest(unittest.TestCase): #pylint: disable=R0904
         self.assertEqual(str(cookie), str(cookie2))
 
     def test_create_not_secure_cookie(self):
-        """
-        Create a non-secure session and subject cookie
-        """
         logger = logging.getLogger('zoom.cookies')
 
         cookie = make_cookie()

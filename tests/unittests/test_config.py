@@ -7,6 +7,7 @@
     This file is part of DataZoomer.
 """
 
+
 from os.path import join, split, abspath, exists
 import unittest
 import logging
@@ -14,11 +15,14 @@ import logging
 from zoom.config import Config
 
 
-class TestConfig(unittest.TestCase): #pylint: disable=R0904
+class TestConfig(unittest.TestCase):
     """test config module"""
 
+    #pylint: disable=R0904
+    #pylint: disable=missing-docstring
+    # method names are more useful for testing
+
     def test_create(self):
-        """test creating and using a config object"""
 
         def find_config(directory):
             """climb the directory tree looking for config"""
