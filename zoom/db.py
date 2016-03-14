@@ -186,7 +186,7 @@ class Database(object):
         if cursor.description:
             return Result(cursor)
         else:
-            self.lastrowid = cursor.lastrowid
+            self.lastrowid = getattr(cursor, 'lastrowid', None)
             return self.lastrowid
 
     def execute_many(self, sql, *a):
@@ -206,7 +206,7 @@ class Database(object):
         if cursor.description:
             return Result(cursor)
         else:
-            self.lastrowid = cursor.lastrowid
+            self.lastrowid = getattr(cursor, 'lastrowid', None)
             return self.lastrowid
 
     def use(self, name):
