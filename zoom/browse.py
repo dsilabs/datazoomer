@@ -63,7 +63,7 @@ def browse(data, labels=None, columns=None, fields=None, footer=None, title=None
             else:
                 if len(items):
                     raise Exception('%s' % hasattr(items[0],'__len__'))
-                raise Exception('Unable to infer columns')
+                return '<div class="baselist"><table><tbody><tr><td>None</td></th></tbody></table></div>'
 
     columns = list(columns)
     labels = list(labels)
