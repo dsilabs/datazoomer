@@ -20,7 +20,7 @@ import imghdr
 import cgi
 import datetime
 
-class Validator:
+class Validator(object):
     """A content validator."""
 
     def __init__(self, msg, test):

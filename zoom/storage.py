@@ -92,7 +92,7 @@ class EntityList(list):
         return ''.join(title) + ''.join(lines) + ''.join(t)
 
 
-class Model:
+class Model(object):
 
     def __init__(self,parent=None,**kv):
         for k in kv:

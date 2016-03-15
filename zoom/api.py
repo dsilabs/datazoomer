@@ -12,7 +12,7 @@ def get_test_site():
     import os
     return os.environ.get('DATAZOOMER_TEST_SITE', 'http://localhost')
 
-class API:
+class API(object):
     """
         Connect to and interact with a datazoomer site.
 

@@ -24,7 +24,7 @@ norm = string.maketrans('','')
 nonprintable = string.translate(norm,norm,string.letters+string.punctuation+string.digits+' ')
 
 #===========================================================
-class Column:
+class Column(object):
     def __init__(self,name,type,size=0,precision=0,position=0,rawtype=None):
         self.name      = name
         self.type      = type
@@ -119,7 +119,7 @@ class Columns(list):
         return ''.join(title) + ''.join(lines) + ''.join(t)
 
 #===========================================================
-class Database:
+class Database(object):
     """Lazy proxy for database connection"""
 
     def __init__(self, factory, *args, **keywords):
@@ -307,7 +307,7 @@ class Database:
         return columns
 
 
-class RecordSet:
+class RecordSet(object):
     """Wrapper for table based"""
 
     def __init__(self,db,cursor):
@@ -514,12 +514,12 @@ class Cursor(Table):
              self.reset()
           Table.insert_record(self,rec)
 
-class Record:
+class Record(object):
     """Wrapper for data row. Provides access by
     column name as well as position."""
 
     def __init__(self, recordset, rowData):
-        class RecordData:
+        class RecordData(object):
             def __init__(self,rs,rowData):
                 self.rs      = rs
                 self.data    = rowData
@@ -605,7 +605,7 @@ class Record:
         return t
 
     def as_obj(self):
-        class obj: pass
+        class obj(object): pass
         instance = obj()
         instance.__dict__ = self.as_dict()
         return instance

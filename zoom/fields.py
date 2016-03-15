@@ -1718,7 +1718,7 @@ class RangeSliderField(IntegerField):
         slider = '<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>'.format(name, name, minv, maxv)
         return '<div class="{}">{}{}</div>'.format(self.css_class, slider, labels)
 
-class FieldIterator:
+class FieldIterator(object):
 
     def __init__(self, fields):
         self.field_list = [(n.lower(),v) for n,v in fields.evaluate().items()]

@@ -40,7 +40,7 @@ def calc_domain(host):
     return ''
 
 
-class Webvars:
+class Webvars(object):
     def __init__(self, env=os.environ):
         """gather query fields"""
 
@@ -87,7 +87,7 @@ class Webvars:
         return str(self)
 
 
-class Request:
+class Request(object):
     def __init__(self, env=os.environ):
 
         path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))

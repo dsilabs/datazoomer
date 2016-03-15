@@ -42,7 +42,7 @@ last_month = (first_day_of_last_month,last_day_of_last_month)
 #me        = zoomer.user_id
 # one_year, one_hour, one_month, ago, ahead
 
-class DB:
+class DB(object):
     """Convenient system database access"""
     def __call__(self, cmd, *a, **k):
         return system.database(cmd, *a, **k)

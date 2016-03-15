@@ -24,7 +24,7 @@ def existing(path, subdir=None):
         return pathname
 
 
-class NoApp:
+class NoApp(object):
     name  = 'noapp'
     dir = ''
     keywords = ''
@@ -32,11 +32,11 @@ class NoApp:
     title = name
     theme = ''
 
-class Site:
+class Site(object):
     def __init__(self,**k):
         self.__dict__ = k
 
-class System:
+class System(object):
 
     elapsed_time = property(lambda a: timeit.default_timer() - a.start_time)
 

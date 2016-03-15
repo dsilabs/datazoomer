@@ -6,24 +6,24 @@ import system
 import random
 import collections
 
-class Logger:
+class Logger(object):
     entries = []
     def log(self, test, variant, subject):
         self.entries.append((test, variant, subject))
 
 
-class Selector:
+class Selector(object):
     name = 'stub'
     def __call__(self, subject, variants): pass
 
-class RandomSelector:
+class RandomSelector(object):
     name = 'random'
     def __call__(self, subject, variants):
         random.seed(subject)
         return random.choice(variants.items())
 
 
-class SubjectProvider:
+class SubjectProvider(object):
     """
         Provides a unique id for individual users, whether or not they
         are authenticated.
@@ -32,7 +32,7 @@ class SubjectProvider:
         return hash(user.is_authenticated and str(user.id) or system.sid)
 
 
-class Feature:
+class Feature(object):
     """
         Feature
 

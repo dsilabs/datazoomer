@@ -123,7 +123,7 @@ def using_old_passwords():
 def is_member(user, groups):
     """Determines if a user is a member of a set of groups
 
-    >>> class User: pass
+    >>> class User(object): pass
     >>> joe = User()
     >>> joe.groups = ['g1']
     >>> is_member(joe, ['g2','g3'])
@@ -145,7 +145,7 @@ def is_member(user, groups):
         items = groups
     return bool(set(items).intersection(user.groups))
 
-class User:
+class User(object):
     link = property(lambda a: '<a href="/users/%s">%s</a>' % (a.username,a.username))
 
     def __init__(self, login_id=None):

@@ -62,7 +62,7 @@ email_body = """
 </HTML>
 """
 
-class Message:
+class Message(object):
     def __init__(self):
         x=1
 
@@ -72,7 +72,7 @@ class Message:
 def format_email(body):
     logo_url = system.config.get('mail','logo',system.uri + '/images/email_logo.png')
     return fill('{{','}}',email_body,dict(logo_url=logo_url,message=body).get)
-#    class Filler:
+#    class Filler(object):
 #        def __init__(self):
 #            self.MESSAGE = body
 #    result = fill(email_body.replace('<#ROOT>',system.root_url),Filler())
@@ -193,7 +193,7 @@ def SendMail(fromaddr,toaddr,subject,body,mailtype='plain',attachments=[]):
     server.sendmail(email_address(fromaddr), [email_address(to) for to in toaddr], message.as_string())
     server.quit()
 
-class Attachment:
+class Attachment(object):
     def __init__(self,filename,filelike_object,mime_type=None):
         """Attachment object contains the information necessary to email an attachment.
             filelike_object just needs a read method.

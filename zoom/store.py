@@ -127,7 +127,7 @@ def entify(rs, klass):
     return EntityList(entities.values())
 
 
-class EntityStore:
+class EntityStore(object):
     """
     stores entities
 

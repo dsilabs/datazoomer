@@ -48,7 +48,7 @@ def get_apps(app_paths):
     return apps
 
 
-class Manager:
+class Manager(object):
 
     def setup(self):
         self.app_path  = system.config.get('apps','path')

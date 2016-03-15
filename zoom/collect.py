@@ -11,7 +11,7 @@ from models import Attachment
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
 
-class Text:
+class Text(object):
     def __init__(self, text):
         self.value = text
 
