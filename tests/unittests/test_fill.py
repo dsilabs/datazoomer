@@ -33,9 +33,6 @@ def link_to(label, url, *a, **k):
     keywords = ' '.join(['%s="%s"' % (n, v) for n, v in k.iteritems()])
     return '<a href="%s" %s %s>%s</a>' % (url, args, keywords, label)
 
-def test(*a, **k):
-    return repr(a)+' '+repr(k)
-
 def fill(text, callback):
     return _fill('<z:', '>', text, callback)
 
