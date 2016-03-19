@@ -37,7 +37,7 @@ def ul(items, Class=''):
     class_attr = Class and ' class="%s"' % Class or ''
     return '<ul%s>%s</ul>' % (class_attr, ''.join('<li>%s</li>' % item for item in items))
 
-def tag(tag_text,content='',*args,**keywords):
+def tag(element, content=None, *args, **kwargs):
     """
     generates an HTML tag
 
@@ -48,23 +48,34 @@ def tag(tag_text,content='',*args,**keywords):
         '<a href="http://www.google.com" />'
     
     """
-    tag_type = tag_text.lower()
-    singles = ''.join([' %s' % arg.lower() for arg in args])
-    attribute_text = ''.join([' %s="%s"' % (key.lower(),keywords[key]) for key in keywords])
-    if content or tag_type in ['textarea']:
-        return '<%s%s%s>%s</%s>' % (tag_type,singles,attribute_text,content,tag_type)
+    empty = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
+             'input', 'link', 'meta', 'param', 'source']
+
+    name = element.lower()
+    parts = \
+            [name] + \
+            [str(a).lower for a in args] + \
+            ['{}="{}"'.format(k.lower(), v) for k, v in kwargs.items()]
+
+    if content == None or name in empty:
+        return '<{} />'.format(' '.join(parts))
     else:
-        return '<%s%s%s />' % (tag_type,singles,attribute_text)
+        return '<{}>{}</{}>'.format(' '.join(parts), content, name)
+
      
-def div(content,**keywords):
+def div(content='', **kwargs):
     """
     generates an div tag
 
         >>> div('some content')
         '<div>some content</div>'
 
+        >>> div('')
+        '<div></div>'
+
+
     """
-    return tag('div',content,**keywords)
+    return tag('div', content, **kwargs)
      
 def h1(text):
     return '<h1>{}</h1>'.format(text)

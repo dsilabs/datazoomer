@@ -82,6 +82,8 @@ def id_for(*args):
 def tag_for(tag_text,content='',*args,**keywords):
     """
     Builds an HTML tag.
+
+        deprecated : use html.tag instead
     
         >>> tag_for('a',href='http://www.google.com')
         '<A HREF="http://www.google.com" />'
