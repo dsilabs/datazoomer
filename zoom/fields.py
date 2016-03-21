@@ -1337,6 +1337,12 @@ class MultiselectField(TextField):
         >>> f.display_value()
         'One'
 
+        >>> f = MultiselectField('Type',value='uno',options=[('One','uno'),('One','dos')])
+        >>> f.display_value()
+        'One'
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="uno" selected>One</option><option value="dos">One</option></select>'
+
         >>> f = MultiselectField('Type',value=['One','dos'],options=[('One','uno'),('Two','dos')])
         >>> f.display_value()
         'One; Two'
@@ -1419,7 +1425,7 @@ class MultiselectField(TextField):
             else:
                 label, value = option, option
             style = self.option_style(label, value)
-            if label in current_labels:
+            if value in current_values:
                 result.append('<option %svalue="%s" selected>%s</option>' % (style,value,label))
             else:
                 result.append('<option %svalue="%s">%s</option>' % (style,value,label))
@@ -1464,7 +1470,7 @@ class ChosenMultiselectField(MultiselectField):
             else:
                 label, value = option, option
             style = self.option_style(label, value)
-            if label in current_labels:
+            if value in current_values:
                 result.append('<option %svalue="%s" selected>%s</option>' % (style, value,label))
             else:
                 result.append('<option %svalue="%s">%s</option>' % (style,value,label))
