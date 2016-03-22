@@ -73,6 +73,9 @@ def div(content='', **kwargs):
         >>> div('')
         '<div></div>'
 
+        >>> div(Class='header')
+        '<div class="header"></div>'
+
 
     """
     return tag('div', content, **kwargs)
