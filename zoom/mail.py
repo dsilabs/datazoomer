@@ -48,7 +48,7 @@ email_body = """
 <BODY>
 <table width="100%">
  <tr>
-  <td align="right">
+  <td align="left">
   <img src="{{logo_url}}" alt="banner logo"> 
   </td>
  </tr>
