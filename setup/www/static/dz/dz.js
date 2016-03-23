@@ -1,9 +1,9 @@
 
     function toggle_flag(){
-        var title = $(this).attr('title'),
+        var label = $(this).attr('label'),
             icon = $(this).attr('icon'),
             url = $(this).attr('url');
-        $.post('/flags/toggle', {'TITLE': title, 'URL': url, 'ICON': icon } );
+        $.post('/flags/toggle', {'LABEL': label, 'URL': url, 'ICON': icon } );
         $(this).toggleClass(icon+'_on');
     }
 

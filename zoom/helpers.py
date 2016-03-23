@@ -518,13 +518,13 @@ def uri():
     """Returns the site URI."""
     return system.uri
 
-def flag(title='', url=None, icon='star', id=None):
+def flag(label='', url=None, icon='star', id=None, hint=''):
     def get_flag_state(url, owner, icon):
         return bool(flags.flags.find(url=url, owner=owner, icon=icon))
     url = url or request.uri
     id_attr = id and ('id="%s"'%id) or ''
     state = get_flag_state(url, user.username, icon) and icon+'_on' or ''
-    tpl = '<a title="%(title)s" %(id_attr)s url="%(url)s" icon="%(icon)s" class="flag %(icon)s %(state)s">Flag Me!</a>'
+    tpl = '<a title="%(hint)s" %(id_attr)s label="%(label)s" url="%(url)s" icon="%(icon)s" class="flag %(icon)s %(state)s">Flag Me!</a>'
     return tpl % locals()
 
 def flag_list(icon='star', n=None):
