@@ -89,3 +89,29 @@ def h2(text):
 def h3(text):
     return '<h3>{}</h3>'.format(text)
 
+
+# Bootstrap Wrappers
+#----------------------------------------------------------------------------
+
+def glyphicon(icon, **kwargs):
+    """generates a glpyhicon span
+
+    >>> glyphicon('heart')
+    '<span class="glyphicon glyphicon-heart" aria-hidden="true"></span>'
+
+    >>> glyphicon('heart', Class="special")
+    '<span class="glyphicon glyphicon-heart special" aria-hidden="true"></span>'
+
+    >>> glyphicon('heart', Class="special", style="color:red")
+    '<span style="color:red" class="glyphicon glyphicon-heart special" aria-hidden="true"></span>'
+    """
+    additional_css_classes = kwargs.pop('Class', kwargs.pop('_class', ''))
+    css_class = ' '.join(i for i in ['glyphicon glyphicon-{}'.format(icon),
+                                     additional_css_classes] if i)
+    attributes = {
+        'aria-hidden': 'true',
+        'class': css_class,
+    }
+    attributes.update(kwargs)
+    return tag('span', '', **attributes)
+
