@@ -22,6 +22,7 @@ from user import user
 from manager import manager
 from visits import visited
 from zoom.cookies import set_session_cookie
+from .exceptions import UnauthorizedException
 
 
 NEW_INSTALL_MESSAGE = """
@@ -73,6 +74,7 @@ def generate_response(instance_path):
 
     profiler = None
 
+
     # capture stdout
     real_stdout = sys.stdout
     sys.stdout = StringIO.StringIO()
@@ -82,6 +84,9 @@ def generate_response(instance_path):
             system.setup(instance_path)
             user.setup()
             manager.setup()
+
+            debugging = (system.debugging or system.show_errors or
+                         user.is_developer or user.is_administrator)
 
             session = system.session
 
@@ -138,9 +143,16 @@ def generate_response(instance_path):
                 system.secure_cookies,
             )
 
+        except UnauthorizedException:
+            logger.security('unauthorized access attempt')
+            if debugging:
+                raise
+            else:
+                response = redirect_to('/')
+
         except CrossSiteRequestForgeryAttempt:
             logger.security('cross site forgery attempt')
-            if not (system.config.get('error','users','0')=='1' or user.is_developer or user.is_administrator):
+            if debugging:
                 raise
             else:
                 response = redirect_to('/')
@@ -151,7 +163,7 @@ def generate_response(instance_path):
         except:
             t = traceback.format_exc()
             logger.error(t)
-            if system.debugging or system.show_errors or user.is_developer or user.is_administrator:
+            if debugging:
                 try:
                     tpl = load_template('system_application_error_developer', STANDARD_ERROR_MESSAGE)
                     msg = tpl % dict(message=t)

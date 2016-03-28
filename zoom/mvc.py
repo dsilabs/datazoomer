@@ -1,7 +1,7 @@
 
 from request import data
 from user import user
-from exceptions import PageMissingException
+from exceptions import PageMissingException, UnauthorizedException
 
 __all__ = ['View','Controller','authorize']
 
@@ -45,7 +45,7 @@ def authorize(*roles):
             for role in roles:
                 if role in user.groups:
                     return func(*args, **kwargs)
-            raise Exception('Unauthorized')
+            raise UnauthorizedException('Unauthorized')
         return authorize_and_call
     return wrapper
 
