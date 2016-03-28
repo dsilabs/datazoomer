@@ -75,6 +75,7 @@ class Application(object):
         self.get = self.read_config # remove?
         self.path = path
         self.dir = os.path.split(path)[0]
+        self.url = '/' + name
 
         self.settings = system.settings.app_settings(self, DEFAULT_SETTINGS)
         get = self.settings.get
