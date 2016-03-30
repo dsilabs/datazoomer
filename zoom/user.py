@@ -21,6 +21,8 @@ import datetime
 from system import system
 from auth import ctx, DataZoomerSaltedHash, BcryptDataZoomerSaltedHash
 
+from .exceptions import UnauthorizedException
+
 TWO_WEEKS = 14 * 24 * 60 * 60 # in seconds
 
 def get_current_username():
@@ -264,6 +266,22 @@ class User(object):
         self.settings = system.settings.user_settings(self, system.config)
         self.theme = self.settings.get('theme_name')
         self.profile = self.settings.get_bool('profile')
+
+    def can(self, action, thing):
+        """test to see if user can action a thing object.
+
+        Object thing must provide allows(user, action) method.
+        """
+        return thing.allows(self, action)
+
+    def authorize(self, action, thing):
+        """authorize a user to perform an action on thing
+
+        If user is not allowed to perform the action an exception is raised.
+        Object thing must provide allows(user, action) method.
+        """
+        if not thing.allows(self, action):
+            raise UnauthorizedException('Unauthorized')
 
 
 user = User()
