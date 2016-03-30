@@ -265,6 +265,9 @@ class Record(Storage):
     def valid(self):
         return 1
 
+    def allows(self, user, action):
+        return True
+
     def __getitem__(self, name):
         try:
             value = dict.__getitem__(self, name)
