@@ -1,12 +1,26 @@
+"""
+    manages collections of things
+"""
 
 from os import environ as env
 
-from zoom import *
-from zoom.response import PNGResponse
-from zoom.log import logger
-from exceptions import PageMissingException
-from buckets import Bucket
-from models import Attachment
+from . import json
+from .system import system
+from .request import route
+from .browse import browse
+from .page import page
+from .user import user
+from .mvc import View, Controller
+from .tools import now, redirect_to, markdown
+from .utils import DefaultRecord, id_for
+from .fields import Form, ButtonField, Hidden, Button
+from .helpers import link_to, error
+from .store import Entity, EntityStore
+from .response import PNGResponse
+from .log import logger
+from .exceptions import PageMissingException
+from .buckets import Bucket
+from .models import Attachment
 
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
@@ -48,10 +62,12 @@ def image_response(name, data):
         return GIFResponse(data)
 
 class CollectionView(View):
+
     def __init__(self, collection):
         self.collection = collection
 
     def index(self, q='', *a, **k):
+
         def matches(item, search_text):
             f.update(item)
             v = repr(f.display_value()).lower()
@@ -67,7 +83,10 @@ class CollectionView(View):
         if q:
             logger.activity(system.app.name, '%s searched %s with %r' % (user.link, c.name.lower(), q))
 
-        items = sorted((i for i in c.store if not q or matches(i,q)), key=c.order)
+        authorized = (i for i in c.store if user.can('read', i))
+        matching = (i for i in authorized if not q or matches(i, q))
+        filtered = (not q and hasattr(c, 'filter') and c.filter and filter(c.filter, matching)) or matching
+        items = sorted(filtered, key=c.order)
 
         if env.get('HTTP_ACCEPT','') == 'application/json':
             return dumps([item for item in items])
@@ -98,7 +117,14 @@ class CollectionView(View):
         c = self.collection
         record = locate(c, locator)
         if record:
-            actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
+            user.authorize('read', record)
+
+            actions = []
+            if user.can('update', record):
+                actions.append(action_for(record, 'Edit'))
+            if user.can('delete', record):
+                actions.append(action_for(record, 'Delete'))
+            #actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
             c.fields.initialize(c.entity(record))
 
             if 'updated' in record and 'updated_by' in record:
@@ -120,6 +146,8 @@ class CollectionView(View):
         if c.can_edit():
             record = locate(c, key)
             if record:
+                user.authorize('read', record)
+
                 c.fields.initialize(record)
                 c.fields.update(data)
                 form = Form(c.fields, ButtonField('Save', cancel=record.url))
@@ -127,13 +155,14 @@ class CollectionView(View):
             else:
                 return page('%s missing' % key)
 
-    def delete(self, key, confirm='YES'):
+    def delete(self, key, CONFIRM='YES'):
         c = self.collection
         if c.can_edit():
-            if confirm != 'NO':
+            if CONFIRM != 'NO':
                 c = self.collection
                 record = locate(c, key)
                 if record:
+                    user.authorize('read', record)
                     return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
 
     def image(self, key, name):
@@ -185,6 +214,7 @@ class CollectionController(Controller):
                     record.created = now
                     record.updated = now
                     record.owner = user.username
+                    record.owner_id = user.user_id
                     record.created_by = user.username
                     record.updated_by = user.username
                     try:
@@ -192,7 +222,9 @@ class CollectionController(Controller):
                     except AttributeError:
                         pass # can happen when key depends on database auto-increment value
                     c.store.put(record)
-                    logger.activity(system.app.name, '%s added %s %s' % (user.link, c.item_name.lower(), record.linked_name))
+                    logger.activity(system.app.name, '%s added %s %s' %
+                                    (user.link, c.item_name.lower(),
+                                     record.link))
                     return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
@@ -201,6 +233,7 @@ class CollectionController(Controller):
             if c.fields.validate(data):
                 record = locate(c, key)
                 if record:
+                    user.authorize('update', record)
                     record.update(c.fields)
                     record.pop('key',None)
                     if record.key <> key and locate(c, record.key):
@@ -210,7 +243,9 @@ class CollectionController(Controller):
                         record.updated_by = user.username
                         record.key = record.key # property to attribute for storage
                         c.store.put(record)
-                        logger.activity(system.app.name, '%s edited %s %s' % (user.link, c.item_name.lower(), record.linked_name))
+                        logger.activity(system.app.name, '%s edited %s %s' %
+                                        (user.link, c.item_name.lower(),
+                                         record.link))
                         return redirect_to(record.url)
 
     def delete(self, key, CONFIRM='YES'):
@@ -219,8 +254,11 @@ class CollectionController(Controller):
             if CONFIRM == 'NO':
                 record = locate(c, key)
                 if record:
+                    user.authorize('delete', record)
                     c.store.delete(record)
-                    logger.activity(system.app.name, '%s deleted %s %s' % (user.link, c.item_name.lower(), record.linked_name))
+                    logger.activity(system.app.name, '%s deleted %s %s' %
+                                    (user.link, c.item_name.lower(),
+                                     record.link))
                     return redirect_to(c.url)
 
     def delete_image(self, key, name):
@@ -296,7 +334,8 @@ class CollectionRecord(DefaultRecord):
     url = property(lambda self: url_for_page(route[1], self.key)) # not ideal, but works
     link = property(lambda self: link_to(self.name, self.url))
 
-
+    def allows(self, user, action):
+        return True
 
 class Collection(object):
 
@@ -311,6 +350,7 @@ class Collection(object):
         self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
         self.store = EntityStore(system.db, entity)
         self.url = url or '/{}/{}'.format(system.app.name, id_for(self.name))
+        self.filter = None # attach callable here to filter browse list
 
     def can_edit(self, user=user):
         return user.is_member(['managers'])
@@ -331,6 +371,8 @@ class Collection(object):
         view = CollectionView(self)
         return controller(*a, **k) or view(*a, **k)
 
+    def __str__(self):
+        return 'collection of ' + str(self.store)
 
 
 
