@@ -49,6 +49,82 @@ def authorize(*roles):
         return authorize_and_call
     return wrapper
 
+def can(action):
+    """activity based authentication
+
+    Tests to see if user can perform some activity.
+
+        >>> class TheUser(object):
+        ...
+        ...     def __init__(self, name):
+        ...         self.name = name
+        ...
+        ...     def can(self, action, thing):
+        ...         return thing.allows(self, action)
+
+        >>> class Thing(object):
+        ...
+        ...     def __init__(self, name):
+        ...         self.name = name
+        ...
+        ...     def allows(self, user, action):
+        ...         return bool(user.name == 'joe' and action == 'edit') or \\
+        ...                bool(user.name == 'sam' and action == 'delete')
+        ...
+        ...     def delete(self):
+        ...         return 'deleted!'
+        ...
+        ...     @can('edit')
+        ...     def update(self, name):
+        ...         self.name = name
+        ...         return 'hello {}!'.format(name)
+        ...
+        ...     @can('delete')
+        ...     def zap(self):
+        ...         return 'zapped!'
+        ...
+
+        >>> user.name = 'joe'
+        >>> user.name
+        'joe'
+
+        >>> thing = Thing(name='rain')
+
+        >>> user.can('edit', thing)
+        True
+
+        >>> user.can('delete', thing)
+        False
+
+        >>> try:
+        ...    thing.zap()
+        ... except UnauthorizedException, e:
+        ...    'access denied'
+        'access denied'
+
+        >>> user.name = 'sam'
+        >>> try:
+        ...    thing.update('clouds')
+        ... except UnauthorizedException, e:
+        ...    'sunshine prevails'
+        'sunshine prevails'
+
+        >>> thing.zap()
+        'zapped!'
+
+        >>> user = TheUser(name='sally')
+        >>> user.can('edit', thing)
+        False
+
+    """
+    def wrapper(func):
+        def authorize_and_call(self, *args, **kwargs):
+            if self.allows(user, action):
+                return func(self, *args, **kwargs)
+            raise UnauthorizedException('Unauthorized')
+        return authorize_and_call
+    return wrapper
+
 class View(object):
     """
 
