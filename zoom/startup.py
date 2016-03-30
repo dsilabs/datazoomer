@@ -148,7 +148,8 @@ def generate_response(instance_path):
             if debugging:
                 raise
             else:
-                response = redirect_to('/')
+                response = Page(PAGE_MISSING_MESSAGE).render()
+                response.status = '404'
 
         except CrossSiteRequestForgeryAttempt:
             logger.security('cross site forgery attempt')
