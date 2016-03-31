@@ -36,8 +36,8 @@ pivot_tpl = """
                 $.extend( pivotoptions, customoptions );
 
                 $.getJSON(pivoturl, function(data) {
-                    pivotdata = data;
-                    $("#%(selector)s").%(js_obj)s(data, pivotoptions%(extended)s);
+                    pivotdata = data.data || data;
+                    $("#%(selector)s").%(js_obj)s(pivotdata, pivotoptions%(extended)s);
                 });
              });
         </script>
