@@ -1,0 +1,23 @@
+
+    .chart {
+        height:300px;
+    }
+    .jqplot-axis {
+        font-size: 0.8em;
+    }
+    .jqplot-xaxis {
+        padding-top: 10px;
+    }
+    .jqplot-yaxis {
+        padding-right: 10px;
+    }
+    .content .jqplot-table-legend {
+        border: none;
+        padding: 0.4em 1.0em;
+    }
+    .content td.jqplot-table-legend-label {
+        padding: 0;
+    }
+    div.jqplot-table-legend-swatch-outline {
+        padding: 0;
+    }
