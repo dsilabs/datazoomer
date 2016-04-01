@@ -886,6 +886,25 @@ def lorem():
         proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         """
 
+def plural(s,cnt):
+    """ return string "s" as plural or not based on count (cnt)
+
+        >>> plural(' record ', 2)
+        ' records'
+        >>> plural('entity', 1)
+        'entity'
+        >>> plural(' entity', 0)
+        ' entities'
+    """
+    s = s.rstrip()
+    if cnt==1:
+        return s
+    elif s[-1]<>'y':
+        return "{}{}".format(s,'s')
+    else:
+        return "{}{}".format(s[:-1],'ies')
+
+
 if __name__ == '__main__':
     import unittest
 
