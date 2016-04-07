@@ -31,7 +31,7 @@ JQPLOT_JS = """
         $(document).ready(function(){
             var data = %(data)s;
             var options = %(options)s;
-            var plot1 = $.jqplot('chart_%(name)s', data, options);
+            var plot1 = $.jqplot('%(chart_id)s', data, options);
 
             $( window ).resize(function() {
               // work around unpatched jqplot bug for bar width resize
@@ -44,7 +44,7 @@ JQPLOT_JS = """
 """
 
 CHART_TPL = """
-    <div id="chart_%(name)s" class="chart"></div>
+    <div id="%(chart_id)s" class="chart"></div>
 """
 
 def merge_options(old, updates):
@@ -122,7 +122,7 @@ def line(data, legend=None, options=None, **k):
     # pylint: disable=star-args
     # It's reasonable in this case.
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = zip(*data)
 
@@ -149,7 +149,7 @@ def line(data, legend=None, options=None, **k):
         default_options['series'] = [dict(label=label) for label in legend]
 
     parameters = dict(
-        name=chart_name,
+        chart_id=chart_id,
         data=json.dumps(data),
         options=render_options(default_options, options, k),
         )
@@ -165,7 +165,7 @@ def bar(data, legend=None, options=None, **k):
     # pylint: disable=star-args
     # It's reasonable in this case.
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = zip(*data)
 
@@ -189,7 +189,7 @@ def bar(data, legend=None, options=None, **k):
         default_options['series'] = [dict(label=label) for label in legend]
 
     parameters = dict(
-        name=chart_name,
+        chart_id=chart_id,
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -203,7 +203,7 @@ def hbar(data, legend=None, options=None, **k):
     # pylint: disable=star-args
     # It's reasonable in this case.
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = zip(*data)
 
@@ -229,7 +229,7 @@ def hbar(data, legend=None, options=None, **k):
         default_options['series'] = [dict(label=label) for label in legend]
 
     parameters = dict(
-        name=chart_name,
+        chart_id=chart_id,
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -240,7 +240,7 @@ def hbar(data, legend=None, options=None, **k):
 def pie(data, legend=None, options=None, **k):
     """produce a pie chart"""
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = [[row[:2] for row in data]] # can only handle one series right now
 
@@ -259,7 +259,7 @@ def pie(data, legend=None, options=None, **k):
         default_options['legend'] = dict(show='true', location='e')
 
     parameters = dict(
-        name=chart_name,
+        chart_id=chart_id,
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -275,7 +275,7 @@ def gauge(data,
           **k):
     """produce a gauge chart"""
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = [[data]]
 
@@ -301,7 +301,7 @@ def gauge(data,
         renderer_options['intervalColors'] = interval_colors
 
     parameters = dict(
-        name=chart_name,
+        chart_id=chart_id,
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -312,7 +312,8 @@ def gauge(data,
 def time_series(data, legend=None, time_format='%b %e', options=None, **k):
     """produce a time series chart"""
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
+
     fmt = '%m/%d/%Y %H:%M:%S'
     min_date = min(r[0] for r in data).strftime(fmt)
     max_date = max(r[0] for r in data).strftime(fmt)
@@ -343,7 +344,7 @@ def time_series(data, legend=None, time_format='%b %e', options=None, **k):
         default_options['series'] = [dict(label=label) for label in legend]
 
     parameters = dict(
-        name=chart_name,
+        chart_id=chart_id,
         data=json.dumps(data),
         options=render_options(default_options, options, k),
         )
