@@ -19,7 +19,7 @@
 
 import os
 import datetime
-from markdown import Markdown 
+from markdown import Markdown
 from system import system
 from request import request, route
 from response import HTMLResponse, RedirectResponse
@@ -49,6 +49,9 @@ class DB(object):
     def __getattr__(self, name):
         return getattr(system.database, name)
 db = DB()
+
+has_iterator_protocol = lambda a: hasattr(a, '__iter__')            # does the parameter support the iteration protocol (sequences do, but not a string)
+wrap_iterator = lambda a: has_iterator_protocol(a) and a or [a]     # wrap the argument in a list if it does not support the iteration protocol (i.e. to avoid iterating over a string)
 
 def site_url():
     if request.port=='443':
@@ -222,7 +225,7 @@ def load_content(name):
     elif os.path.isfile(name+'.txt'):
         text = codecs.open('%s.txt'%name, mode="r", encoding="utf8").read()
         return markdown(text)
-        
+
 def get_menu(name='main'):
     filename = os.path.join(system.config.site_path, 'menus.py')
     if os.path.exists(filename):
@@ -404,14 +407,14 @@ if __name__=='__main__':
     class Tests(unittest.TestCase):
         def test_how_long_ago(self):
             pass
-            
+
         def test_how_long(self):
             from datetime import datetime
             self.assertEqual(how_long(datetime(2010,10,1),datetime(2010,10,7)),'6 days')
             self.assertEqual(how_long(datetime(2010,10,1),datetime(2010,10,8)),'7 days')
             self.assertEqual(how_long(datetime(2010,10,1),datetime(2010,10,9)),'8 days')
             self.assertEqual(how_long(datetime(2010,10,1),datetime(2010,10,16)),'2 weeks')
-            
+
     unittest.main()
 
 

@@ -25,7 +25,7 @@ from decimal import Decimal
 
 from validators import *
 from utils import name_for, tag_for
-from tools import htmlquote, websafe, markdown
+from tools import htmlquote, websafe, markdown, has_iterator_protocol, wrap_iterator
 from helpers import attribute_escape
 from request import route
 from zoom import system
@@ -44,6 +44,7 @@ HINT_TPL = \
 
 FIELD_TPL = \
 '<div class="field"><div class="field_label">%(label)s</div><div class="field_%(mode)s">%(content)s</div></div>'
+
 
 def div(content, **attributes):
     return tag_for('div', content, **attributes)
@@ -1025,7 +1026,7 @@ class CheckboxField(TextField):
     value = None
 
     def widget(self):
-        value = self.value == None and self.default or self.value 
+        value = self.value == None and self.default or self.value
         checked = value and 'checked ' or ''
         tag = tag_for(
             'input',
@@ -1378,6 +1379,12 @@ class MultiselectField(TextField):
         's1'
         >>> f.option_style('zero','nada')
         'class="s0" '
+
+        # test for iterating over a string vs. a sequence type (iteration protocol)
+        >>> m1 = MultiselectField('Type', default='11', options=[('One','1'),('Two','2'),('Elves','11'),]).widget()
+        >>> m2 = MultiselectField('Type', default=('11',), options=[('One','1'),('Two','2'),('Elves','11'),]).widget()
+        >>> assert m1 == m2
+
     """
 
     value = None
@@ -1386,13 +1393,11 @@ class MultiselectField(TextField):
     styler = None
 
     def _scan(self, t, f):
-        SEQUENCE_TYPES = [types.ListType, types.TupleType]
         if t:
-            if not type(t) == types.ListType:
-                t = [t]
+            t = wrap_iterator(t)
             result = []
             for option in self.options:
-                if len(option)==2 and type(option) in SEQUENCE_TYPES:
+                if len(option)==2 and has_iterator_protocol(option):
                     label, value = option
                     if label in t or value in t:
                         result.append(f(option))
@@ -1427,13 +1432,14 @@ class MultiselectField(TextField):
             current_values = self.default
         else:
             current_values = self.value
+        current_values = wrap_iterator(current_values)
         current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
         tpl = '<select multiple="multiple" class="%s" name="%s" id="%s">\n'
         result.append(tpl%(self.css_class, name, name))
         for option in self.options:
-            if type(option) in [types.ListType, types.TupleType] and len(option)==2:
+            if has_iterator_protocol(option) and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
@@ -1472,13 +1478,14 @@ class ChosenMultiselectField(MultiselectField):
             current_values = self.default
         else:
             current_values = self.value
+        current_values = wrap_iterator(current_values)
         current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
         tpl = '<select data-placeholder="{}" multiple="multiple" class="{}" name="{}" id="{}">\n'
         result.append(tpl.format(self.placeholder, self.css_class, name, name))
         for option in self.options:
-            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+            if has_iterator_protocol(option) and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
