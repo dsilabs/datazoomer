@@ -1230,25 +1230,38 @@ class PulldownField(TextField):
         >>> f = PulldownField('Type',value='uno',options=[('One','uno'),('Two','dos')])
         >>> f.display_value()
         'One'
+
+        >>> f = PulldownField('Type',default='uno',options=[('One','uno'),('Two','dos')])
+        >>> f.display_value()
+        'One'
+        >>> f.evaluate()
+        {'TYPE': 'uno'}
+
+        >>> p = PulldownField('Date', name='TO_DATE', options=[('JAN','jan'), ('FEB','feb'),], default='feb')
+        >>> p.evaluate()
+        {'TO_DATE': 'feb'}
+        >>> p.display_value()
+        'FEB'
     """
+    value = None
 
     def evaluate(self):
         for option in self.options:
             if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
                 if self.value == label:
-                    return {self.name:value}
-        return {self.name: self.value}
+                    return {self.name: value}
+        return {self.name: self.value == None and self.default or self.value}
 
     def display_value(self):
-        t = self.value
+        t = self.value == None and self.default or self.value
         if t:
             for option in self.options:
                 if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                     label, value = option
                     if t == value:
                         return label
-        return t or ''
+        return t
 
     def assign(self,new_value):
         self.value = new_value
