@@ -40,6 +40,7 @@ JQPLOT_JS = """
               });
               plot1.replot( { resetAxes: true } );
             });
+            %(apply_theme)s
           });
 """
 
@@ -98,8 +99,6 @@ def merge_options(old, updates):
         return updates
 
 
-
-
 def render_options(default_options, options, k=None):
     """Merges options with default options and inserts plugins"""
     is_plugin = r'\"\$\.jqplot\.(.*)"'
@@ -110,6 +109,28 @@ def render_options(default_options, options, k=None):
 
 def chart(parameters):
     """assemble chart components"""
+
+    def install_theme(parameters):
+        """adds a theme to the chart parameters if necessary
+
+        Themes are provided as a (name, data) tuple where name
+        is just lowercase name with no hyphens or spaces and data
+        is a json object as specified in the jqplot docs.
+        """
+        chart_theme = parameters.pop('chart_theme', None)
+        if chart_theme:
+            name, data = chart_theme
+            code = """
+            // apply theme
+            {name} = {data};
+            {name} = plot1.themeEngine.newTheme('{name}', {name});
+            plot1.activateTheme('{name}');
+            """.format(name=name, data=data)
+        else:
+            code = ""
+        parameters['apply_theme'] = code
+
+    install_theme(parameters)
     system.libs = system.libs | JQPLOT_SCRIPTS
     system.styles = system.styles | JQPLOT_STYLES
     system.js.add(JQPLOT_JS % parameters)
@@ -150,6 +171,7 @@ def line(data, legend=None, options=None, **k):
 
     parameters = dict(
         chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
         )
@@ -190,6 +212,7 @@ def bar(data, legend=None, options=None, **k):
 
     parameters = dict(
         chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -230,6 +253,7 @@ def hbar(data, legend=None, options=None, **k):
 
     parameters = dict(
         chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -260,6 +284,7 @@ def pie(data, legend=None, options=None, **k):
 
     parameters = dict(
         chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -302,6 +327,7 @@ def gauge(data,
 
     parameters = dict(
         chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
     )
@@ -345,6 +371,7 @@ def time_series(data, legend=None, time_format='%b %e', options=None, **k):
 
     parameters = dict(
         chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
         )
