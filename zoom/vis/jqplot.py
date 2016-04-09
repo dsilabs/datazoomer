@@ -11,16 +11,16 @@ from zoom import system
 JQPLOT_SCRIPTS = [
     "/static/dz/jqplot/excanvas.js",
     "/static/dz/jqplot/jquery.jqplot.min.js",
-    "/static/dz/jqplot/plugins/jqplot.highlighter.min.js",
-    "/static/dz/jqplot/plugins/jqplot.cursor.min.js",
-    "/static/dz/jqplot/plugins/jqplot.dateAxisRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.canvasTextRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.barRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.categoryAxisRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.pointLabels.min.js",
-    "/static/dz/jqplot/plugins/jqplot.pieRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.meterGaugeRenderer.min.js",
+    "/static/dz/jqplot/plugins/jqplot.highlighter.js",
+    "/static/dz/jqplot/plugins/jqplot.cursor.js",
+    "/static/dz/jqplot/plugins/jqplot.dateAxisRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.canvasTextRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.canvasAxisTickRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.barRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.categoryAxisRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.pointLabels.js",
+    "/static/dz/jqplot/plugins/jqplot.pieRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.meterGaugeRenderer.js",
 ]
 
 JQPLOT_STYLES = [
