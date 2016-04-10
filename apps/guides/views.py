@@ -2,9 +2,13 @@
     guide views
 """
 
-from zoom import page
+import os
+
+from zoom import page, load, trim, markdown
 from zoom.html import div, ul, h1
 from zoom import link_to, id_for
+
+BREAKER = '-- section break --'
 
 def generate_index(toc):
     """Generate a table of contents page"""
@@ -47,3 +51,37 @@ def guide(feature, side_panel, body):
         side_panel=side_panel,
         body=body,
     ))
+
+def load_document(name, args={}):
+    filename = 'docs/{}.md'.format(name)
+    feature, messages, body = '', '', ''
+    if os.path.exists(filename):
+        body = markdown(load(filename).format(**args))
+        if BREAKER in body:
+            parts = body.split(BREAKER)
+            if len(parts) == 3:
+                feature, messages, body = parts
+            elif len(parts) == 2:
+                feature, body = parts
+    return feature, messages, body
+
+def format_message(m):
+    return m
+
+def doc(name, args={}):
+    """returns a guide document"""
+
+    feature, side_panel, body = load_document(name, args)
+
+    #feature = feature.format(**args)
+    #content = body.format(**args)
+    #side_panel = side_panel
+
+    #side_panel = ul(format_message(m) for m in messages)
+
+    return guide(
+        feature,
+        side_panel,
+        body,
+    )
+
