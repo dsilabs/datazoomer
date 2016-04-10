@@ -83,3 +83,47 @@ div.content p img {
     border: 0;
 }
 
+.dz-toc ul {
+    list-style-type: none;
+}
+
+/* Guide Styles
+ * =====================*/
+.dz-guide {
+    position: relative;
+    margin: 0 15px;
+}
+.dz-guide .feature {
+    background: #d5e9f6;
+    padding: 0.5em 0 1.5em;
+}
+.dz-guide .body {
+    background: white;
+    font-size: 1.2em;
+    line-height: 1.5em;
+}
+.dz-guide .side-panel {
+    position: absolute;
+    z-index: 0;
+    top: 21px;
+    right: 0;
+    background: #FFF;
+    padding: 1em 0.5em 1em 0.5em;
+    width: 17em;
+    font-size: 0.9285em;
+    line-height: 1.3846em;
+    margin-right: 1em;
+}
+.dz-guide .side-panel ul {
+    list-style-type: none;
+    padding: 0.5em;
+}
+
+.dz-guide .side-panel ul li {
+    margin: 0 0 1.5em 0;
+}
+
+.dz-guide .side-panel ul li div {
+    padding: 1em;
+    border-radius: 4px;
+}
