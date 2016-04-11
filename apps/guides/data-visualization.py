@@ -218,12 +218,14 @@ class MyView(View):
         data = float(randint(1,100))/20
 
         visualization = gauge(
-                data, 
-                title='Load Time', 
-                intervals = [1,4,5],
-                label = 'average load time in seconds',
-                interval_colors = ['#66cc66', '#E7E658', '#cc6666'],
-                )
+            data,
+            title='Average Load Time',
+            min=1,
+            max=10,
+            intervals = [5,8,10],
+            label = 'average load time in seconds',
+            interval_colors = ['#66cc66', '#E7E658', '#cc6666'],
+        )
 
         return locals()
 

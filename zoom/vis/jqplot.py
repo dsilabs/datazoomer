@@ -322,6 +322,9 @@ def gauge(data,
         renderer_options['intervals'] = intervals
         renderer_options['labelPosition'] = 'bottom'
 
+    renderer_options['min'] = k.pop('min', 0)
+    renderer_options['max'] = k.pop('max', 5)
+
     if interval_colors:
         renderer_options['intervalColors'] = interval_colors
 
