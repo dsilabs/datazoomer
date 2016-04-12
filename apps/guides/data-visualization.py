@@ -18,9 +18,28 @@ css = """
 .content div.row .thumbnails ul li div.thumbnail {
     height: 250px;
     overflow: hidden;
+    margin: 0;
+}
+.thumbnail {
+    position: relative;
 }
 .thumbnail .chart {
     height: 100%;
+}
+.thumbnail .dz-jqplot .modal-button {
+    position: absolute;
+    bottom: 0;
+    padding: 4px;
+    font-size: 0.75em;
+}
+.visualization {
+    position: relative;
+    min-height: 320px;
+    clear: both;
+}
+.visualization .modal-button {
+    position: absolute;
+    bottom: 0;
 }
 """
 
@@ -34,6 +53,7 @@ JQPlot Charts
 * [Gauge]({path}/jqplot-gauge)
 * [Time Series]({path}/jqplot-ts)
 * [Theme]({path}/jqplot-theme)
+* [Image]({path}/jqplot-image)
 
 Leaflet
 ----
@@ -89,8 +109,8 @@ class MyView(View):
             #if vis.startswith('jqplot'):
             #    #from zoom.vis.jqplot import css
             #    pass
-            if vis.startswith('leaflet'):
-                from zoom.vis.leaflet import head, css
+            #if vis.startswith('leaflet'):
+                #from zoom.vis.leaflet import head, css as lcss
             #    #head = ''
             #    #css = ''
             method = getattr(self, vis.replace('-','_'))
@@ -99,7 +119,7 @@ class MyView(View):
             result['doc'] = method.__doc__
             result['code'] = get_code(method)
             result['data'] = ''
-            return page(tpl, callback=result.get)
+            return page(tpl, callback=result.get, css=css)
 
         else:
             return self.index()
@@ -146,11 +166,11 @@ class MyView(View):
         data   = [(m, randint(-2500,5000), randint(1,10000)) for m in months]
 
         visualization = bar(
-                data, 
-                title='Page Hits by Month', 
-                seriesColors=['red','#cc88aa'],
-                legend=legend,
-                )
+            data,
+            title='Page Hits by Month',
+            seriesColors=['red','#cc88aa'],
+            legend=legend,
+        )
 
         return locals()
 
@@ -285,8 +305,36 @@ class MyView(View):
         return locals()
 
 
-    def leaflet_simple(self):
+    def jqplot_image(self):
+        """jqPlot Image
+
+        Example showing how to render a jqPlot chart that is accompanied by a
+        chart Image that can be used for copying and pasting, and printing.
         """
+
+        from random import randint
+        from zoom.vis.jqplot import line
+
+        page_title = 'JQPlot Line Chart with Image'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        labels = 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+
+        data   = [(m, randint(1,100), randint(1,100)) for m in labels]
+
+        options = dict(axes=dict(xaxis=dict(label=xaxis_label, tickInterval=2)))
+
+        visualization = line(data, legend=legend, title='Page Hits',
+                             with_image=True, options=options)
+
+        return locals()
+
+
+    def leaflet_simple(self):
+        """Simple Leaflet Map
+
         Example showing how to generate a simple map using leaflet module.
         """
 
@@ -302,7 +350,8 @@ class MyView(View):
 
 
     def leaflet_markers(self):
-        """
+        """Leaflet Map with Markers
+
         Example showing how to generate a map with markers using leaflet module.
         """
 

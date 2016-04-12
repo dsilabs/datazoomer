@@ -40,13 +40,47 @@ JQPLOT_JS = """
               });
               plot1.replot( { resetAxes: true } );
             });
+
             %(apply_theme)s
+
+            %(image_js)s
           });
 """
 
 CHART_TPL = """
-    <div id="%(chart_id)s" class="chart"></div>
+    <div class="dz-jqplot">
+        <div id="%(chart_id)s" class="chart"></div>
+        %(image_html)s
+    </div>
 """
+
+IMAGE_JS_TPL = """
+            var imgData = $('#%(chart_id)s').jqplotToImageStr({});
+            var imgElem = $('<img/>').attr('src', imgData);
+            $('#img_%(chart_id)s').append(imgElem);
+"""
+
+IMAGE_HTML_TPL = """
+        <button type="button" class="btn btn-info modal-button" data-toggle="modal" data-target="#chartModal_%(chart_id)s">Copy this Chart</button>
+        <div id="chartModal_%(chart_id)s" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Right click on the image to copy.</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="img_%(chart_id)s" class="chart_img"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+"""
+
 
 def merge_options(old, updates):
     """Merges two sets of options
@@ -131,6 +165,14 @@ def chart(parameters):
         parameters['apply_theme'] = code
 
     install_theme(parameters)
+
+    if parameters.pop('with_image', False):
+        parameters['image_js'] = IMAGE_JS_TPL % parameters
+        parameters['image_html'] = IMAGE_HTML_TPL % parameters
+    else:
+        parameters['image_js'] = ''
+        parameters['image_html'] = ''
+
     system.libs = system.libs | JQPLOT_SCRIPTS
     system.styles = system.styles | JQPLOT_STYLES
     system.js.add(JQPLOT_JS % parameters)
@@ -174,6 +216,7 @@ def line(data, legend=None, options=None, **k):
         chart_theme=k.pop('theme', None),
         data=json.dumps(data),
         options=render_options(default_options, options, k),
+        with_image=k.pop('with_image', False)
         )
 
     return chart(parameters)
@@ -195,12 +238,16 @@ def bar(data, legend=None, options=None, **k):
         'seriesDefaults': {
             'renderer': '$.jqplot.BarRenderer',
             'rendererOptions': {'fillToZero': True, 'useNegativeColors': False}
+        },
+        'axes': {
+            'xaxis': {
+                'label': '&nbsp',
             },
-        }
+        },
+    }
 
     if len(data) > 1:
         labels, data = data[0], data[1:]
-        default_options.setdefault('axes', {})
         default_options['axes'].setdefault('xaxis', {})
         default_options['axes']['xaxis'].setdefault('renderer',
                                             '$.jqplot.CategoryAxisRenderer')
@@ -235,13 +282,17 @@ def hbar(data, legend=None, options=None, **k):
             'renderer': '$.jqplot.BarRenderer',
             'rendererOptions': {
                 'barDirection': 'horizontal',
-                }
+            }
+        },
+        'axes': {
+            'xaxis': {
+                'label': '&nbsp',
             },
-        }
+        },
+    }
 
     if len(data) > 1:
         labels, data = data[0], data[1:]
-        default_options.setdefault('axes', {})
         default_options['axes'].setdefault('yaxis', {})
         default_options['axes']['yaxis'].setdefault('renderer',
                                             '$.jqplot.CategoryAxisRenderer')
@@ -352,21 +403,22 @@ def time_series(data, legend=None, time_format='%b %e', options=None, **k):
     ]
 
     default_options = {
-            'highlighter': {
-                'show': True,
-                'sizeAdjust': 2.5,
-                'tooltipSeparator': ' - ',
-                'tooltipAxes': 'y',
-                },
-            'axes': {
-                'xaxis': {
-                    'renderer': '$.jqplot.DateAxisRenderer',
-                    'tickOptions': {'formatString': time_format},
-                    'min': min_date,
-                    'max': max_date,
-                    }
-                }
+        'highlighter': {
+            'show': True,
+            'sizeAdjust': 2.5,
+            'tooltipSeparator': ' - ',
+            'tooltipAxes': 'y',
+        },
+        'axes': {
+            'xaxis': {
+                'renderer': '$.jqplot.DateAxisRenderer',
+                'tickOptions': {'formatString': time_format},
+                'min': min_date,
+                'max': max_date,
+                'label': '&nbsp',
             }
+        }
+    }
 
     if legend:
         default_options['legend'] = dict(show='true', placement='insideGrid')
