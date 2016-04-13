@@ -143,27 +143,3 @@ webvars = Webvars()
 data    = request.data
 route   = request.route
 
-
-if __name__ == '__main__':
-    import unittest
-    
-    class RouteTests(unittest.TestCase):
-
-        def test_no_route(self):
-            self.assertEqual(route,[])
-
-        def test_hello_route(self):
-            webvars.__dict__['_route'] = ['index.py','hello/world']
-            webvars.__dict__['other_param'] = 'someotherparameter'
-            route = get_route()
-            self.assertEqual(route,['hello','world'])
-            self.assertEqual(webvars.__dict__,{'other_param':'someotherparameter'})
-            
-    unittest.main()            
-    
-    
-    
-    
-    
-
-
