@@ -124,6 +124,8 @@ class Application(object):
         """read config file information"""
         config_file1 = os.path.join(self.dir, 'config.ini')
         config_file2 = os.path.join(os.path.split(self.dir)[0], 'default.ini')
+        config_file3 = os.path.join(os.path.split(self.dir)[0], '..', '..', 'default.ini')
+
         config = ConfigParser.ConfigParser()
         try:
             config.read(config_file1)
@@ -133,12 +135,16 @@ class Application(object):
                 config.read(config_file2)
                 return config.get(section, key)
             except:
-                if default != None:
-                    return default
-                else:
-                    tpl = 'Config setting [{}]{} not found in {} or {}'
-                    msg = tpl.format(section, key, config_file1, config_file2)
-                    raise Exception(msg)
+                try:
+                    config.read(config_file3)
+                    return config.get(section, key)
+                except:
+                    if default != None:
+                        return default
+                    else:
+                        tpl = 'Config setting [{}]{} not found in {} or {} or {}'
+                        msg = tpl.format(section, key, config_file1, config_file2, config_file3)
+                        raise Exception(msg)
 
     def run(self):
         """run an app"""
