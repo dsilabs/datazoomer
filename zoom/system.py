@@ -17,6 +17,8 @@ from utils import OrderedSet
 
 env = os.environ
 
+POSITIVE = ['1','yes',True]
+
 def existing(path, subdir=None):
     """Returns existing directories only"""
     pathname = path and subdir and os.path.join(os.path.abspath(path), subdir) or path and os.path.abspath(path)
@@ -174,6 +176,8 @@ class System(object):
         self.show_errors = config.get('error','users','0') == '1'
 
         self.profile = config.get('system','profile','0') == '1'
+
+        self.track_visits = config.get('system','track_visits','0').lower() in POSITIVE
 
         self.webhook = config.get('webhook','url','')
 

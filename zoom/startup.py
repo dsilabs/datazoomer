@@ -90,7 +90,8 @@ def generate_response(instance_path):
 
             session = system.session
 
-            visited(request.subject, session.sid)
+            if system.track_visits:
+                visited(request.subject, session.sid)
 
             csrf_token = data.pop('csrf_token',None)
             if request.method == 'POST' and system.csrf_validation:
