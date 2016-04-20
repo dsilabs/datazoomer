@@ -273,11 +273,29 @@ class Field(object):
     def requires_multipart_form(self):
         return False
 
+
 class SimpleField(Field):
 
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and \
                 layout_field(self.label, self.display_value(), edit=False) or ''
+
+
+class MarkdownText(object):
+    """a markdown text object that can be placed in a form like a field
+    
+    >>> f = MarkdownText('One **bold** statement')
+    >>> f.edit()
+    u'<p>One <strong>bold</strong> statement</p>'
+    """
+    def __init__(self, text):
+        self.value = text
+
+    def edit(self):
+        return markdown('%s\n' % self.value)
+
+    def evaluate(self):
+        return {}
 
 
 class TextField(SimpleField):
