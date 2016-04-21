@@ -73,6 +73,7 @@ class Field(object):
     hint=''
     addon=''
     default = ''
+    placeholder = ''
     msg = ''
     required = False
     visible = True
@@ -317,6 +318,9 @@ class TextField(SimpleField):
         >>> TextField('Name',hint="required").widget()
         '<INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
+        >>> TextField('Name',placeholder="Jack").widget()
+        '<INPUT NAME="NAME" PLACEHOLDER="Jack" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
+
         >>> f = TextField('Title')
         >>> f.update(**{"TITLE": "Joe's Pool Hall"})
         >>> f.value
@@ -332,16 +336,29 @@ class TextField(SimpleField):
     css_class = 'text_field'
 
     def widget(self):
-        return tag_for(
-            'input',
-            name = self.name,
-            id = self.id,
-            size = self.size,
-            maxlength=self.maxlength,
-            value = self.value or self.default,
-            Type = self._type,
-            Class = self.css_class,
-        )
+        if self.placeholder:
+            return tag_for(
+                'input',
+                name = self.name,
+                id = self.id,
+                size = self.size,
+                maxlength=self.maxlength,
+                value = self.value or self.default,
+                Type = self._type,
+                Class = self.css_class,
+                placeholder = self.placeholder,
+            )
+        else:
+            return tag_for(
+                'input',
+                name = self.name,
+                id = self.id,
+                size = self.size,
+                maxlength=self.maxlength,
+                value = self.value or self.default,
+                Type = self._type,
+                Class = self.css_class,
+            )
 
 
 class Hidden(SimpleField):
@@ -731,6 +748,10 @@ class MoneyField(DecimalField):
         >>> f.assign(' ')
         >>> f.display_value()
         ''
+
+        >>> f = MoneyField("Amount", placeholder='0')
+        >>> f.widget()
+        '<div class="input-group"><span class="input-group-addon">$</span><INPUT NAME="AMOUNT" TYPE="text" VALUE="" CLASS="decimal_field" MAXLENGTH="10" PLACEHOLDER="0" ID="AMOUNT" SIZE="10" /></div>'
     """
 
     locale = None
@@ -742,7 +763,24 @@ class MoneyField(DecimalField):
             self.symbol = locale.localeconv()['currency_symbol']
         t = '<div class="input-group"><span class="input-group-addon">{}</span>{}{}</div>'
         tu = '<span class="input-group-addon">{}</span>'
-        return t.format(
+        if self.placeholder:
+            return t.format(
+                self.symbol,
+                tag_for(
+                    'input',
+                    name = self.name,
+                    id = self.id,
+                    size = self.size,
+                    placeholder = self.placeholder,
+                    maxlength=self.maxlength,
+                    value = self.value or self.default,
+                    Type = self._type,
+                    Class = self.css_class,
+                ),
+                self.units and tu.format(self.units) or '',
+                )
+        else:
+            return t.format(
                 self.symbol,
                 tag_for(
                     'input',
