@@ -73,7 +73,7 @@ class Field(object):
     hint=''
     addon=''
     default = ''
-    placeholder = ''
+    placeholder = None
     msg = ''
     required = False
     visible = True
@@ -763,7 +763,7 @@ class MoneyField(DecimalField):
             self.symbol = locale.localeconv()['currency_symbol']
         t = '<div class="input-group"><span class="input-group-addon">{}</span>{}{}</div>'
         tu = '<span class="input-group-addon">{}</span>'
-        if self.placeholder:
+        if self.placeholder != None:
             return t.format(
                 self.symbol,
                 tag_for(
