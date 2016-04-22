@@ -1020,13 +1020,20 @@ class CheckboxField(TextField):
         >>> CheckboxField('Done', options=['yep','nope'], value=False).evaluate()
         {'DONE': False}
 
+        >>> CheckboxField('Done', options=['yep','nope'], value='True').value
+        'True'
+
     """
     options = ['yes','no']
+    truthy = [True,'True','yes','on']
     default = None
     value = None
 
+    def assign(self, value):
+        self.value = value in self.truthy and value or False
+
     def widget(self):
-        value = self.value == None and self.default or self.value
+        value = self.value is None and self.default or self.value
         checked = value and 'checked ' or ''
         tag = tag_for(
             'input',
@@ -1040,7 +1047,7 @@ class CheckboxField(TextField):
         return tag
 
     def display_value(self):
-        return self.value in ['yes','on',True] and self.options[0] or self.options[1] or ''
+        return self.value in self.truthy and self.options[0] or self.options[1] or ''
 
     def show(self):
         return layout_field(self.label, self.display_value(), False)
@@ -1054,7 +1061,7 @@ class CheckboxField(TextField):
             self.assign(False)
 
     def evaluate(self):
-        if self.value in [True,'yes','on']:
+        if self.value in self.truthy:
             v = True
         elif self.value in [False]:
             v = False
