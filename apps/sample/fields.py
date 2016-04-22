@@ -12,6 +12,7 @@ date2 = datetime.date(2016, 12, 31)
 
 form1 = Form(
         TextField('Name', addon='$', hint='test hint'),
+        TextField('Nickname', placeholder='Jack', hint='test hint'),
         EmailField('Email', hint='test hint'),
         PhoneField('Phone', hint='phone number'),
         PostalCodeField('Postal Code', hint='test hint'),
@@ -25,6 +26,7 @@ form1 = Form(
         FloatField('Size', units='meters', hint='test hint'),
         DecimalField('Decimal', hint='test hint'),
         MoneyField('Amount', hint='test hint'),
+        MoneyField('Placeholder', placeholder=100, hint='test hint'),
         MoneyField('Foreign Amount', symbol='£', hint='test hint'),
         DateField('Date', hint='test hint'),
         DateField('Min Max Date', min=date1, max=date2, hint='test hint'),

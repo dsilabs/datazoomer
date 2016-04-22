@@ -14,7 +14,7 @@ from .user import user
 from .mvc import View, Controller
 from .tools import now, redirect_to, markdown
 from .utils import DefaultRecord, id_for
-from .fields import Form, ButtonField, Hidden, Button
+from .fields import Form, ButtonField, Hidden, Button, MarkdownText
 from .helpers import link_to, error, url_for, url_for_page
 from .store import Entity, EntityStore, store
 from .response import PNGResponse
@@ -27,20 +27,10 @@ from .response import JPGResponse, GIFResponse
 dumps = json.dumps
 duplicate_key_msg = "There is an existing record with that name or key already in the database"
 
-class Text(object):
-    def __init__(self, text):
-        self.value = text
-
-    def edit(self):
-        return markdown('%s\n' % self.value)
-
-    def evaluate(self):
-        return {}
-
 
 def delete_form(name, key):
     return Form(
-            Text('Are you sure you want to delete **%s**?' % name),
+            MarkdownText('Are you sure you want to delete **%s**?' % name),
             Hidden(name='CONFIRM', value='NO'),
             Button('Yes, I''m sure.  Please delete.', name='DELETE_BUTTON', cancel='/'+'/'.join(route[:-1]))
             ).edit()
