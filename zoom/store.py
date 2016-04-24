@@ -526,7 +526,7 @@ class EntityStore(object):
                 cmd = 'select distinct row_id from attributes where kind=%s and attribute=%s and '+wc
                 rs = db(cmd, self.kind, field_name.lower(), *v)
                 all_keys.append([rec[0] for rec in rs])
-        answer = set(all_keys[0])
+        answer = all_keys and set(all_keys[0]) or set()
         for keys in all_keys[1:]:
             answer = set(keys) & answer
         if answer:
