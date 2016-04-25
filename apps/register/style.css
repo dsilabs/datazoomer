@@ -44,3 +44,7 @@
     border-color: red;
     background-color: #fdd;
 }
+
+.content form h2 {
+    font-size: 1.2em;
+}
