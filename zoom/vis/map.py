@@ -260,13 +260,16 @@ class AwesomeIcon(Icon):
 
     https://github.com/lvoogdt/Leaflet.awesome-markers
     """
-    scripts = ["/static/dz/bootstrap/js/bootstrap.min.js", "/static/dz/leaflet/leaflet.awesome-markers.min.js"]
-    styles = ["/static/dz/bootstrap/css/bootstrap.min.css", "/static/dz/leaflet/leaflet.awesome-markers.css"]
+
+    scripts = ["/static/dz/leaflet/leaflet.awesome-markers.min.js"]
+    styles = ["/static/dz/leaflet/leaflet.awesome-markers.css"]
     _declare_ = "var %(name)s = L.AwesomeMarkers.icon(%(properties)s);"
+
     def render(self):
-        system.libs = system.libs | self.scripts
-        system.styles = system.styles | self.styles
+        system.libs |= self.scripts
+        system.styles |= self.styles
         return Icon.render(self)
+
     def declare(self):
         return Icon.declare(self)
 
