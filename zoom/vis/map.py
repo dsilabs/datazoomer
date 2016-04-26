@@ -152,7 +152,7 @@ class Leaflet(JS):
             layers.append( unicode(l) )
             overlays.append( "'%s': %s" % (l.title,l.name) )
             if hasattr(l,'tail'): tails.append(l.tail())
-        map_props = "{center: %s, zoom: %s, layers: [%s]}" % ( self.centroid, self.zoom, ','.join('%s' % l for l in show_layers) )
+        map_props = "{center: %s, zoom: %s, layers: [%s]}" % ( list(self.centroid), self.zoom, ','.join('%s' % l for l in show_layers) )
         icons = '\n'.join( icons.keys() )
         tiles = self.tilesets()
         layers = '\n'.join(layers)
