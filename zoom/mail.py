@@ -7,6 +7,7 @@
 # pylint: disable=multiple-statements
 # pylint: disable=too-many-arguments
 
+import os
 import re
 from smtplib import SMTP
 from htmllib import HTMLParser
@@ -256,8 +257,9 @@ class Attachment(object):
 
     """
     # pylint: disable=too-few-public-methods
-    def __init__(self, filename, filelike_object=None, mime_type=None):
-        self.filename = filename
+    def __init__(self, pathname, filelike_object=None, mime_type=None):
+        self.pathname = pathname
+        self.filename = os.path.split(pathname)[1]
         self.data = self.file = filelike_object
         self.mimetype = mime_type
 
@@ -265,7 +267,7 @@ class Attachment(object):
     def read(self):
         """reads the attachment content"""
         if not self.file:
-            self.data = self.file = open(self.filename)
+            self.data = self.file = open(self.pathname)
         return self.file.read
 
 
