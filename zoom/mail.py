@@ -8,7 +8,6 @@
 # pylint: disable=too-many-arguments
 
 import re
-import gnupg
 from smtplib import SMTP
 from htmllib import HTMLParser
 from cStringIO import StringIO
@@ -297,6 +296,8 @@ def send(recipients, subject, body, attachments=None):
 
 def send_secure_as(sender, recipient, subject, body):
     """send a secure email as a specific sender"""
+    import gnupg # importing here because in reality gnupg is rarely required
+
     gnupg_home = system.config.get('mail', 'gnupg_home', '')
     gpg = gnupg.GPG(gnupghome=gnupg_home)
 
