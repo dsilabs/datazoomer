@@ -36,7 +36,9 @@ JQPLOT_JS = """
             $( window ).resize(function() {
               // work around unpatched jqplot bug for bar width resize
               $.each($("#%(chart_id)s").data('jqplot').series, function(index, series) {
-                series.barWidth = undefined;
+                if ( !(options.width && options.height)  ) {
+                    series.barWidth = undefined;
+                }
               });
               $("#%(chart_id)s").data('jqplot').replot( { resetAxes: true } );
             });
