@@ -31,14 +31,14 @@ JQPLOT_JS = """
         $(document).ready(function(){
             var data = %(data)s;
             var options = %(options)s;
-            var plot1 = $.jqplot('%(chart_id)s', data, options);
+            $("#%(chart_id)s").jqplot(data, options);
 
             $( window ).resize(function() {
               // work around unpatched jqplot bug for bar width resize
-              $.each(plot1.series, function(index, series) {
+              $.each($("#%(chart_id)s").data('jqplot').series, function(index, series) {
                 series.barWidth = undefined;
               });
-              plot1.replot( { resetAxes: true } );
+              $("#%(chart_id)s").data('jqplot').replot( { resetAxes: true } );
             });
 
             %(apply_theme)s
