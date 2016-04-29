@@ -9,6 +9,7 @@
 
 import os
 import re
+import json
 from smtplib import SMTP
 from htmllib import HTMLParser
 from cStringIO import StringIO
@@ -24,6 +25,7 @@ from types import TupleType, ListType, StringType
 from formatter import AbstractFormatter, DumbWriter
 
 from zoom.system import system
+from zoom.store import Record, EntityStore
 
 
 __all__ = (
@@ -31,6 +33,8 @@ __all__ = (
     'send_as',
     'send_secure',
     'send_secure_as',
+    'deliver',
+    'Attachment',
 )
 
 
@@ -44,6 +48,14 @@ class SenderKeyMissing(Exception):
 
 class RecipientKeyMissing(Exception):
     """gpg recipient key mssing"""
+    pass
+
+class AttachmentDataException(Exception):
+    """raised when asked to deliver data in background process"""
+    pass
+
+class SystemMail(Record):
+    """system message"""
     pass
 
 
@@ -72,15 +84,19 @@ BODY_TPL = """
 </HTML>
 """
 
+def get_mail_store():
+    """returns the mail store"""
+    return EntityStore(system.db, SystemMail)
 
-def format_email(body):
-    """wrap email body in a mail template"""
+
+def format_as_html(text):
+    """wrap email text in a mail template"""
     logo_url = system.config.get(
         'mail',
         'logo',
         system.uri + '/images/email_logo.png'
     )
-    return BODY_TPL.format(logo_url=logo_url, message=body)
+    return BODY_TPL.format(logo_url=logo_url, message=text)
 
 
 def validate_email(email_address):
@@ -101,32 +117,27 @@ def display_email_address(email):
     """Make a formatted address (eg: "User Name <username@somewhere.net>"),
        from a tuple (Display name, email address) or a list of tuples.
        If the parameter is a string, it is returned.
+
+       >>> recipients = [('Joe','joe@smith.com'),'sally@smith.com']
+       >>> display_email_address(recipients)
+       'Joe <joe@smith.com>;sally@smith.com'
+
+       >>> recipients = [['Joe','joe@smith.com'],'sally@smith.com']
+       >>> display_email_address(recipients)
+       'Joe <joe@smith.com>;sally@smith.com'
+
+       >>> recipients = (('Joe','joe@smith.com'),'sally@smith.com')
+       >>> display_email_address(recipients)
+       'Joe <joe@smith.com>;sally@smith.com'
     """
-    if type(email) == TupleType:
-        return formataddr(email)
-    elif type(email) == ListType:
-        return ';'.join(display_email_address(to) for to in email)
-    return email
-
-
-def get_email_address(email):
-    """Make an address from a (Display name, email address) tuple or
-    list of tuples.
-
-       >>> get_email_address(('Joe Smith', 'joe@smith.com'))
-       'joe@smith.com'
-       >>> get_email_address([('Joe Smith', 'joe@smith.com'), \\
-       ... 'sally@smith.com'])
-       'joe@smith.com;sally@smith.com'
-       >>> get_email_address('joe@smith.com')
-       'joe@smith.com'
-       >>> get_email_address('joe@smith.com')
-       'joe@smith.com'
-    """
-    if type(email) == TupleType:
-        return email[1]
-    elif type(email) == ListType:
-        return ';'.join(get_email_address(to) for to in email)
+    if type(email) in [ListType, TupleType]:
+        result = []
+        for item in email:
+            if type(item) in [ListType, TupleType] and len(item) == 2:
+                result.append(formataddr(item))
+            else:
+                result.append(item)
+        return ';'.join(result)
     return email
 
 
@@ -146,34 +157,29 @@ def get_plain_from_html(html):
     return textout.getvalue()
 
 
-def post(
-    fromaddr,
-    toaddr,
-    subject,
-    body,
-    mailtype='plain',
-    attachments=None,
-):
-    """post an email for delivery
+def post(sender, recipients, subject, body, attachments=None, style='plain'):
+    """post an email message for delivery"""
 
-       - fromaddr can be a string or tuple
-       - toaddr can be a string, tuple or list
-       - mailtype is of 'plain' or 'html'
-    """
-    # pylint: disable=too-many-locals
+    dumps = json.dumps
+    mail = SystemMail(
+        sender=dumps(sender),
+        recipients=dumps(recipients),
+        subject=subject,
+        body=body,
+        attachments=dumps([a.as_tuple() for a in attachments or []]),
+        style=style,
+        status='waiting',
+    )
+    get_mail_store().put(mail)
 
-    get = system.config.get
-    smtp_host = get('mail', 'smtp_host')
-    smtp_port = get('mail', 'smtp_port')
-    smtp_user = get('mail', 'smtp_user')
-    smtp_passwd = get('mail', 'smtp_passwd')
 
-    toaddr = (type(toaddr) != ListType and [toaddr] or toaddr)
+def compose(sender, recipients, subject, body, attachments, style):
+    """compose an email message"""
 
     email = MIMEMultipart()
     email['Subject'] = subject
-    email['From'] = display_email_address(fromaddr)
-    email['To'] = display_email_address(toaddr)
+    email['From'] = formataddr(sender)
+    email['To'] = display_email_address(recipients)
     email.preamble = (
         'This message is in MIME format. '
         'You will not see this in a MIME-aware mail reader.\n'
@@ -192,29 +198,31 @@ def post(
     # simple encoding test, we will leave as ascii if possible (readable)
     _char = 'us-ascii'
     try:
-        body.decode('ascii')
-    except:
+        body.encode('ascii')
+    except UnicodeDecodeError:
         _char = 'utf8'
 
     # attach a plain text version of the html email
-    if mailtype == 'html':
+    if style == 'html':
         msg_alternative.attach(
             MIMEText(get_plain_from_html(body), 'plain', _char)
         )
-        body = format_email(body)
-    body = MIMEText(body, mailtype, _char)
+        body = format_as_html(body)
+    body = MIMEText(body, style, _char)
     msg_alternative.attach(body)
 
     for attachment in attachments or []:
         # Guess the content type based on the file's extension.  Encoding
         # will be ignored, although we should check for simple things like
         # gzip'd or compressed files.
+
         ctype, encoding = guess_type(attachment.filename)
         if ctype is None or encoding is not None:
-            # No guess could be made, or the file is encoded (compressed), so
-            # use a generic bag-of-bits type.
+            # No guess could be made, or the file is encoded (compressed),
+            # so use a generic bag-of-bits type.
             ctype = 'application/octet-stream'
         maintype, subtype = ctype.split('/', 1)
+
         if maintype == 'text' or (
             ctype == None and
             attachment.filename[-4:].lower() == '.ini'
@@ -239,64 +247,165 @@ def post(
         )
         email.attach(msg)
 
+    return email.as_string()
+
+
+def connect():
+    """connect to the mail server"""
+    get = system.config.get
+    smtp_host = get('mail', 'smtp_host')
+    smtp_port = get('mail', 'smtp_port')
+    smtp_user = get('mail', 'smtp_user')
+    smtp_passwd = get('mail', 'smtp_passwd')
+
     server = SMTP(smtp_host, smtp_port)
     if smtp_user and smtp_passwd:
         server.login(smtp_user, smtp_passwd)
-    server.sendmail(
-        get_email_address(fromaddr),
-        [get_email_address(to) for to in toaddr],
-        email.as_string()
-    )
+
+    return server
+
+def disconnect(server):
+    """disconnect from the mail server"""
     server.quit()
 
 
-class Attachment(object):
-    """Contains the information necessary to email an attachment.
+def expedite(sender, recipients, subject, body, attachments=None,
+             style='plain'):
+    """deliver this email now"""
+    email = compose(
+        sender,
+        recipients,
+        subject,
+        body,
+        attachments or [],
+        style,
+    )
 
-    note: filelike_object just needs a read method.
+    try:
+        sender_address = sender[1]
+    except IndexError:
+        sender_address = sender
+
+    server = connect()
+    try:
+        server.sendmail(
+            sender_address,
+            [r[1] for r in recipients],
+            email
+        )
+    finally:
+        disconnect(server)
+
+
+def deliver():
+    """deliver mail"""
+    # spylint: disable=too-many-locals
+
+    server = connect()
+    try:
+        mail_store = get_mail_store()
+        mails = mail_store.find(status='waiting')
+        for mail in mails:
+
+            sender = json.loads(mail.sender)
+            recipients = json.loads(mail.recipients)
+            attachments = [
+                Attachment(name, data, mimetype)
+                for name, data, mimetype
+                in json.loads(mail.attachments) or []
+            ]
+
+            email = compose(
+                sender,
+                recipients,
+                mail.subject,
+                mail.body,
+                attachments,
+                mail.style,
+            )
+
+            try:
+                sender_address = sender[1]
+            except IndexError:
+                sender_address = sender
+
+            try:
+                server.sendmail(
+                    sender_address,
+                    [r[1] for r in recipients],
+                    email
+                )
+                mail.status = 'sent'
+            except Exception:
+                mail.status = 'error'
+                raise
+            finally:
+                mail_store.put(mail)
+    finally:
+        disconnect(server)
+
+
+class Attachment(object):
+    """Email attachment
+
+    provide either a pathname, or a filename and a pathname, or if sending
+    directly a filename and a file-like object.
 
     """
     # pylint: disable=too-few-public-methods
-    def __init__(self, pathname, filelike_object=None, mime_type=None):
+    def __init__(self, pathname, data=None, mime_type=None):
         self.pathname = pathname
-        self.filename = os.path.split(pathname)[1]
-        self.data = self.file = filelike_object
+        self.data = data
         self.mimetype = mime_type
+        self.filename = os.path.split(pathname)[1]
+
+    def as_tuple(self):
+        """partilars required for delivery"""
+        if hasattr(self.data, 'read'):
+            msg = 'Unable to deliver data directly, use physical file instead'
+            raise AttachmentDataException(msg)
+        return self.pathname, self.data, self.mimetype
 
     @property
     def read(self):
-        """reads the attachment content"""
-        if not self.file:
-            self.data = self.file = open(self.pathname)
-        return self.file.read
+        """provides a reader for the data
+
+        if the data is not open, it will be because the user provided only a
+        pathanme so we open the file at the pathname and return it"""
+        if not self.data:
+            self.data = open(self.pathname)
+        elif type(self.data) in [str, unicode]:
+            self.data = open(self.data)
+        return self.data.read
 
 
-def send_as(fromaddr, recipients, subject, body, attachments=None):
+def send_as(sender, recipients, subject, message, attachments=None):
     """send an email as a specific sender"""
+
     if type(recipients) == StringType:
         if ';' in recipients:
             recipients = zip(recipients.split(';'), recipients.split(';'))
         else:
             recipients = (recipients, recipients)
-    if type(recipients) != type([]):
+
+    if type(recipients) != ListType:
         recipients = [recipients]
-    return post(fromaddr, recipients, subject, body, 'html', attachments)
+
+    if system.mail_delivery != 'background':
+        expedite(sender, recipients, subject, message, attachments, 'html')
+    else:
+        post(sender, recipients, subject, message, attachments, 'html')
 
 
-def send(recipients, subject, body, attachments=None):
+def send(recipients, subject, message, attachments=None):
     """send an email"""
     site_name = system.config.get('site', 'name', 'DataZoomer')
     from_addr = system.config.get('mail', 'from_addr')
-    return send_as(
-        (site_name, from_addr),
-        recipients,
-        subject,
-        body,
-        attachments
-    )
+    sender = (site_name, from_addr)
+    send_as(sender, recipients, subject, message, attachments)
 
 
-def send_secure_as(sender, recipient, subject, body):
+def send_secure_as(sender, recipient, subject, message):
     """send a secure email as a specific sender"""
     import gnupg # importing here because in reality gnupg is rarely required
 
@@ -308,17 +417,18 @@ def send_secure_as(sender, recipient, subject, body):
     if not find_key(recipient):
         raise RecipientKeyMissing(recipient)
 
-    ebody = gpg.encrypt(body, recipient)
-    if ebody:
-        post(sender, recipient, subject, 'plain', str(ebody))
+    emessage = gpg.encrypt(message, recipient)
+    if emessage:
+        post(sender, recipient, subject, str(emessage), None, 'plain')
     else:
         raise EmailEncryptionFail
 
 
-def send_secure(recipient, subject, body):
+def send_secure(recipient, subject, message):
     """send a secure email"""
     from_addr = system.config.get('mail', 'from_addr')
-    send_secure_as(from_addr, recipient, subject, body)
+    send_secure_as(from_addr, recipient, subject, message)
+
 
 
 if __name__ == '__main__':
@@ -327,6 +437,8 @@ if __name__ == '__main__':
     #specified in the config file"""
     #
     # pylint: disable=invalid-name
+    from StringIO import StringIO
+    text_blob = StringIO('this is some text')
 
     recipient_name = system.config.get(
         'site',
@@ -337,13 +449,19 @@ if __name__ == '__main__':
         'site',
         'owner_email',
     )
-    body = """
-    <big><strong>Hi %s</strong></big>
-    <br><br>This is a test email from DataZoomer.
-    """ % recipient_name
+    tpl = """
+        <big><strong>Hi %s</strong></big>
+        <br><br>This is a test email from DataZoomer.
+    """
     send(
         (recipient_name, recipient_address),
-        'Testing send with attachment',
-        body,
+        'Testing send without attachments',
+        tpl % recipient_name,
     )
 
+    send(
+        (recipient_name, recipient_address),
+        'Testing send with an attachment',
+        tpl % recipient_name,
+        [Attachment('myfile.txt', text_blob)]
+    )

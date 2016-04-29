@@ -154,6 +154,7 @@ class System(object):
 
         # email settings
         self.from_addr = system.config.get('mail','from_addr')
+        self.mail_delivery = system.config.get('mail', 'delivery', 'immediate')
 
         # load theme
         self.themes_path = existing(config.get('theme', 'path', os.path.join(self.root,'themes')))
