@@ -10,8 +10,9 @@ import traceback
 import datetime
 import cProfile
 import pstats
+import timeit
 
-from system import system
+from system import system, SystemTimer
 from log import logger
 from page import Page
 from tools import redirect_to, load_template
@@ -70,10 +71,12 @@ PAGE_MISSING_MESSAGE = '<H1>Page Missing</H1>Page not found'
 
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
-def generate_response(instance_path):
+def generate_response(instance_path, start_time):
 
     profiler = None
+    debugging = True
 
+    system_timer = SystemTimer(start_time)
 
     # capture stdout
     real_stdout = sys.stdout
@@ -81,9 +84,14 @@ def generate_response(instance_path):
     try:
         try:
             # initialize context
-            system.setup(instance_path)
+            system.setup(instance_path, request.server, system_timer)
+            system_timer.add('system initializated')
+
             user.setup()
+            system_timer.add('user initializated')
+
             manager.setup()
+            system_timer.add('manager initializated')
 
             debugging = (system.debugging or system.show_errors or
                          user.is_developer or user.is_administrator)
@@ -115,7 +123,11 @@ def generate_response(instance_path):
                 if profiler:
                     profiler.enable()
 
+                system_timer.add('app ready')
+
                 response = system.app.run()
+
+                system_timer.add('app returned')
 
                 if profiler:
                     profiler.disable()
@@ -134,6 +146,7 @@ def generate_response(instance_path):
             else:
                 response = Page(PAGE_MISSING_MESSAGE).render()
                 response.status = '404'
+
 
             timeout = session.save_session()
             set_session_cookie(
@@ -192,6 +205,12 @@ def generate_response(instance_path):
             t = t.replace(system.lib_path, '~zoom'
                     ).replace('/usr/lib/python2.7/dist-packages/','~'
                             ).replace('/usr/local/lib/python2.7/dist-packages/','~')
+
+            print '\n\n  System Performance Metrics\n ' + '='*30
+            print system_timer.report()
+            print system.database.report()
+            print system.db.report()
+            print '  Profiler\n ------------\n'
             print t
     finally:
         printed_output = sys.stdout.getvalue()
@@ -205,11 +224,13 @@ def generate_response(instance_path):
 
     return response
 
-def run_as_cgi(instance_path='..'):
+def run_as_cgi(instance_path='..', start_time=timeit.default_timer()):
+
     if not os.path.exists(os.path.join(instance_path,'dz.conf')):
         response = HTMLResponse(NEW_INSTALL_MESSAGE)
     else:
-        response = generate_response(instance_path)
+        response = generate_response(instance_path, start_time)
+
     sys.stdout.write(response.render())
 
 run = run_as_cgi

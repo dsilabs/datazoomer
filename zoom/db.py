@@ -2,7 +2,7 @@
     a database that does less
 """
 
-import time
+import timeit
 import warnings
 from exceptions import DatabaseException
 
@@ -162,6 +162,7 @@ class Database(object):
         self.__args = args
         self.__keywords = keywords
         self.debug = False
+        self.log = []
 
     def __getattr__(self, name):
         if self.__connection is None:
@@ -171,7 +172,7 @@ class Database(object):
     def __call__(self, sql, *a):
         cursor = self.cursor()
 
-        start = time.time()
+        start = timeit.default_timer()
         params = len(a)==1 and hasattr(a[0],'items') and a[0] or a
         try:
             result = cursor.execute(sql, params)
@@ -181,7 +182,11 @@ class Database(object):
             self.rowcount = cursor.rowcount
         finally:
             if self.debug:
-                print('SQL (%.2f ms): %s - %s' % (1000*(time.time()-start), sql, a))
+                self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
+                    (timeit.default_timer() - start) * 1000,
+                    sql,
+                    a,
+                ))
 
         if cursor.description:
             return Result(cursor)
@@ -192,7 +197,7 @@ class Database(object):
     def execute_many(self, sql, *a):
         cursor = self.cursor()
 
-        start = time.time()
+        start = timeit.default_timer()
         try:
             result = cursor.executemany(sql, *a)
         except Exception as e:
@@ -201,7 +206,11 @@ class Database(object):
             self.rowcount = cursor.rowcount
         finally:
             if self.debug:
-                print('SQL (%6.4s ms): %s - %s' % (time.time()-start, sql, a))
+                self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
+                    (timeit.default_timer() - start) * 1000,
+                    sql,
+                    a,
+                ))
 
         if cursor.description:
             return Result(cursor)
@@ -214,6 +223,12 @@ class Database(object):
         args = list(self.__args)
         keywords = dict(self.__keywords, db=name)
         return Database(self.__factory, *args, **keywords)
+
+    def report(self):
+        if self.log:
+            return '  DB Queries\n --------------------\n{}\n'.format(
+                '\n'.join(self.log))
+        return ''
 
 
 def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
@@ -257,5 +272,4 @@ def database(engine='mysql', host='database', db='test', user='testuser', *a, **
         db.autocommit(1)
 
         return db
-
 
