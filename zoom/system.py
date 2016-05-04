@@ -51,7 +51,7 @@ class System(object):
             else:
                 raise AttributeError
 
-    def setup(self, instance_path):
+    def setup(self, instance_path, server=request.server):
 
         self.debugging = True
         self.start_time  = timeit.default_timer()
@@ -65,7 +65,7 @@ class System(object):
             sys.path.insert(0, '.')
 
         # system config file
-        self.config = config = cfg.Config(instance_path,request.server)
+        self.config = config = cfg.Config(instance_path, server)
 
         # connect to the database and stores
         db_engine = config.get('database','engine','mysql')
@@ -108,7 +108,8 @@ class System(object):
         self.debugging = config.get('errors','debugging','0') == '1'
 
         self.request = request
-        self.server_name = request.server  #env.get('SERVER_NAME','localhost')
+        self.server = server
+        self.server_name = server # deprecated
 
         # get current site directory
         self.root        = os.path.split(os.path.abspath(os.getcwd()))[0]
@@ -120,8 +121,8 @@ class System(object):
         self.site = Site(
             name = '',
             theme = '',
-            home = os.path.join(config.sites_path, self.server_name),
-            data_path = os.path.join(config.sites_path,self.server_name,config.get('data','path','data')),
+            home = os.path.join(config.sites_path, server),
+            data_path = os.path.join(config.sites_path, server, config.get('data','path','data')),
             url = self.uri,
             tracking_id = config.get('site', 'tracking_id', ''),
             )
