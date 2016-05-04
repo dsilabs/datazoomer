@@ -17,16 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Fields for HTML forms"""
-import datetime, types
-from validators import *
+import uuid
+import types
+import locale
+import datetime
+from decimal import Decimal
 
+from validators import *
 from utils import name_for, tag_for
-from tools import htmlquote, websafe, markdown
+from tools import htmlquote, websafe, markdown, has_iterator_protocol, wrap_iterator
 from helpers import attribute_escape
 from request import route
-from decimal import Decimal
-import uuid
-import locale
 from zoom import system
 
 HINT_TPL = \
@@ -43,6 +44,7 @@ HINT_TPL = \
 
 FIELD_TPL = \
 '<div class="field"><div class="field_label">%(label)s</div><div class="field_%(mode)s">%(content)s</div></div>'
+
 
 def div(content, **attributes):
     return tag_for('div', content, **attributes)
@@ -71,6 +73,7 @@ class Field(object):
     hint=''
     addon=''
     default = ''
+    placeholder = None
     msg = ''
     required = False
     visible = True
@@ -83,7 +86,7 @@ class Field(object):
         if 'value' in keywords:
             self.assign(keywords['value'])
         self.label = label
-        self.validators = validators
+        self.validators = list(validators) + self.validators
         self.id = self.name
 
     def show(self):
@@ -106,6 +109,29 @@ class Field(object):
         raise AttributeError
 
     def initialize(self, *a, **k):
+        """
+        Initialize field value.
+
+            Set field value according to value passed in as parameter
+            or if there is not value for this field, set it to the
+            default value for the field.
+
+            >>> f = Field('test', default='zero')
+
+            >>> f.initialize(test='one')
+            >>> f.value
+            'one'
+
+            >>> r = dict(test='two')
+            >>> f.initialize(r)
+            >>> f.value
+            'two'
+
+            >>> r = dict(not_test='two')
+            >>> f.initialize(r)
+            >>> f.value
+            'zero'
+        """
         if a:
             values = a[0]
         elif k:
@@ -144,8 +170,11 @@ class Field(object):
 
     def evaluate(self):
         """
-        Return the value of the field expressed as a key value pair (dict)
-        ususally to be combined with other fields.
+        Evaluate field value.
+
+            Return the value of the field expressed as key value pair (dict)
+            ususally to be combined with other fields in the native type where
+            the value is the native data type for the field type.
         """
         return {self.name: self.value or self.default}
 
@@ -245,11 +274,29 @@ class Field(object):
     def requires_multipart_form(self):
         return False
 
+
 class SimpleField(Field):
 
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and \
                 layout_field(self.label, self.display_value(), edit=False) or ''
+
+
+class MarkdownText(object):
+    """a markdown text object that can be placed in a form like a field
+    
+    >>> f = MarkdownText('One **bold** statement')
+    >>> f.edit()
+    u'<p>One <strong>bold</strong> statement</p>'
+    """
+    def __init__(self, text):
+        self.value = text
+
+    def edit(self):
+        return markdown('%s\n' % self.value)
+
+    def evaluate(self):
+        return {}
 
 
 class TextField(SimpleField):
@@ -271,6 +318,9 @@ class TextField(SimpleField):
         >>> TextField('Name',hint="required").widget()
         '<INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
+        >>> TextField('Name',placeholder="Jack").widget()
+        '<INPUT NAME="NAME" PLACEHOLDER="Jack" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
+
         >>> f = TextField('Title')
         >>> f.update(**{"TITLE": "Joe's Pool Hall"})
         >>> f.value
@@ -286,16 +336,29 @@ class TextField(SimpleField):
     css_class = 'text_field'
 
     def widget(self):
-        return tag_for(
-            'input',
-            name = self.name,
-            id = self.id,
-            size = self.size,
-            maxlength=self.maxlength,
-            value = self.value or self.default,
-            Type = self._type,
-            Class = self.css_class,
-        )
+        if self.placeholder:
+            return tag_for(
+                'input',
+                name = self.name,
+                id = self.id,
+                size = self.size,
+                maxlength=self.maxlength,
+                value = self.value or self.default,
+                Type = self._type,
+                Class = self.css_class,
+                placeholder = self.placeholder,
+            )
+        else:
+            return tag_for(
+                'input',
+                name = self.name,
+                id = self.id,
+                size = self.size,
+                maxlength=self.maxlength,
+                value = self.value or self.default,
+                Type = self._type,
+                Class = self.css_class,
+            )
 
 
 class Hidden(SimpleField):
@@ -388,6 +451,16 @@ class URLField(TextField):
         >>> f.display_value()
         u'<a target="_window" href="http://www.dsilabs.ca">www.dsilabs.ca</a>'
 
+        >>> f = URLField('Website', default='www.google.com')
+        >>> f.assign('https://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="https://www.dsilabs.ca/">https://www.dsilabs.ca/</a>'
+
+        >>> f = URLField('Website', default='www.google.com', trim=True)
+        >>> f.assign('https://www.dsilabs.ca/')
+        >>> f.display_value()
+        u'<a target="_window" href="https://www.dsilabs.ca">www.dsilabs.ca</a>'
+
     """
 
     size = 60
@@ -402,10 +475,12 @@ class URLField(TextField):
         if url:
             if not (url.startswith('http') or url.startswith('ftp:')):
                 url = 'http://' + url
-        if not self.trim and not (text.startswith('http://') or text.startswith('ftp:')):
-            text = 'http://' + text
+                if not self.trim:
+                    text = 'http://' + text
         if self.trim and text.startswith('http://'):
             text = text[7:]
+        if self.trim and text.startswith('https://'):
+            text = text[8:]
         if self.trim and text.endswith('/'):
             text = text[:-1]
             url = url[:-1]
@@ -673,6 +748,10 @@ class MoneyField(DecimalField):
         >>> f.assign(' ')
         >>> f.display_value()
         ''
+
+        >>> f = MoneyField("Amount", placeholder='0')
+        >>> f.widget()
+        '<div class="input-group"><span class="input-group-addon">$</span><INPUT NAME="AMOUNT" TYPE="text" VALUE="" CLASS="decimal_field" MAXLENGTH="10" PLACEHOLDER="0" ID="AMOUNT" SIZE="10" /></div>'
     """
 
     locale = None
@@ -684,7 +763,24 @@ class MoneyField(DecimalField):
             self.symbol = locale.localeconv()['currency_symbol']
         t = '<div class="input-group"><span class="input-group-addon">{}</span>{}{}</div>'
         tu = '<span class="input-group-addon">{}</span>'
-        return t.format(
+        if self.placeholder != None:
+            return t.format(
+                self.symbol,
+                tag_for(
+                    'input',
+                    name = self.name,
+                    id = self.id,
+                    size = self.size,
+                    placeholder = self.placeholder,
+                    maxlength=self.maxlength,
+                    value = self.value or self.default,
+                    Type = self._type,
+                    Class = self.css_class,
+                ),
+                self.units and tu.format(self.units) or '',
+                )
+        else:
+            return t.format(
                 self.symbol,
                 tag_for(
                     'input',
@@ -715,52 +811,140 @@ class DateField(SimpleField):
     """
     Date Field
 
-        >>> DateField("Start Date").edit()
-        '<div class="field"><div class="field_label">Start Date</div><div class="field_edit"><INPUT NAME="START_DATE" VALUE="" ID="START_DATE" MAXLENGTH="12" TYPE="text" CLASS="date_field" /></div></div>'
+        DatField values can be either actual dates (datetime.date) or string
+        representations of dates.  Values coming from databases or from code
+        will typically be dates, while dates coming in from forms will
+        typically be strings.
+
+        DateFields always evaluate to date types and always display as string
+        representations of those dates formatted according to the specified
+        format.
+
+        >>> DateField("Start Date").widget()
+        '<INPUT NAME="START_DATE" VALUE="" CLASS="date_field" MAXLENGTH="12" TYPE="text" ID="START_DATE" />'
+
+        >>> from datetime import date, datetime
+
+        >>> f = DateField("Start Date")
+        >>> f.display_value()
+        ''
+        >>> f.assign('')
+        >>> f.display_value()
+        ''
+
+        >>> f = DateField("Start Date", value=date(2015,1,1))
+        >>> f.value
+        datetime.date(2015, 1, 1)
+
+        >>> f = DateField("Start Date", value=datetime(2015,1,1))
+        >>> f.value
+        datetime.datetime(2015, 1, 1, 0, 0)
+        >>> f.evaluate()
+        {'START_DATE': datetime.date(2015, 1, 1)}
+
+        >>> f.assign('Jan 01, 2015') # forms assign with strings
+        >>> f.display_value()
+        'Jan 01, 2015'
+        >>> f.evaluate()
+        {'START_DATE': datetime.date(2015, 1, 1)}
+
+        >>> f.assign('2015-12-31') # forms assign with strings
+        >>> f.display_value()
+        'Dec 31, 2015'
+        >>> f.evaluate()
+        {'START_DATE': datetime.date(2015, 12, 31)}
+
+        >>> f.assign(date(2015,1,31))
+        >>> f.display_value()
+        'Jan 31, 2015'
+
+        >>> f.assign('TTT 01, 2015')
+        >>> f.display_value()
+        'TTT 01, 2015'
+        >>> failed = False
+        >>> try:
+        ...     f.evaluate()
+        ... except ValueError:
+        ...     failed = True
+        >>> failed
+        True
+
+        >>> DateField("Start Date", value=date(2015,1,1)).widget()
+        '<INPUT NAME="START_DATE" VALUE="Jan 01, 2015" CLASS="date_field" MAXLENGTH="12" TYPE="text" ID="START_DATE" />'
+
     """
 
     value = default = None
     size=maxlength=12
+    input_format = '%b %d, %Y'
+    alt_input_format = '%Y-%m-%d'
     format = '%b %d, %Y'
     _type = 'date'
     css_class = 'date_field'
+    validators = [valid_date]
+    min = max = None
 
-    def display_value(self):
-        return self.value and self.value.strftime(self.format) or ''
-
-    def assign(self,value):
-        if type(value)==types.StringType:
+    def display_value(self, alt_format=None):
+        format = alt_format or self.format
+        if self.value:
+            strftime = datetime.datetime.strftime
             try:
-                self.value = datetime.datetime.strptime(value,self.format).date()
-            except:
-                self.value = None
+                result = strftime(self.evaluate()[self.name], format)
+            except ValueError:
+                result = self.value
         else:
-            self.value = value
+            result = self.default and self.default.strftime(format) or ''
+        return result
 
-    def edit(self):
-        value = self.value and self.value.strftime(self.format) or self.default and self.default.strftime(self.format) or ''
-        return layout_field(
-                self.label,
-                tag_for(
-                    'input',
+    def widget(self):
+        value = self.display_value(self.input_format)
+        parameters = dict(
                     name=self.name,
                     id=self.id,
                     maxlength=self.maxlength,
                     value=value,
                     Type='text',
                     Class=self.css_class,
-                    )+self.render_msg()+self.render_hint()
                 )
+        if self.min != None:
+            js = """
+            $(function(){
+                $('#%s').datepicker('option', 'minDate', '%s');
+            });
+            """
+            system.js.add(js % (self.id, self.min.strftime(self.input_format)))
+
+        if self.max != None:
+            js = """
+            $(function(){
+                $('#%s').datepicker('option', 'maxDate', '%s');
+            });
+            """
+            system.js.add(js % (self.id, self.max.strftime(self.input_format)))
+        return tag_for('input', **parameters)
 
     def show(self):
         return self.visible and bool(self.value) and layout_field(self.label,self.display_value()) or ''
 
     def evaluate(self):
-        return {self.name: self.value or self.default}
+        if self.value:
+            if type(self.value) == datetime.datetime:
+                value = self.value.date()
+            elif type(self.value) == datetime.date:
+                value = self.value
+            else:
+                strptime = datetime.datetime.strptime
+                try:
+                    value = strptime(self.value, self.input_format).date()
+                except ValueError:
+                    value = strptime(self.value, self.alt_input_format).date()
+            return {self.name: value or self.default}
+        return {self.name: self.default}
 
 
 class BirthdateField(DateField):
-    size=maxlength=10
+    size=maxlength=12
+    css_class = 'birthdate_field'
 
 
 class CheckboxesField(Field):
@@ -854,6 +1038,15 @@ class CheckboxField(TextField):
         >>> f.evaluate()
         {'DONE': True}
 
+        >>> f = CheckboxField('Done', options=['yep','nope'], default=True)
+        >>> f.evaluate()
+        {'DONE': True}
+        >>> f.widget()
+        '<INPUT CHECKED  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+        >>> f.update(other='test')
+        >>> f.widget()
+        '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
+
         >>> f = CheckboxField('Done', options=['yep','nope'])
         >>> f.evaluate()
         {'DONE': None}
@@ -883,12 +1076,21 @@ class CheckboxField(TextField):
         >>> CheckboxField('Done', options=['yep','nope'], value=False).evaluate()
         {'DONE': False}
 
+        >>> CheckboxField('Done', options=['yep','nope'], value='True').value
+        'True'
+
     """
     options = ['yes','no']
+    truthy = [True,'True','yes','on']
     default = None
+    value = None
+
+    def assign(self, value):
+        self.value = value in self.truthy and value or False
 
     def widget(self):
-        checked = self.value and 'checked ' or ''
+        value = self.value is None and self.default or self.value
+        checked = value and 'checked ' or ''
         tag = tag_for(
             'input',
             None,
@@ -901,7 +1103,7 @@ class CheckboxField(TextField):
         return tag
 
     def display_value(self):
-        return self.value in ['yes','on',True] and self.options[0] or self.options[1] or ''
+        return self.value in self.truthy and self.options[0] or self.options[1] or ''
 
     def show(self):
         return layout_field(self.label, self.display_value(), False)
@@ -915,7 +1117,7 @@ class CheckboxField(TextField):
             self.assign(False)
 
     def evaluate(self):
-        if self.value in [True,'yes','on']:
+        if self.value in self.truthy:
             v = True
         elif self.value in [False]:
             v = False
@@ -1035,11 +1237,44 @@ class PulldownField(TextField):
         'One'
 
         >>> PulldownField('Type',value='One',options=['One','Two']).widget()
-        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="One" selected>One</option><option value="Two">Two</option></select>'
+        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option></select>'
+
+        >>> PulldownField('Type',options=['One','Two']).widget()
+        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="One">One</option><option value="Two">Two</option></select>'
+
+        >>> f = PulldownField('Type', options=[('',''),('One',1),('Two',2)])
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value="" selected></option><option value="1">One</option><option value="2">Two</option></select>
+
+        >>> f.assign(2)
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
+        >>> f.assign('2')
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
+        >>> f = PulldownField('Type', options=[('',''),('One','1'),('Two','2')])
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value="" selected></option><option value="1">One</option><option value="2">Two</option></select>
+
+        >>> f.assign(2)
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
+
+        >>> f.assign('2')
+        >>> print f.widget()
+        <select class="pulldown" name="TYPE" id="TYPE">
+        <option value=""></option><option value="1">One</option><option value="2" selected>Two</option></select>
 
         >>> f = PulldownField('Type',value='One',options=[('One','uno'),('Two','dos')])
         >>> f.widget()
-        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value=""></option><option value="uno" selected>One</option><option value="dos">Two</option></select>'
+        '<select class="pulldown" name="TYPE" id="TYPE">\\n<option value="uno" selected>One</option><option value="dos">Two</option></select>'
 
         >>> f.value
         'uno'
@@ -1059,25 +1294,38 @@ class PulldownField(TextField):
         >>> f = PulldownField('Type',value='uno',options=[('One','uno'),('Two','dos')])
         >>> f.display_value()
         'One'
+
+        >>> f = PulldownField('Type',default='uno',options=[('One','uno'),('Two','dos')])
+        >>> f.display_value()
+        'One'
+        >>> f.evaluate()
+        {'TYPE': 'uno'}
+
+        >>> p = PulldownField('Date', name='TO_DATE', options=[('JAN','jan'), ('FEB','feb'),], default='feb')
+        >>> p.evaluate()
+        {'TO_DATE': 'feb'}
+        >>> p.display_value()
+        'FEB'
     """
+    value = None
 
     def evaluate(self):
         for option in self.options:
             if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
                 if self.value == label:
-                    return {self.name:value}
-        return {self.name: self.value}
+                    return {self.name: value}
+        return {self.name: self.value == None and self.default or self.value}
 
     def display_value(self):
-        t = self.value
+        t = self.value == None and self.default or self.value
         if t:
             for option in self.options:
                 if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                     label, value = option
                     if t == value:
                         return label
-        return t or ''
+        return t
 
     def assign(self,new_value):
         self.value = new_value
@@ -1088,23 +1336,24 @@ class PulldownField(TextField):
                     self.value = value
 
     def widget(self):
-        current_value = self.value or self.default or ''
+        current_value = str(self.value or self.default) or ''
         result = []
         name = self.name
+        found = False
         result.append('<select class="pulldown" name="%s" id="%s">\n'%(name,name))
-        if not current_value:
-            result.append('<option value="" selected></option>')
-        else:
-            result.append('<option value=""></option>')
         for option in self.options:
-            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+            if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
-            if value == current_value:
+            if str(value) == current_value:
                 result.append('<option value="%s" selected>%s</option>' % (value,label))
+                found = True
             else:
                 result.append('<option value="%s">%s</option>' % (value,label))
+        if not found and not current_value:
+            blank_option = '<option value=""></option>'
+            result.insert(1, blank_option)
         result.append('</select>')
         return ''.join(result)
 
@@ -1115,11 +1364,33 @@ class MultiselectField(TextField):
         >>> MultiselectField('Type',value='One',options=['One','Two']).display_value()
         'One'
 
+        >>> f = MultiselectField('Type', default='One', options=['One','Two'])
+        >>> f.evaluate()
+        {'TYPE': []}
+        >>> f.display_value()
+        ''
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option></select>'
+        >>> f.value
+        >>> f.assign([])
+        >>> f.value
+        []
+        >>> f.evaluate()
+        {'TYPE': []}
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One">One</option><option value="Two">Two</option></select>'
+
         >>> MultiselectField('Type',value='One',options=['One','Two']).widget()
         '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option></select>'
 
         >>> MultiselectField('Type',value=['One','Three'],options=['One','Two','Three']).widget()
         '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option><option value="Three" selected>Three</option></select>'
+
+        >>> MultiselectField('Type',default=['One'],options=['One','Two','Three']).widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
+        >>> MultiselectField('Type',default=['One','Two'],options=['One','Two','Three']).widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="One" selected>One</option><option value="Two" selected>Two</option><option value="Three">Three</option></select>'
 
         >>> f = MultiselectField('Type',value='One',options=[('One','uno'),('Two','dos')])
         >>> f.widget()
@@ -1143,6 +1414,12 @@ class MultiselectField(TextField):
         >>> f.display_value()
         'One'
 
+        >>> f = MultiselectField('Type',value='uno',options=[('One','uno'),('One','dos')])
+        >>> f.display_value()
+        'One'
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option value="uno" selected>One</option><option value="dos">One</option></select>'
+
         >>> f = MultiselectField('Type',value=['One','dos'],options=[('One','uno'),('Two','dos')])
         >>> f.display_value()
         'One; Two'
@@ -1154,16 +1431,36 @@ class MultiselectField(TextField):
         'One; Two'
         >>> f.evaluate()
         {'TYPE': ['uno', 'dos']}
+        >>> f.option_style('zero','nada')
+        ''
+
+        >>> s = lambda label, value: value.startswith('d') and 's1' or 's0'
+        >>> f = MultiselectField('Type',value=['uno','dos'],options=[('One','uno'),('Two','dos')], styler=s)
+        >>> f.widget()
+        '<select multiple="multiple" class="multiselect" name="TYPE" id="TYPE">\\n<option class="s0" value="uno" selected>One</option><option class="s1" value="dos" selected>Two</option></select>'
+        >>> f.styler('test','dos')
+        's1'
+        >>> f.option_style('zero','nada')
+        'class="s0" '
+
+        # test for iterating over a string vs. a sequence type (iteration protocol)
+        >>> m1 = MultiselectField('Type', default='11', options=[('One','1'),('Two','2'),('Elves','11'),]).widget()
+        >>> m2 = MultiselectField('Type', default=('11',), options=[('One','1'),('Two','2'),('Elves','11'),]).widget()
+        >>> assert m1 == m2
+
     """
 
+    value = None
+    default = []
+    css_class = 'multiselect'
+    styler = None
+
     def _scan(self, t, f):
-        SEQUENCE_TYPES = [types.ListType,types.TupleType]
         if t:
-            if not type(t) == types.ListType:
-                t = [t]
+            t = wrap_iterator(t)
             result = []
             for option in self.options:
-                if len(option)==2 and type(option) in SEQUENCE_TYPES:
+                if len(option)==2 and has_iterator_protocol(option):
                     label, value = option
                     if label in t or value in t:
                         result.append(f(option))
@@ -1173,28 +1470,47 @@ class MultiselectField(TextField):
         return []
 
     def evaluate(self):
-        return {self.name:self._scan(self.value or self.default, lambda a: a[1])}
+        return {self.name: self._scan(self.value, lambda a: a[1])}
 
     def display_value(self):
-        return '; '.join(self._scan(self.value or self.default, lambda a: a[0]))
+        return '; '.join(self._scan(self.value, lambda a: a[0]))
 
     def assign(self, new_value):
         self.value = self._scan(new_value, lambda a: a[1])
 
+    def update(self, **values):
+        for value in values:
+            if value.lower() == self.name.lower():
+                self.assign(values[value])
+                return
+        self.assign([])
+
+    def option_style(self, label, value):
+        if self.styler != None:
+            return 'class="{}" '.format(self.styler(label, value))
+        return ''
+
     def widget(self):
-        current_labels = self._scan(self.value or self.default, lambda a: a[0])
+        if self.value == None:
+            current_values = self.default
+        else:
+            current_values = self.value
+        current_values = wrap_iterator(current_values)
+        current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
-        result.append('<select multiple="multiple" class="multiselect" name="%s" id="%s">\n'%(name,name))
+        tpl = '<select multiple="multiple" class="%s" name="%s" id="%s">\n'
+        result.append(tpl%(self.css_class, name, name))
         for option in self.options:
-            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+            if has_iterator_protocol(option) and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
-            if label in current_labels:
-                result.append('<option value="%s" selected>%s</option>' % (value,label))
+            style = self.option_style(label, value)
+            if value in current_values:
+                result.append('<option %svalue="%s" selected>%s</option>' % (style,value,label))
             else:
-                result.append('<option value="%s">%s</option>' % (value,label))
+                result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
         return ''.join(result)
 
@@ -1205,24 +1521,42 @@ class ChosenMultiselectField(MultiselectField):
 
         >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint')
         >>> f.widget()
-        '<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+        '<select data-placeholder="Select Choose" multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
+        >>> f = ChosenMultiselectField('Choose', options=['One','Two','Three'], hint='test hint', placeholder='my placeholder')
+        >>> f.widget()
+        '<select data-placeholder="my placeholder" multiple="multiple" class="chosen" name="CHOOSE" id="CHOOSE">\\n<option value="One">One</option><option value="Two">Two</option><option value="Three">Three</option></select>'
+
 
     """
+    css_class = 'chosen'
+
+    def __init__(self, *a, **k):
+        MultiselectField.__init__(self, *a, **k)
+        if not 'placeholder' in k:
+            self.placeholder = 'Select ' + self.label
 
     def widget(self):
-        current_labels = self._scan(self.value or self.default, lambda a: a[0])
+        if self.value == None:
+            current_values = self.default
+        else:
+            current_values = self.value
+        current_values = wrap_iterator(current_values)
+        current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
-        result.append('<select multiple="multiple" style="width:300px; margin-right:5px;" class="chosen" name="%s" id="%s">\n'%(name,name))
+        tpl = '<select data-placeholder="{}" multiple="multiple" class="{}" name="{}" id="{}">\n'
+        result.append(tpl.format(self.placeholder, self.css_class, name, name))
         for option in self.options:
-            if type(option) in [types.ListType,types.TupleType] and len(option)==2:
+            if has_iterator_protocol(option) and len(option)==2:
                 label, value = option
             else:
                 label, value = option, option
-            if label in current_labels:
-                result.append('<option value="%s" selected>%s</option>' % (value,label))
+            style = self.option_style(label, value)
+            if value in current_values:
+                result.append('<option %svalue="%s" selected>%s</option>' % (style, value,label))
             else:
-                result.append('<option value="%s">%s</option>' % (value,label))
+                result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
         return ''.join(result)
 
@@ -1327,6 +1661,7 @@ class PhoneField(TextField):
 
     """
     size=20
+    validators = [valid_phone]
 
 
 class MemoField(Field):
@@ -1418,35 +1753,36 @@ class RangeSliderField(IntegerField):
     """
     js_formatter = """var formatter = function(v) { return v;};"""
     js = """
-<script>
-  $(function() {
-    $( "#%(name)s" ).slider({
-      range: true,
-      min: %(tmin)s,
-      max: %(tmax)s,
-      values: [ %(minv)s, %(maxv)s ],
-      change: function( event, ui ) {
-        var v = ui.values,
-            t = v[0] + ',' + v[1];
-        $("input[name='%(name)s']").val(t);
-        %(formatter)s
-        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
-        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
-      },
-      slide: function( event, ui ) {
-        var v = ui.values;
-        %(formatter)s
-        $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
-        $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
-      }
-    });
-    $("#%(name)s").slider("values", $("#%(name)s").slider("values")); // set formatted label
-  });
-</script>
+    <script>
+      $(function() {
+        $( "#%(name)s" ).slider({
+          range: true,
+          min: %(tmin)s,
+          max: %(tmax)s,
+          values: [ %(minv)s, %(maxv)s ],
+          change: function( event, ui ) {
+            var v = ui.values,
+                t = v[0] + ',' + v[1];
+            $("input[name='%(name)s']").val(t);
+            %(formatter)s
+            $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+            $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+          },
+          slide: function( event, ui ) {
+            var v = ui.values;
+            %(formatter)s
+            $( "div[data-id='%(name)s'] span:nth-of-type(1)" ).html( formatter(ui.values[ 0 ]) );
+            $( "div[data-id='%(name)s'] span:nth-of-type(2)" ).html( formatter(ui.values[ 1 ]) );
+          }
+        });
+        $("#%(name)s").slider("values", $("#%(name)s").slider("values")); // set formatted label
+      });
+    </script>
     """
     min = 0
     max = 10
     show_labels = True
+    css_class = 'range-slider'
 
     def assign(self, v):
         if v is None or not v or (isinstance(v,basestring) and v.strip()==','):
@@ -1459,9 +1795,7 @@ class RangeSliderField(IntegerField):
     def widget(self):
         name = self.name
         tmin, tmax = self.min, self.max
-
         minv, maxv = self.value or (tmin, tmax)
-
 
         formatter = self.js_formatter
         system.tail.add(self.js % locals())
@@ -1470,9 +1804,10 @@ class RangeSliderField(IntegerField):
             not self.show_labels and "hidden" or "",
             minv, maxv
           )
-        return """<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>{}""".format(name, name, minv, maxv, labels)
+        slider = '<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>'.format(name, name, minv, maxv)
+        return '<div class="{}">{}{}</div>'.format(self.css_class, slider, labels)
 
-class FieldIterator:
+class FieldIterator(object):
 
     def __init__(self, fields):
         self.field_list = [(n.lower(),v) for n,v in fields.evaluate().items()]
@@ -1719,12 +2054,13 @@ class ImageField(SimpleField):
     >>> i = ImageField('Photo')
     >>> i.initialize({'photo':'data blob', 't':12})
     >>> i.value
-    '<img alt="PHOTO" src="image?name=photo">'
+    '<img class="image-field-image" alt="PHOTO" src="image?name=photo">'
     """
     size = maxlength = 40
     _type = 'file'
     css_class = 'image_field'
     no_image_url = '/static/dz/images/no_photo.png'
+    binary_image_data = None
 
     def _initialize(self, values):
         name = self.name.lower()
@@ -1737,7 +2073,7 @@ class ImageField(SimpleField):
             url = 'image?name=' + name
         else:
             url = self.no_image_url
-        self.value = '<img alt="{}" src="{}">'.format(
+        self.value = '<img class="image-field-image" alt="{}" src="{}">'.format(
                 alt,
                 url,
                 )
@@ -1755,9 +2091,9 @@ class ImageField(SimpleField):
             Type = self._type,
             Class = self.css_class,
         )
-        delete_link = '<a href="delete_image?name=%s">delete %s</a>' % (self.name.lower(), self.label.lower())
+        delete_link = '<div class="image-field-delete-link"><a href="delete_image?name=%s">delete %s</a></div>' % (self.name.lower(), self.label.lower())
         if self.value:
-            input += '<br>' + delete_link + ' <br>' + self.display_value()
+            input += delete_link + self.display_value()
         return layout_field( self.label, ''.join([input,self.render_msg(),self.render_hint()]) )
 
     def requires_multipart_form(self):
@@ -1766,14 +2102,15 @@ class ImageField(SimpleField):
     def assign(self, value):
         try:
             try:
-                self.value = value.value
+                self.binary_image_data = value.value
             except AttributeError:
                 self.value = value
         except AttributeError:
             self.value = None
 
     def evaluate(self):
-        return self.value and {self.name: self.value} or {}
+        value = self.binary_image_data
+        return value and {self.name: value} or {}
 
 
 
@@ -1840,7 +2177,7 @@ class Form(Fields):
 
         >>> form = Form(TextField("Name"))
         >>> form.edit()
-        '<form action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div></form>'
+        '<form class="clearfix" action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div></form>'
 
     """
 
@@ -1866,7 +2203,7 @@ class Form(Fields):
 
     def edit(self):
         esc = attribute_escape
-        return '<form action="%s" id="%s" name="%s" method="%s" enctype="%s">%s</form>' % (
+        return '<form class="clearfix" action="%s" id="%s" name="%s" method="%s" enctype="%s">%s</form>' % (
                 esc(self.action),
                 esc(self.form_name),
                 esc(self.form_name),

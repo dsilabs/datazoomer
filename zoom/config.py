@@ -18,7 +18,7 @@
 import ConfigParser, os.path
 
 
-class Config:
+class Config(object):
     def __init__(self, dz_conf_path, server_name):
 
         def p(path, *a):

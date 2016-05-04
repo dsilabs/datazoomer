@@ -19,8 +19,20 @@ import os
 import sys
 import cgi
 import urllib
-import Cookie
+import uuid
+
 from types import ListType
+
+import zoom.cookies
+
+
+SESSION_COOKIE_NAME = zoom.cookies.SESSION_COOKIE_NAME
+SUBJECT_COOKIE_NAME = zoom.cookies.SUBJECT_COOKIE_NAME
+
+
+def new_subject():
+    return uuid.uuid4().hex
+
 
 def calc_domain(host):
     if host:
@@ -28,12 +40,7 @@ def calc_domain(host):
     return ''
 
 
-def get_cookies(raw_cookie):
-    cookie = Cookie.SimpleCookie(raw_cookie)
-    return dict([(k,cookie[k].value) for k in cookie])
-
-
-class Webvars:
+class Webvars(object):
     def __init__(self, env=os.environ):
         """gather query fields"""
 
@@ -87,6 +94,9 @@ class Request:
     def setup(self, env, instance=None):
         path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
         route = path != '/' and path.split('/')[1:] or []
+        cookies = zoom.cookies.get_cookies(env.get('HTTP_COOKIE'))
+        self.ip_address = None
+        self.session_token = None
 
         module = env.get('wsgi.version',None) and 'wsgi' or 'cgi'
 
@@ -105,8 +115,12 @@ class Request:
             domain = calc_domain(env.get('HTTP_HOST')),
             uri = env.get('REQUEST_URI','index.py'),
             query = env.get('QUERY_STRING'),
-            ip = env.get('REMOTE_ADDR'),
+            ip = env.get('REMOTE_ADDR'), # deprecated
+            ip_address = env.get('REMOTE_ADDR'),
             user = env.get('REMOTE_USER'),
+            cookies = cookies,
+            session_token = cookies.get(SESSION_COOKIE_NAME, None),
+            subject = cookies.get(SUBJECT_COOKIE_NAME, new_subject()),
             port = env.get('SERVER_PORT'),
             #server = env.get('SERVER_NAME','localhost'),
             server = server,
@@ -118,7 +132,6 @@ class Request:
             mode = env.get('mod_wsgi.process_group', None) and 'daemon' or 'embedded',
             protocol = env.get('HTTPS','off') == 'on' and 'https' or 'http',
             referrer = env.get('HTTP_REFERER'),
-            cookies  = get_cookies(env.get('HTTP_COOKIE')),
             wsgi_version = env.get('wsgi.version'),
             wsgi_urlscheme = env.get('wsgi.urlscheme'),
             wsgi_multiprocess = env.get('wsgi.multiprocess'),
@@ -142,28 +155,4 @@ request = Request()
 webvars = Webvars()
 data    = request.data
 route   = request.route
-
-
-if __name__ == '__main__':
-    import unittest
-    
-    class RouteTests(unittest.TestCase):
-
-        def test_no_route(self):
-            self.assertEqual(route,[])
-
-        def test_hello_route(self):
-            webvars.__dict__['_route'] = ['index.py','hello/world']
-            webvars.__dict__['other_param'] = 'someotherparameter'
-            route = get_route()
-            self.assertEqual(route,['hello','world'])
-            self.assertEqual(webvars.__dict__,{'other_param':'someotherparameter'})
-            
-    unittest.main()            
-    
-    
-    
-    
-    
-
 

@@ -1,117 +1,193 @@
+"""
+    jqplot wrapper
+"""
 
-from zoom import system
 import re
 import json
 import uuid
 
+from zoom import system
 
-css = """
-    .chart {
-        height:300px;
-    }
-    .jqplot-axis {
-        font-size: 0.8em;
-    }
-    .jqplot-xaxis {
-        padding-top: 10px;
-    }
-    .jqplot-yaxis {
-        padding-right: 10px;
-    }
-    .content .jqplot-table-legend {
-        border: none;
-        padding: 0.4em 1.0em;
-    }
-    .content td.jqplot-table-legend-label {
-        padding: 0;
-    }
-    div.jqplot-table-legend-swatch-outline {
-        padding: 0;
-    }
-"""
-css = css
-
-scripts = [
+JQPLOT_SCRIPTS = [
     "/static/dz/jqplot/excanvas.js",
     "/static/dz/jqplot/jquery.jqplot.min.js",
-    "/static/dz/jqplot/plugins/jqplot.highlighter.min.js",
-    "/static/dz/jqplot/plugins/jqplot.cursor.min.js",
-    "/static/dz/jqplot/plugins/jqplot.dateAxisRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.canvasTextRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.barRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.categoryAxisRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.pointLabels.min.js",
-    "/static/dz/jqplot/plugins/jqplot.pieRenderer.min.js",
-    "/static/dz/jqplot/plugins/jqplot.meterGaugeRenderer.min.js",
-        ]
+    "/static/dz/jqplot/plugins/jqplot.highlighter.js",
+    "/static/dz/jqplot/plugins/jqplot.cursor.js",
+    "/static/dz/jqplot/plugins/jqplot.dateAxisRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.canvasTextRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.canvasAxisTickRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.barRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.categoryAxisRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.pointLabels.js",
+    "/static/dz/jqplot/plugins/jqplot.pieRenderer.js",
+    "/static/dz/jqplot/plugins/jqplot.meterGaugeRenderer.js",
+]
 
-styles = [
+JQPLOT_STYLES = [
     "/static/dz/jqplot/jquery.jqplot.min.css"
-        ]
+]
 
-chart_tpl = """
-    <div id="chart_%(name)s" class="chart"></div>
-    <script class="code" type="text/javascript">
+JQPLOT_JS = """
         $(document).ready(function(){
             var data = %(data)s;
             var options = %(options)s;
-            var plot1 = $.jqplot('chart_%(name)s', data, options);
-          });
-    </script>
-"""
-
-chart_tpl = """
-    <div id="chart_%(name)s" class="chart"></div>
-"""
-
-chart_js = """
-        $(document).ready(function(){
-            var data = %(data)s;
-            var options = %(options)s;
-            var plot1 = $.jqplot('chart_%(name)s', data, options);
+            $("#%(chart_id)s").jqplot(data, options);
 
             $( window ).resize(function() {
-              plot1.replot( { resetAxes: true } );
+              // work around unpatched jqplot bug for bar width resize
+              $.each($("#%(chart_id)s").data('jqplot').series, function(index, series) {
+                if ( !(options.width && options.height)  ) {
+                    series.barWidth = undefined;
+                }
+              });
+              $("#%(chart_id)s").data('jqplot').replot( { resetAxes: true } );
             });
+
+            %(apply_theme)s
+
+            %(image_js)s
           });
 """
 
-def merge_options(a, b):
-    """Merges two sets of options"""
-    if hasattr(a,'keys') and hasattr(b,'keys'):
-        c = {}
-        for k in a:
-            c[k] = a[k]
-        for k in b:
-            if k in c:
-                c[k] = merge_options(c[k],b[k])
+CHART_TPL = """
+    <div class="dz-jqplot">
+        <div id="%(chart_id)s" class="chart"></div>
+        %(image_html)s
+    </div>
+"""
+
+IMAGE_JS_TPL = """
+            var imgData = $('#%(chart_id)s').jqplotToImageStr({});
+            var imgElem = $('<img/>').attr('src', imgData);
+            $('#img_%(chart_id)s').append(imgElem);
+"""
+
+IMAGE_HTML_TPL = """
+        <button type="button" class="btn btn-info modal-button" data-toggle="modal" data-target="#chartModal_%(chart_id)s">Copy this Chart</button>
+        <div id="chartModal_%(chart_id)s" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Right click on the image to copy.</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="img_%(chart_id)s" class="chart_img"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+"""
+
+
+def merge_options(old, updates):
+    """Merges two sets of options
+
+    >>> from pprint import pprint
+    >>> options1 = {
+    ...     'setting_one': 10,
+    ...     'setting_two': 20,
+    ...     'setting_three': {
+    ...         'setting_four': 'test',
+    ...         'setting_five': [1, 2, 3],
+    ...     },
+    ...     'setting_six': 30,
+    ... }
+    >>> options2 = {
+    ...     'setting_one': 30,
+    ...     'setting_three': {
+    ...         'setting_five': [1,2],
+    ...     },
+    ... }
+    >>> pprint(merge_options(options1, options2))
+    {'setting_one': 30,
+     'setting_six': 30,
+     'setting_three': {'setting_five': [1, 2], 'setting_four': 'test'},
+     'setting_two': 20}
+
+    >>> pprint(merge_options(options1, None))
+    {'setting_one': 10,
+     'setting_six': 30,
+     'setting_three': {'setting_five': [1, 2, 3], 'setting_four': 'test'},
+     'setting_two': 20}
+
+
+    """
+    if updates == None:
+        return old
+
+    elif hasattr(old, 'keys') and hasattr(updates, 'keys'):
+        new = {}
+        for k in old:
+            new[k] = old[k]
+        for k in updates:
+            if k in new:
+                new[k] = merge_options(new[k], updates[k])
             else:
-                c[k] = b[k]
-        return c
+                new[k] = updates[k]
+        return new
+
     else:
-        return b
+        return updates
 
-PLUGIN = '\"\$\.jqplot\.(.*)"'
 
-def render_options(default_options, options, k={}):
+def render_options(default_options, options, k=None):
     """Merges options with default options and inserts plugins"""
+    is_plugin = r'\"\$\.jqplot\.(.*)"'
     combined = merge_options(merge_options(default_options, options), k)
     result = json.dumps(combined, sort_keys=True, indent=4)
-    return re.sub(PLUGIN, lambda a: '$.jqplot.'+a.group(1), result)
+    return re.sub(is_plugin, lambda a: '$.jqplot.'+a.group(1), result)
 
 
-def chart(v):
-    system.libs = system.libs | scripts
-    system.styles = system.styles | styles
-    system.js.add(chart_js % v)
-    system.css.add(css)
-    return chart_tpl % v
+def chart(parameters):
+    """assemble chart components"""
+
+    def install_theme(parameters):
+        """adds a theme to the chart parameters if necessary
+
+        Themes are provided as a (name, data) tuple where name
+        is just lowercase name with no hyphens or spaces and data
+        is a json object as specified in the jqplot docs.
+        """
+        chart_theme = parameters.pop('chart_theme', None)
+        if chart_theme:
+            name, data = chart_theme
+            code = """
+            // apply theme
+            {name} = {data};
+            {name} = plot1.themeEngine.newTheme('{name}', {name});
+            plot1.activateTheme('{name}');
+            """.format(name=name, data=data)
+        else:
+            code = ""
+        parameters['apply_theme'] = code
+
+    install_theme(parameters)
+
+    if parameters.pop('with_image', False):
+        parameters['image_js'] = IMAGE_JS_TPL % parameters
+        parameters['image_html'] = IMAGE_HTML_TPL % parameters
+    else:
+        parameters['image_js'] = ''
+        parameters['image_html'] = ''
+
+    system.libs = system.libs | JQPLOT_SCRIPTS
+    system.styles = system.styles | JQPLOT_STYLES
+    system.js.add(JQPLOT_JS % parameters)
+    return CHART_TPL % parameters
 
 
-def line(data, legend=None, options={}, *a, **k):
+def line(data, legend=None, options=None, **k):
+    """produce a line chart"""
 
-    chart_name = uuid.uuid4().hex
+    # pylint: disable=star-args
+    # It's reasonable in this case.
+
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = zip(*data)
 
@@ -129,7 +205,7 @@ def line(data, legend=None, options={}, *a, **k):
                 }
             }
 
-    if len(data)>1:
+    if len(data) > 1:
         labels, data = data[0], data[1:]
         default_options['axes']['xaxis']['ticks'] = labels
 
@@ -137,53 +213,69 @@ def line(data, legend=None, options={}, *a, **k):
         default_options['legend'] = dict(show='true', placement='insideGrid')
         default_options['series'] = [dict(label=label) for label in legend]
 
-    v = dict(
-        name = chart_name,
-        data = json.dumps(data),
-        options = render_options(default_options, options, k),
+    parameters = dict(
+        chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
+        data=json.dumps(data),
+        options=render_options(default_options, options, k),
+        with_image=k.pop('with_image', False)
         )
 
-    return chart(v)
+    return chart(parameters)
 
 
-def bar(data, legend=None, options={}, *a, **k):
+def bar(data, legend=None, options=None, **k):
+    """produce a bar chart"""
+    # pylint: disable=blacklisted-name
+    # It's reasonable in this case.
 
-    chart_name = uuid.uuid4().hex
+    # pylint: disable=star-args
+    # It's reasonable in this case.
+
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = zip(*data)
 
     default_options = {
         'seriesDefaults': {
             'renderer': '$.jqplot.BarRenderer',
-            'rendererOptions': { 'fillToZero': True, 'useNegativeColors': False }
+            'rendererOptions': {'fillToZero': True, 'useNegativeColors': False}
+        },
+        'axes': {
+            'xaxis': {
+                'label': '&nbsp',
             },
-        }
+        },
+    }
 
-    if len(data)>1:
+    if len(data) > 1:
         labels, data = data[0], data[1:]
-        options['axes'] = dict(
-                xaxis=dict(
-                    renderer='$.jqplot.CategoryAxisRenderer',
-                    ticks=labels,
-                    )
-                )
+        default_options['axes'].setdefault('xaxis', {})
+        default_options['axes']['xaxis'].setdefault('renderer',
+                                            '$.jqplot.CategoryAxisRenderer')
+        default_options['axes']['xaxis'].setdefault('ticks', labels)
 
     if legend:
         default_options['legend'] = dict(show='true', placement='outsideGrid')
         default_options['series'] = [dict(label=label) for label in legend]
 
-    v = dict (
-        name = chart_name,
-        data = json.dumps(data),
-        options = render_options(default_options, options, k),
+    parameters = dict(
+        chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
+        data=json.dumps(data),
+        options=render_options(default_options, options, k),
     )
 
-    return chart(v)
+    return chart(parameters)
 
 
-def hbar(data, legend=None, options={}, *a, **k):
+def hbar(data, legend=None, options=None, **k):
+    """produce a horizontal bar chart"""
 
-    chart_name = uuid.uuid4().hex
+    # pylint: disable=star-args
+    # It's reasonable in this case.
+
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = zip(*data)
 
@@ -192,35 +284,40 @@ def hbar(data, legend=None, options={}, *a, **k):
             'renderer': '$.jqplot.BarRenderer',
             'rendererOptions': {
                 'barDirection': 'horizontal',
-                }
+            }
+        },
+        'axes': {
+            'xaxis': {
+                'label': '&nbsp',
             },
-        }
+        },
+    }
 
-    if len(data)>1:
+    if len(data) > 1:
         labels, data = data[0], data[1:]
-        options['axes'] = dict(
-                yaxis=dict(
-                    renderer='$.jqplot.CategoryAxisRenderer',
-                    ticks=labels,
-                    )
-                )
+        default_options['axes'].setdefault('yaxis', {})
+        default_options['axes']['yaxis'].setdefault('renderer',
+                                            '$.jqplot.CategoryAxisRenderer')
+        default_options['axes']['yaxis'].setdefault('ticks', labels)
 
     if legend:
         default_options['legend'] = dict(show='true', placement='outsideGrid')
         default_options['series'] = [dict(label=label) for label in legend]
 
-    v = dict (
-        name = chart_name,
-        data = json.dumps(data),
-        options = render_options(default_options, options, k),
+    parameters = dict(
+        chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
+        data=json.dumps(data),
+        options=render_options(default_options, options, k),
     )
 
-    return chart(v)
+    return chart(parameters)
 
 
-def pie(data, legend=None, options={}, *a, **k):
+def pie(data, legend=None, options=None, **k):
+    """produce a pie chart"""
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
     data = [[row[:2] for row in data]] # can only handle one series right now
 
@@ -238,20 +335,27 @@ def pie(data, legend=None, options={}, *a, **k):
     if legend:
         default_options['legend'] = dict(show='true', location='e')
 
-    v = dict (
-        name = chart_name,
-        data = json.dumps(data),
-        options = render_options(default_options, options, k),
+    parameters = dict(
+        chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
+        data=json.dumps(data),
+        options=render_options(default_options, options, k),
     )
 
-    return chart(v)
+    return chart(parameters)
 
 
-def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a, **k):
+def gauge(data,
+          label=None,
+          intervals=None,
+          interval_colors=None,
+          options=None,
+          **k):
+    """produce a gauge chart"""
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
-    data = [[data]];
+    data = [[data]]
 
     default_options = {
         'seriesDefaults': {
@@ -263,60 +367,71 @@ def gauge(data, label=None, intervals=None, interval_colors=None, options={}, *a
             },
         }
 
+    renderer_options = default_options['seriesDefaults']['rendererOptions']
     if label:
-        default_options['seriesDefaults']['rendererOptions']['label'] = label
+        renderer_options['label'] = label
 
     if intervals:
-        default_options['seriesDefaults']['rendererOptions']['intervals'] = intervals
-        default_options['seriesDefaults']['rendererOptions']['labelPosition'] = 'bottom'
+        renderer_options['intervals'] = intervals
+        renderer_options['labelPosition'] = 'bottom'
+
+    renderer_options['min'] = k.pop('min', 0)
+    renderer_options['max'] = k.pop('max', 5)
 
     if interval_colors:
-        default_options['seriesDefaults']['rendererOptions']['intervalColors'] = interval_colors
+        renderer_options['intervalColors'] = interval_colors
 
-    v = dict (
-        name = chart_name,
-        data = json.dumps(data),
-        options = render_options(default_options, options, k),
+    parameters = dict(
+        chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
+        data=json.dumps(data),
+        options=render_options(default_options, options, k),
     )
 
-    return chart(v)
+    return chart(parameters)
 
 
-def time_series(data, legend=None, time_format='%b %e', options={}, *a, **k):
+def time_series(data, legend=None, time_format='%b %e', options=None, **k):
+    """produce a time series chart"""
 
-    chart_name = uuid.uuid4().hex
+    chart_id = k.pop('chart_id', 'chart_' + uuid.uuid4().hex)
+
     fmt = '%m/%d/%Y %H:%M:%S'
     min_date = min(r[0] for r in data).strftime(fmt)
     max_date = max(r[0] for r in data).strftime(fmt)
-    data = [[[r[0].strftime(fmt)]+list(r[n+1:n+2]) for r in data] for n in range(len(data[0])-1)]
+    data = [
+        [[r[0].strftime(fmt)]+list(r[n+1:n+2]) for r in data]
+        for n in range(len(data[0])-1)
+    ]
 
     default_options = {
-            'highlighter': {
-                'show': True,
-                'sizeAdjust': 2.5,
-                'tooltipSeparator': ' - ',
-                'tooltipAxes': 'y',
-                },
-            'axes': {
-                'xaxis': {
-                    'renderer': '$.jqplot.DateAxisRenderer',
-                    'tickOptions': { 'formatString': time_format },
-                    'min': min_date,
-                    'max': max_date,
-                    }
-                }
+        'highlighter': {
+            'show': True,
+            'sizeAdjust': 2.5,
+            'tooltipSeparator': ' - ',
+            'tooltipAxes': 'y',
+        },
+        'axes': {
+            'xaxis': {
+                'renderer': '$.jqplot.DateAxisRenderer',
+                'tickOptions': {'formatString': time_format},
+                'min': min_date,
+                'max': max_date,
+                'label': '&nbsp',
             }
+        }
+    }
 
     if legend:
         default_options['legend'] = dict(show='true', placement='insideGrid')
         default_options['series'] = [dict(label=label) for label in legend]
 
-    v = dict(
-        name = chart_name,
-        data = json.dumps(data),
-        options = render_options(default_options, options, k),
+    parameters = dict(
+        chart_id=chart_id,
+        chart_theme=k.pop('theme', None),
+        data=json.dumps(data),
+        options=render_options(default_options, options, k),
         )
 
-    return chart(v)
-
+    return chart(parameters)
 

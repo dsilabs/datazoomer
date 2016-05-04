@@ -3,6 +3,9 @@
 from zoom import *
 from os import listdir
 
+def get_theme_options():
+    return [''] + sorted(listdir(system.themes_path))
+
 class MyModel(Record):
     pass
 
@@ -16,7 +19,7 @@ system_settings_form = Form(
         EmailField('Admin Email', required),
     ]),
     Section('Theme',[
-        PulldownField('Name', name='THEME_NAME', options=listdir(system.themes_path)),
+        PulldownField('Name', name='THEME_NAME', options=get_theme_options()),
         TextField('Template', name='THEME_TEMPLATE'),
     ]),
     Section('Mail',[
@@ -36,7 +39,8 @@ system_settings_form = Form(
 
 user_settings_form = Form(
     Section('Theme',[
-        PulldownField('Name', name='THEME_NAME', default='', options=listdir(system.themes_path)),
+        PulldownField('Name', name='THEME_NAME', default='',
+                      options=get_theme_options()),
     ]),
     Section('System',[
         PulldownField('Profiler', name='PROFILE', default='', options=['0','1'], hint="Enable the system profiler")

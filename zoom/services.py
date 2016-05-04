@@ -4,7 +4,6 @@
     background services
 """
 
-import db
 import os
 import time
 import sys

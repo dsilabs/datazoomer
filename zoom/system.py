@@ -17,6 +17,8 @@ from utils import OrderedSet
 
 env = os.environ
 
+POSITIVE = ['1','yes',True]
+
 def existing(path, subdir=None):
     """Returns existing directories only"""
     pathname = path and subdir and os.path.join(os.path.abspath(path), subdir) or path and os.path.abspath(path)
@@ -24,7 +26,7 @@ def existing(path, subdir=None):
         return pathname
 
 
-class NoApp:
+class NoApp(object):
     name  = 'noapp'
     dir = ''
     keywords = ''
@@ -32,11 +34,11 @@ class NoApp:
     title = name
     theme = ''
 
-class Site:
+class Site(object):
     def __init__(self,**k):
         self.__dict__ = k
 
-class System:
+class System(object):
 
     elapsed_time = property(lambda a: timeit.default_timer() - a.start_time)
 
@@ -92,9 +94,9 @@ class System:
             db_params['passwd'] = db_pass
         self.db = db.database(**db_params)
 
-        # messages
-        from messages import Messages
-        self.messages = Messages(self.db)
+        # message queues
+        from queues import Queues
+        self.queues = Queues(self.db)
 
         from store import EntityStore
         settings_store = EntityStore(self.database, settings.SystemSettings)
@@ -152,6 +154,7 @@ class System:
 
         # email settings
         self.from_addr = system.config.get('mail','from_addr')
+        self.mail_delivery = system.config.get('mail', 'delivery', 'immediate')
 
         # load theme
         self.themes_path = existing(config.get('theme', 'path', os.path.join(self.root,'themes')))
@@ -174,6 +177,8 @@ class System:
         self.show_errors = config.get('error','users','0') == '1'
 
         self.profile = config.get('system','profile','0') == '1'
+
+        self.track_visits = config.get('system','track_visits','0').lower() in POSITIVE
 
         self.webhook = config.get('webhook','url','')
 

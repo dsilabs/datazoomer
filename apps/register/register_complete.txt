@@ -5,7 +5,10 @@ Registration Complete!
 
 Your account is now ready for you to use.
 
-<a href="/login"><font color=#619900><b>Click here to log in to your account now!</b></font></a>
+<a href="/login"><font color=#619900><b>Log in to your account now!</b></font></a>
+
+<br>
+<br>
 
 Thank you for registering at <dz:site_name>.
 

@@ -15,11 +15,14 @@ from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import SessionExpiredException, get_subject
+from session import SessionExpiredException
 from request import request, data, route
 from user import user
 from manager import manager
 from visits import visited
+from zoom.cookies import set_session_cookie
+from .exceptions import UnauthorizedException
+
 
 NEW_INSTALL_MESSAGE = """
 <head>
@@ -62,6 +65,7 @@ Content-type: text/html
 <pre>%s</pre>
 """
 
+PAGE_MISSING_MESSAGE = '<H1>Page Missing</H1>Page not found'
 
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
@@ -69,22 +73,27 @@ def generate_response(instance_path):
 
     profiler = None
 
+
     # capture stdout
     real_stdout = sys.stdout
     sys.stdout = StringIO.StringIO()
     try:
         try:
+            # initialize context
             system.setup(instance_path)
-            session = system.session
-
             user.setup()
 
-            if user.is_admin or user.is_developer: user.apply_settings()    # apply any user context settings to the system
+#            if user.is_admin or user.is_developer: user.apply_settings()    # apply any user context settings to the system
+
             manager.setup()
 
-            system.subject = get_subject()
+            debugging = (system.debugging or system.show_errors or
+                         user.is_developer or user.is_administrator)
 
-            visited(system.subject, session.sid)
+            session = system.session
+
+            if system.track_visits:
+                visited(request.subject, session.sid)
 
             csrf_token = data.pop('csrf_token',None)
             if request.method == 'POST' and system.csrf_validation:
@@ -104,23 +113,11 @@ def generate_response(instance_path):
             if manager.can_run(requested_app_name):
                 system.app = manager.get_app(requested_app_name)
 
-                profiler = system.profile and cProfile.Profile()
+                profiler = (system.profile or user.profile) and cProfile.Profile()
                 if profiler:
                     profiler.enable()
 
-                #print system.root
-                #if system.settings.get('application_database_log'):
-                #    system.db('SET GLOBAL general_log = "ON"')
-
-                #return HTMLResponse('<pre>{}</pre>'.format(
-                #    ''.join('{}: {}\n'.format(k,v) for k,v in system.__dict__.items())
-                #    ))
-
-                #return HTMLResponse('<pre>{}</pre>'.format(str(system)))
-
                 response = system.app.run()
-
-                #system.db('SET GLOBAL general_log = "OFF"')
 
                 if profiler:
                     profiler.disable()
@@ -138,14 +135,29 @@ def generate_response(instance_path):
                 response = redirect_to('/')
 
             else:
-                response = Page('<H1>Page Missing</H1>Page not found').render()
+                response = Page(PAGE_MISSING_MESSAGE).render()
                 response.status = '404'
 
-            session.save_session(response)
+            timeout = session.save_session()
+            set_session_cookie(
+                response,
+                session.sid,
+                request.subject,
+                timeout,
+                system.secure_cookies,
+            )
+
+        except UnauthorizedException:
+            logger.security('unauthorized access attempt')
+            if debugging:
+                raise
+            else:
+                response = Page(PAGE_MISSING_MESSAGE).render()
+                response.status = '404'
 
         except CrossSiteRequestForgeryAttempt:
             logger.security('cross site forgery attempt')
-            if not (system.config.get('error','users','0')=='1' or user.is_developer or user.is_administrator):
+            if debugging:
                 raise
             else:
                 response = redirect_to('/')
@@ -156,7 +168,7 @@ def generate_response(instance_path):
         except:
             t = traceback.format_exc()
             logger.error(t)
-            if system.debugging or system.show_errors or user.is_developer or user.is_administrator:
+            if debugging:
                 try:
                     tpl = load_template('system_application_error_developer', STANDARD_ERROR_MESSAGE)
                     msg = tpl % dict(message=t)

@@ -1,0 +1,50 @@
+
+/* registration styles
+ * -------------------------------- */
+
+.field_label {
+    display: none;
+}
+
+.field_edit {
+    width: 100%;
+    float: none;
+}
+
+.field_edit table.transparent {
+    width: 100%;
+}
+
+.field_edit input {
+    font-size: 1.2em;
+    width: 100%;
+}
+
+.field_edit table tr td {
+    clear: both;
+}
+
+.field_edit table tr td:nth-child(2) {
+    display: none;
+}
+
+.field_edit table tr td:nth-child(2) .wrong {
+    font-size: 1.2em;
+}
+
+.content .wrong {
+    font-size: 1.0em;
+}
+
+.content .panel-title {
+    font-size: 1.2em;
+}
+
+.content .invalid {
+    border-color: red;
+    background-color: #fdd;
+}
+
+.content form h2 {
+    font-size: 1.2em;
+}

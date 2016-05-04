@@ -15,9 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, imghdr, cgi
+import re
+import imghdr
+import cgi
+import datetime
 
-class Validator:
+class Validator(object):
     """A content validator."""
 
     def __init__(self, msg, test):
@@ -125,6 +128,53 @@ class PostalCodeValidator(RegexValidator):
         e = '^[A-Za-z][0-9][A-Za-z]\s*[0-9][A-Za-z][0-9]$'
         RegexValidator.__init__(self, 'enter a valid postal code', e)
 
+class DateValidator(Validator):
+    """
+    Date validator
+
+        >>> v = DateValidator()
+        >>> v.valid('asdf')
+        False
+        >>> v.msg
+        'enter valid date in "Jan 31, 2016" format'
+
+        >>> v.valid('Jan 1, 2016')
+        True
+
+        >>> v.valid('Jan 41, 2016')
+        False
+
+        >>> v.valid('2016-01-14')
+        True
+
+        >>> v.valid('2016-01-41')
+        False
+
+    """
+    def __init__(self, format='%b %d, %Y'):
+        strftime = datetime.datetime.strftime
+        strptime = datetime.datetime.strptime
+
+        def test(date):
+            if not date: return True
+            try:
+                strptime(date, format)
+            except ValueError:
+                try:
+                    strptime(date, '%Y-%m-%d')
+                except:
+                    return False
+                else:
+                    return True
+            else:
+                return True
+
+        msg = 'enter valid date in "{}" format'.format(strftime(
+            datetime.date(2016,1,31),
+            format,
+        ))
+        Validator.__init__(self, msg, test)
+
 class MinimumLength(Validator):
     """A minimum length validator
 
@@ -186,6 +236,15 @@ class MaximumValue(Validator):
         True
         >>> v.valid(120)
         False
+
+        >>> from datetime import date
+        >>> v = MaximumValue(date(2015,1,1))
+        >>> v.valid(date(2015,1,1))
+        True
+        >>> v.valid(date(2015,1,2))
+        False
+        >>> v.msg
+        'value must be at most 2015-01-01'
     """
     def __init__(self, min_value, empty_allowed=True):
         self.empty_allowed = empty_allowed
@@ -271,6 +330,7 @@ valid_password = MinimumLength(6)
 valid_new_password = MinimumLength(8)
 valid_url = URLValidator()
 valid_postal_code = PostalCodeValidator()
+valid_date = DateValidator()
 image_mime_type = Validator("a supported image is required (gif, jpeg, png)", image_mime_type_valid)
 valid_number = Validator("enter a numeric value", number_valid)
 valid_latitude = Validator("enter a number between -90 and 90", latitude_valid)

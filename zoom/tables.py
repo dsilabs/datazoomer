@@ -34,7 +34,7 @@ def setup_test():
     create_tables(db)
     return db
 
-class RecordStore:
+class RecordStore(object):
     """
     stores records
 

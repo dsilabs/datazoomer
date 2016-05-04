@@ -2,9 +2,18 @@
     a database that does less
 """
 
+import time
 import warnings
 
+from zoom.exceptions import DatabaseException
+
 ARRAY_SIZE = 1000
+
+ERROR_TPL = """
+  statement: {!r}
+  parameters: {}
+  message: {}
+"""
 
 def ResultIter(cursor, arraysize=ARRAY_SIZE):
     while True:
@@ -106,13 +115,42 @@ class Database(object):
         >>> db('select * from person where name in (%(buddy)s, %(pal)s)', {'buddy':'Pat', 'pal':'John'})
         [(2L, 'Pat', None, None, None, Decimal('1234.56'))]
 
+        >>> db.execute_many("insert into person (name, salary) values (%s,%s)",
+        ...     [['Alan', Decimal(5000)], ['Evan', Decimal(6000)]])
+        3L
+        >>> db.rowcount
+        2L
+
+        >>> q = db('select * from person')
+        >>> db.rowcount
+        4L
+
         >>> db('drop table person')
         0L
         >>> failed = False
         >>> try:
         ...     db('select * from person where id=2')
-        ... except MySQLdb.ProgrammingError, m:
+        ... except DatabaseException as e:
         ...     failed = True
+        ...     print e
+        <BLANKLINE>
+          statement: 'select * from person where id=2'
+          parameters: ()
+          message: (1146, "Table 'test.person' doesn't exist")
+        <BLANKLINE>
+
+        >>> assert failed
+
+        >>> try:
+        ...     db('select * from not_a_table')
+        ... except DatabaseException:
+        ...     failed = True
+        ...     print e
+        <BLANKLINE>
+          statement: 'select * from person where id=2'
+          parameters: ()
+          message: (1146, "Table 'test.person' doesn't exist")
+        <BLANKLINE>
         >>> assert failed
     """
 
@@ -124,46 +162,52 @@ class Database(object):
         self.__factory = factory
         self.__args = args
         self.__keywords = keywords
-        self.__debug = 0
+        self.debug = False
 
     def __getattr__(self, name):
         if self.__connection is None:
             self.__connection = self.__factory(*self.__args, **self.__keywords)
         return getattr(self.__connection, name)
 
-    def __call__(self, sql, *a, **k):
+    def __call__(self, sql, *a):
         cursor = self.cursor()
 
-        if self.__debug:
-            start = time.time()
+        start = time.time()
+        params = len(a)==1 and hasattr(a[0],'items') and a[0] or a
         try:
-            result = cursor.execute(sql, len(a)==1 and hasattr(a[0],'items') and a[0] or a)
+            result = cursor.execute(sql, params)
+        except Exception as e:
+            raise DatabaseException(ERROR_TPL.format(sql, a, e))
+        else:
             self.rowcount = cursor.rowcount
         finally:
-            if self.__debug:
-                print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, args)
+            if self.debug:
+                print('SQL (%.2f ms): %s - %s' % (1000*(time.time()-start), sql, a))
 
         if cursor.description:
             return Result(cursor)
         else:
-            self.lastrowid = cursor.lastrowid
+            self.lastrowid = getattr(cursor, 'lastrowid', None)
             return self.lastrowid
 
     def execute_many(self, sql, *a):
         cursor = self.cursor()
 
-        if self.__debug:
-            start = time.time()
+        start = time.time()
         try:
             result = cursor.executemany(sql, *a)
+        except Exception as e:
+            raise DatabaseException(ERROR_TPL.format(sql, a, e))
+        else:
+            self.rowcount = cursor.rowcount
         finally:
-            if self.__debug:
-                print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, a)
+            if self.debug:
+                print('SQL (%6.4s ms): %s - %s' % (time.time()-start, sql, a))
 
         if cursor.description:
             return Result(cursor)
         else:
-            self.lastrowid = cursor.lastrowid
+            self.lastrowid = getattr(cursor, 'lastrowid', None)
             return self.lastrowid
 
     def use(self, name):
@@ -214,14 +258,5 @@ def database(engine='mysql', host='database', db='test', user='testuser', *a, **
         db.autocommit(1)
 
         return db
-
-
-def get_mysql_log_state():
-    for rec in db('show variables like "log"'):
-        return rec[1]
-
-def set_mysql_log_state(new_state):
-    if new_state in ['ON','OFF']:
-        db('SET GLOBAL general_log = %s;', new_state)
 
 

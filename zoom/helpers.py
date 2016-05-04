@@ -518,13 +518,13 @@ def uri():
     """Returns the site URI."""
     return system.uri
 
-def flag(title='', url=None, icon='star', id=None):
+def flag(label='', url=None, icon='star', id=None, hint=''):
     def get_flag_state(url, owner, icon):
         return bool(flags.flags.find(url=url, owner=owner, icon=icon))
     url = url or request.uri
     id_attr = id and ('id="%s"'%id) or ''
     state = get_flag_state(url, user.username, icon) and icon+'_on' or ''
-    tpl = '<a title="%(title)s" %(id_attr)s url="%(url)s" icon="%(icon)s" class="flag %(icon)s %(state)s">Flag Me!</a>'
+    tpl = '<a title="%(hint)s" %(id_attr)s label="%(label)s" url="%(url)s" icon="%(icon)s" class="flag %(icon)s %(state)s">Flag Me!</a>'
     return tpl % locals()
 
 def flag_list(icon='star', n=None):
@@ -885,6 +885,25 @@ def lorem():
         voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
         proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         """
+
+def plural(s,cnt):
+    """ return string "s" as plural or not based on count (cnt)
+
+        >>> plural(' record ', 2)
+        ' records'
+        >>> plural('entity', 1)
+        'entity'
+        >>> plural(' entity', 0)
+        ' entities'
+    """
+    s = s.rstrip()
+    if cnt==1:
+        return s
+    elif s[-1]<>'y':
+        return "{}{}".format(s,'s')
+    else:
+        return "{}{}".format(s[:-1],'ies')
+
 
 if __name__ == '__main__':
     import unittest

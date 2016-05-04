@@ -21,7 +21,7 @@ from system import system
 from request import route
 from user import user
 
-class Logger:
+class Logger(object):
     def __init__(self):
         """Initialize logger."""
         self.logging = True

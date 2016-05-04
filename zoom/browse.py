@@ -4,7 +4,7 @@ from system import system
 from request import route
 from tools import unisafe, as_actions
 
-def browse(items, labels=None, columns=None, fields=None, footer=None, title=None, actions=None, header=None, on_click=None, on_delete=None, on_remove=None, *args, **keywords):
+def browse(data, labels=None, columns=None, fields=None, footer=None, title=None, actions=None, header=None, on_click=None, on_delete=None, on_remove=None, *args, **keywords):
 
     def trash_can(key,kind,action,**args):
         link  = url_for(str(key),action,**args)
@@ -24,6 +24,8 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
         except:
             raise
 
+    items = list(data)
+
     if labels:
         if not columns:
             if len(items) and hasattr(items[0], 'get'):
@@ -40,15 +42,20 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
             labels = columns
         else:
             if len(items) and hasattr(items[0], 'keys') and callable(getattr(items[0],'keys')):
+                # list of dicts
                 labels = columns = items[0].keys()
 
             elif len(items) and hasattr(items[0], '__dict__'):
+                # list of objects
                 labels = columns = [items[0].__dict__.keys()]
 
-            elif len(items) and hasattr(items[0], 'keys') and callable(getattr(items[0],'keys')):
-                labels = columns = [items[0].keys()]
+            elif hasattr(data, 'cursor'):
+                # Result object
+                labels = [c[0] for c in data.cursor.description]
+                columns = range(len(labels))
 
             elif len(items) and hasattr(items[0], '__len__') and len(items[0]):
+                # list of lists?
                 labels = items[0]
                 columns = range(len(items[0]))
                 items = items[1:]
@@ -56,7 +63,7 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
             else:
                 if len(items):
                     raise Exception('%s' % hasattr(items[0],'__len__'))
-                raise Exception('Unable to infer columns')
+                return '<div class="baselist"><table><tbody><tr><td>None</td></th></tbody></table></div>'
 
     columns = list(columns)
     labels = list(labels)
@@ -75,10 +82,10 @@ def browse(items, labels=None, columns=None, fields=None, footer=None, title=Non
         for item in items:
             fields.initialize(item)
             flookup = fields.display_value()
-            row = [flookup.get(col.upper(),getcol(item,col)) for col in columns]
+            row = [flookup.get(col.upper(), getcol(item, col)) for col in columns]
             alist.append(row)
     else:
-        alist = [[getcol(item,col) for col in columns] for item in items]
+        alist = [[getcol(item, col) for col in columns] for item in items]
 
     if (on_click or on_delete or on_remove) and columns[0] <> '_id':
         columns = ['_id'] + columns

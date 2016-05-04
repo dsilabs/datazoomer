@@ -44,7 +44,7 @@ warnings.filterwarnings('ignore',
     '.*the sets module is deprecated.*',
     DeprecationWarning, 'MySQLdb')
 
-class App:
+class App(object):
     def authorized(self):
         return True
 

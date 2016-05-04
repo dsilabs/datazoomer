@@ -1,6 +1,6 @@
 
 from model import *
-
+from zoom.html import glyphicon
 
 INDEX_TEMPLATE = open('home.md').read()
 INDEX_JS = """
@@ -15,14 +15,13 @@ class MyView(View):
 
     @authorize('admin', 'developers')
     def index(self):
-
         def row_actions(f):
             return '<a href="/{}/delete/{}">delete</a>'.format(
                     system.app.name, 
                     f._id)
 
         actions = "New",
-        labels = "Title", "URL", "Link", "Icon", "Owner", "Actions"
+        labels = "Label", "URL", "Link", "Icon", "Owner", "Actions"
         refresh_url = '/'+route[0]
 
         # current list of flags
@@ -32,16 +31,16 @@ class MyView(View):
 
         # some example data
         items = [
-                Record(title='Users', url='http://localhost/users'),
-                Record(title='Groups', url='http://localhost/groups'),
-                Record(title='Flags', url='http://localhost/flags'),
+                Record(label='Users', url='http://localhost/users'),
+                Record(label='Groups', url='http://localhost/groups'),
+                Record(label='Flags', url='http://localhost/flags'),
                 ]
         for item in items:
             item['flags'] = ''
             for icon in ['mail','star','heart','thumbs-up','thumbs-down']:
                 state = bool(flags.find(url=item.url, owner=user.username, icon=icon))
-                item['flags'] += flag(item['title'], item['url'], icon=icon)
-        test_list = browse(items , labels=('Title', 'URL', 'Flags'))
+                item['flags'] += flag(item['label'], item['url'], icon=icon)
+        test_list = browse(items , labels=('Label', 'URL', 'Flags'))
 
         return page(
                 markdown(INDEX_TEMPLATE %  locals()),

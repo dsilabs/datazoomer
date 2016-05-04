@@ -8,7 +8,7 @@ class Snippet(Record):
     key = property(lambda a: str(a._id))
     object_url = property(lambda a: '/content/s/'+a.key)
     url = object_url
-    linked_name = property(lambda a: link_to(a.name, a.object_url))
+    link = property(lambda a: link_to(a.name, a.object_url))
     when = property(lambda a: '%s by %s' % (how_long_ago(a.updated),a.updated_by))
     #products_url = property(lambda a: '/products?m='+a.key)
     #item_count = property(lambda a: count_items(a.url))
@@ -40,7 +40,7 @@ class SnippetCollection(Collection):
     name = 'Snippets'
     item_name = 'Snippet'
     labels = 'Name', 'Variant', 'Impressions', 'Updated'
-    columns = 'linked_name', 'variant', 'impressions', 'when'
+    columns = 'link', 'variant', 'impressions', 'when'
     entity = Snippet
     store = store(Snippet)
     url = '/content/s'

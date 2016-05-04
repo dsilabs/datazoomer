@@ -37,7 +37,8 @@ def app():
 
     if user.is_developer:
         dev_apps = [n for n,a in manager.apps.items() if n not in already_included and a.in_development]
-        panels.append('<H1>Developers Only</H1>%s' % list_apps(dev_apps))
+        if dev_apps:
+            panels.append('<H1>Developers Only</H1>%s' % list_apps(dev_apps))
     else:
         dev_apps = []
 

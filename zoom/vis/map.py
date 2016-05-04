@@ -152,7 +152,7 @@ class Leaflet(JS):
             layers.append( unicode(l) )
             overlays.append( "'%s': %s" % (l.title,l.name) )
             if hasattr(l,'tail'): tails.append(l.tail())
-        map_props = "{center: %s, zoom: %s, layers: [%s]}" % ( self.centroid, self.zoom, ','.join('%s' % l for l in show_layers) )
+        map_props = "{center: %s, zoom: %s, layers: [%s]}" % ( list(self.centroid), self.zoom, ','.join('%s' % l for l in show_layers) )
         icons = '\n'.join( icons.keys() )
         tiles = self.tilesets()
         layers = '\n'.join(layers)
@@ -260,13 +260,16 @@ class AwesomeIcon(Icon):
 
     https://github.com/lvoogdt/Leaflet.awesome-markers
     """
-    scripts = ["/static/dz/bootstrap/js/bootstrap.min.js", "/static/dz/leaflet/leaflet.awesome-markers.min.js"]
-    styles = ["/static/dz/bootstrap/css/bootstrap.min.css", "/static/dz/leaflet/leaflet.awesome-markers.css"]
+
+    scripts = ["/static/dz/leaflet/leaflet.awesome-markers.min.js"]
+    styles = ["/static/dz/leaflet/leaflet.awesome-markers.css"]
     _declare_ = "var %(name)s = L.AwesomeMarkers.icon(%(properties)s);"
+
     def render(self):
-        system.libs = system.libs | self.scripts
-        system.styles = system.styles | self.styles
+        system.libs |= self.scripts
+        system.styles |= self.styles
         return Icon.render(self)
+
     def declare(self):
         return Icon.declare(self)
 

@@ -82,6 +82,8 @@ def id_for(*args):
 def tag_for(tag_text,content='',*args,**keywords):
     """
     Builds an HTML tag.
+
+        deprecated : use html.tag instead
     
         >>> tag_for('a',href='http://www.google.com')
         '<A HREF="http://www.google.com" />'
@@ -263,6 +265,9 @@ class Record(Storage):
     def valid(self):
         return 1
 
+    def allows(self, user, action):
+        return True
+
     def __getitem__(self, name):
         try:
             value = dict.__getitem__(self, name)
@@ -423,6 +428,53 @@ class RecordList(list):
             result = self[self._n]
             self._n += 1
         return result
+
+
+class ItemList(list):
+    """
+    list of data items
+    """
+
+    def __str__(self):
+        if len(self) == 0:
+            return ''
+
+        labels = self[0]
+
+        data_lengths = {}
+        for rec in self:
+            for i, col in enumerate(rec):
+                n = data_lengths.get(i, 0)
+                m = len('%s' % rec[i])
+                if n < m:
+                    data_lengths[i] = m
+
+        fields = data_lengths.keys()
+        d = data_lengths
+        fields.sort(lambda a,b:not d[a] and -999 or not d[b] and -999 or d[a]-d[b])
+
+        title = []
+        lines = []
+        fmtstr = []
+
+        for i, label in enumerate(labels):
+            width = max(len(label), d[i]) + 1
+            fmt = '%-' + ('%ds'% width)
+            fmtstr.append(fmt)
+            title.append(fmt % label)
+            lines.append(('-' * width) + '')
+        fmtstr.append('')
+        title.append('\n')
+        lines.append('\n')
+        fmtstr = ' '.join(fmtstr)
+
+        t = []
+
+        for rec in self[1:]:
+            t.append(fmtstr % tuple(rec))
+
+        return '\n' + ' '.join(title)  + ' '.join(lines) + '\n'.join(t)
+
 
 
 class OrderedSet(collections.MutableSet):

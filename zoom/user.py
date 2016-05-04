@@ -21,7 +21,9 @@ import datetime
 from system import system
 from auth import ctx, DataZoomerSaltedHash, BcryptDataZoomerSaltedHash
 
-TWO_WEEKS = 14 * 24 * 60 * 60
+from .exceptions import UnauthorizedException
+
+TWO_WEEKS = 14 * 24 * 60 * 60 # in seconds
 
 def get_current_username():
     return \
@@ -123,7 +125,7 @@ def using_old_passwords():
 def is_member(user, groups):
     """Determines if a user is a member of a set of groups
 
-    >>> class User: pass
+    >>> class User(object): pass
     >>> joe = User()
     >>> joe.groups = ['g1']
     >>> is_member(joe, ['g2','g3'])
@@ -145,7 +147,7 @@ def is_member(user, groups):
         items = groups
     return bool(set(items).intersection(user.groups))
 
-class User:
+class User(object):
     link = property(lambda a: '<a href="/users/%s">%s</a>' % (a.username,a.username))
 
     def __init__(self, login_id=None):
@@ -153,6 +155,8 @@ class User:
             self.initialize(login_id)
         self.is_developer = False
         self.is_administrator = False
+        self.theme = None
+        self.profile = False
 
     def login(self, login_id, password, remember_me=False):
         if authenticate(login_id, password):
@@ -219,17 +223,18 @@ class User:
                 self.is_member(system.managers)
         self.is_developer = \
                 self.is_member(system.developers)
-        self.is_anonymous = self.login_id == system.guest
+        self.is_guest = self.is_anonymous = self.login_id == system.guest
         self.is_authenticated = not self.is_anonymous
 
         # determine default app
         if self.is_anonymous:
             self.default_app = system.index
         else:
-            self.get_settings()
             self.default_app = system.home
             if self.default_app not in self.apps:
                 self.default_app = system.index
+
+        self.get_settings()
 
     def get_groups(self,user_id=None):
         def get_memberships(group,memberships,depth=0):
@@ -258,33 +263,26 @@ class User:
 
     def get_settings(self):
         """load and set the user/context settings"""
-        from zoom import manager, EntityStore
-        from settings import Settings, UserSystemSettings
-        self.settings = Settings(
-            EntityStore(system.db, UserSystemSettings),
-            system.config,
-            self.login_id   # hash this or something
-          )
-        get = self.settings.get
-        self.theme = get('theme_name')
-        self.profile = get('profile')
+        self.settings = system.settings.user_settings(self, system.config)
+        self.theme = self.settings.get('theme_name')
+        self.profile = self.settings.get_bool('profile')
 
-    def apply_settings(self):
-        """apply the user context settings to the system"""
-        if user.is_admin or user.is_developer:
-            if hasattr(self, 'theme') and self.theme and self.theme<>system.theme:
-                system.theme = self.theme
-                system.set_theme(system.theme)
-            if hasattr(self, 'profile') and self.profile in ['0','1']:
-                system.profile = self.profile == '1'
+    def can(self, action, thing):
+        """test to see if user can action a thing object.
+
+        Object thing must provide allows(user, action) method.
+        """
+        return thing.allows(self, action)
+
+    def authorize(self, action, thing):
+        """authorize a user to perform an action on thing
+
+        If user is not allowed to perform the action an exception is raised.
+        Object thing must provide allows(user, action) method.
+        """
+        if not thing.allows(self, action):
+            raise UnauthorizedException('Unauthorized')
+
 
 user = User()
-
-#if __name__ != '__main__':
-#    import os
-#    user = User(get_current_username())
-#
-#else:
-#    current_user = system.config.get('users','default','guest')
-
 

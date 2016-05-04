@@ -19,114 +19,77 @@
 
 
 import time
-import sys
-import random
 import pickle
-import os
-import Cookie
 import uuid
 
-from request import request
+from zoom.request import request
 
-SESSION_COOKIE_NAME = 'dz4sid'
-SUBJECT_COOKIE_NAME = 'dz4sub'
 
-class SessionExpiredException(Exception): pass
+class SessionExpiredException(Exception):
+    """exception to raise when a session has expired
+    """
+    pass
 
-sessionLife = 60 # time in minutes
+SESSION_LIFE = 60 # time in minutes
 
-def get_session_cookie():
-    return get_cookie(SESSION_COOKIE_NAME)
-
-def get_subject():
-    value = get_cookie(SUBJECT_COOKIE_NAME)
-    if not value or value == 'None':
-        return uuid.uuid4().hex
-    return value
-
-def get_cookie(name):
-    raw_cookie = os.environ.get("HTTP_COOKIE", "")
-    cookie = Cookie.SimpleCookie(raw_cookie)
-    try:
-        value = cookie[name].value
-    except KeyError:
-        value = None
-    return value
 
 class Session(object):
-    tablename = 'dz_sessions'
+    """manage user session data"""
 
     def __init__(self, system):
         self._system = system
+        self.ip_address = None
 
     def __repr__(self):
-        return ', '.join(['%s="%s"' % (k,v) for (k,v) in zip(self.__dict__,self.__dict__.values()) if k[0]!='_'])
+        """
+            >>> session = Session(None)
+            >>> session.name = 'test'
+            >>> session.age = 1
+            >>> repr(session)
+            "<Session: {'age': 1, 'ip_address': None, 'name': 'test'}>"
+        """
+        printables = dict(
+            [(k, v) for k, v in self.__dict__.items() if not k.startswith('_')]
+        )
+        return '<Session: {}>'.format(repr(printables))
 
 
     def __str__(self):
         return repr(self)
 
 
-    def set_session_cookie(self, response, sid, host, lifespan, secure=True):
-        cookie = Cookie.SimpleCookie()
-
-        cookie[SESSION_COOKIE_NAME] = sid
-        cookie[SESSION_COOKIE_NAME]['httponly'] = True
-        cookie[SESSION_COOKIE_NAME]['expires'] = 60 * lifespan
-
-        cookie[SUBJECT_COOKIE_NAME] = self._system.subject
-        cookie[SUBJECT_COOKIE_NAME]['httponly'] = True
-        cookie[SUBJECT_COOKIE_NAME]['expires'] = 365 * 24 * 60 * 60
-
-        if secure:
-            cookie[SESSION_COOKIE_NAME]['secure'] = True
-            cookie[SUBJECT_COOKIE_NAME]['secure'] = True
-
-        k,v = str(cookie).split(':',1)
-        response.headers[k] = v
-
-
-    def create_session_database(self):
-        cmd = """
-            create table %s (
-                sesskey varchar(32) NOT NULL default '',
-                expiry int(11) NOT NULL default '0',
-                status char(1) not null default 'D',
-                value text NOT NULL,
-                PRIMARY KEY (sesskey)
-            ) type=MyISAM;
-        """ % self.tablename
-        self.exec_SQL(cmd)
-
-
-    def gc(self):
+    def collect_garbage(self):
+        """delete unused session records"""
         if self._system.config.get('session', 'destroy', True):
-            cmd = 'DELETE FROM %s WHERE (expiry < %s) or (status="D")' % (self.tablename,'%s')
-            db = self._system.database
-            db(cmd,time.time())
+            cmd = 'delete from dz_sessions where (expiry < %s) or (status="D")'
+            self._system.db(cmd, time.time())
 
 
-    def new_session(self,timeout=sessionLife):
+    def new_session(self, timeout=SESSION_LIFE):
+        """create a new session"""
         def trysid(sid):
-            db = self._system.database
-            cmd = "INSERT INTO %s VALUES (%s,%s,'A','')" % (self.tablename,'%s','%s')
+            """create and test the availability of a session id"""
+            database = self._system.database
+            cmd = "insert into dz_sessions values (%s, %s, 'A', '')"
             try:
-                db(cmd,newsid,expiry)
+                database(cmd, sid, expiry)
                 return 1
             except:
                 raise
 
-        def make_session_id(st='nuthin'):
+        def make_session_id():
+            """make a new session id"""
             return uuid.uuid4().get_hex()
 
-        self.gc()
+        self.collect_garbage()
 
         crazyloop = 10
         expiry = time.time() + timeout * 60
         newsid = make_session_id()
         success = trysid(newsid)
 
-        # Try again in the unlikely event that the generated session id is being used
+        # Try again in the unlikely event that the generated
+        # session id is being used
         while not success and crazyloop > 0:
             newsid = make_session_id()
             success = trysid(newsid)
@@ -134,105 +97,82 @@ class Session(object):
 
         if success:
             self.sid = newsid
-            self.ip = request.ip
+            self.ip_address = request.ip_address
             return newsid
         else:
-            raise Exception,'Session error'
+            raise Exception('Session error')
 
 
     def load_session(self):
+        """load a session"""
 
         def load_existing(sid):
-            db = self._system.database
-            cmd = "SELECT * FROM %s WHERE sesskey=%s AND expiry>%s and status='A'" %(self.tablename,'%s','%s')
-            curs = db(cmd, sid, time.time())
+            """load an existing session"""
+            database = self._system.database
+            cmd = """
+            select *
+            from dz_sessions
+            where sesskey=%s and expiry>%s and status='A'"""
+            curs = database(cmd, sid, time.time())
             if len(curs):
                 try:
-                    values = (curs[0].VALUE and pickle.loads(curs[0].VALUE) or {})
+                    values = (curs[0].VALUE and \
+                              pickle.loads(curs[0].VALUE) or {})
                 except:
-                    values = {}                
+                    values = {}
                 for key in values:
                     self.__dict__[key] = values[key]
                 return True
 
-        self.sid = sid = get_session_cookie()
-        valid_sid = sid and len(sid)==32 and self.sid.isalnum()
+        self.sid = sid = request.session_token
+        valid_sid = sid and len(sid) == 32 and self.sid.isalnum()
 
-        if not (valid_sid and load_existing(sid) and self.ip==request.ip):
+        if not (valid_sid and load_existing(sid) and \
+                self.ip_address == request.ip_address):
             self.new_session()
 
 
-    def save_session(self, response, sid=None, timeout=sessionLife):
+    def save_session(self, sid=None, timeout=SESSION_LIFE):
+        """save a session"""
         sid = sid or self.sid
+
+        # using __dict__ method because getattr is overridden
         timeout_in_seconds = self.__dict__.get('lifetime', timeout * 60)
+
         expiry = time.time() + timeout_in_seconds
         values = {}
         for key in self.__dict__.keys():
             if key[0] != '_':
                 values[key] = self.__dict__[key]
         value = pickle.dumps(values)
-        cmd = 'UPDATE %s SET expiry=%s, value=%s WHERE sesskey=%s' % (self.tablename,'%s','%s','%s')
-        db = self._system.database
-        curs = db(cmd,expiry,value,sid)
-        self.set_session_cookie(response, self.sid, request.host, timeout_in_seconds / 60, self._system.secure_cookies)
+        cmd = 'update dz_sessions set expiry=%s, value=%s where sesskey=%s'
+        database = self._system.database
+        database(cmd, expiry, value, sid)
+        return timeout_in_seconds
 
 
     def destroy_session(self, sid=None):
+        """destroy a session"""
         sid = sid or self.sid
-
         system = self._system
-        self.__dict__.clear()
-        self._system = system
+        try:
+            self.__dict__.clear()
+        finally:
+            self._system = system
 
-        db = self._system.database
-        
         if self._system.config.get('sessions', 'destroy', True):
-            cmd = 'delete from %s where sesskey=%s' % (self.tablename, '%s')
-            db(cmd, sid)
+            cmd = 'delete from dz_sessions where sesskey=%s'
+            self._system.db(cmd, sid)
         else:
-            cmd = 'update %s set expiry=%s, status="D" where sesskey=%s' % (self.tablename, '%s', '%s')
-            db(cmd, time.time(), sid)
+            cmd = """
+            update dz_sessions
+            set expiry=%s, status="D"
+            where sesskey=%s"""
+            self._system.db(cmd, time.time(), sid)
 
 
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         if self.__dict__.has_key(name):
             return self.__dict__[name]
         else:
             return None
-
-if __name__ == '__main__':
-    import unittest
-
-    debug = 1
-
-    class SessionTest(unittest.TestCase):
-        def test(self):
-
-            #Create session object
-            session = Session()
-
-            #Create new session
-            id = session.new_session()
-            self.assert_(id!='Session error')
-            session.MyName = 'Test'
-            session.Message = 'This is a test session'
-            session.Number = 123
-
-            #Save session
-            session.save_session(id)
-            self.assertEqual(len(db('select * from '+session.tablename+' where sesskey="'+id+'"').__dict__['data']),1)
-
-            # Create new session object
-            session2 = Session()
-
-            # Load above session
-            session2.load_session(id)
-            self.assertEqual(session2.Number,123)
-            self.assertEqual(session2.MyName,'Test')
-            self.assertEqual(session2.Message,'This is a test session')
-            session2.destroy_session(id)
-            if not debug:
-               self.assertEqual(len(session.exec_SQL('select * from '+session.tablename+' where sesskey="'+id+'"').__dict__['data']),0)
-
-    unittest.main()
-

@@ -5,7 +5,7 @@ Registration Already Completed
 
 Your account has already been activated and is ready for you to use.
 
-<a href="<dz:uri>"><font color=#619900><b>Click here to log in to your account now!</b></font></a>
+<a href="/login"><font color=#619900><b>Log in to your account now!</b></font></a>
 
 Thank you for using <dz:site_name>.
 

@@ -1,0 +1,45 @@
+
+    .dz-jqplot {
+        width: 100%;
+        height: 100%;
+    }
+    .dz-jqplot .chart {
+        height: 250px;
+        height: 100%;
+    }
+    .dz-jqplot .jqplot-axis {
+        font-size: 0.8em;
+    }
+    .dz-jqplot .jqplot-xaxis {
+        padding-top: 10px;
+    }
+    .dz-jqplot .jqplot-yaxis {
+        padding-right: 10px;
+    }
+    .dz-jqplot .jqplot-table-legend {
+        border: none;
+        padding: 0.4em 1.0em;
+    }
+    .dz-jqplot td.jqplot-table-legend-label {
+        padding: 0;
+    }
+    .dz-jqplot div.jqplot-table-legend-swatch-outline {
+        padding: 0;
+        border: 0;
+    }
+    .dz-jqplot div.chart_img {
+        width: 100%;
+        margin: 0 auto;
+    }
+    .dz-jqplot .modal-dialog {
+        margin-top: 200px;
+        position: relative;
+        display: table;
+        overflow-x: auto;
+        overflow-y: auto;
+        width: auto;
+        min-width: 600px;
+    }
+    .dz-jqplot .modal-body {
+        text-align: center;
+    }
