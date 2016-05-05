@@ -105,10 +105,9 @@ class AppSettingsManager(SettingsManager):
         self.context = app.name
 
     def get(self, key, default=None):
-        read = self.app.read_config
         get = self.values.get
         k = '.'.join([self.app.name, key])
-        return get(k, read('settings', key, self.defaults.get(key,default or '')))
+        return get(k, self.defaults.get(key, default or ''))
 
 class UserSettingsManager(SettingsManager):
 

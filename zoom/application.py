@@ -63,6 +63,7 @@ def respond(content):
 
     return response.HTMLResponse('OK') #self.render_view()
 
+#config_parser = ConfigParser.ConfigParser()
 
 class Application(object):
     """Application"""
@@ -70,14 +71,17 @@ class Application(object):
     # pylint: disable=too-many-instance-attributes
     # It's reasonable in this case.
 
+
     def __init__(self, name, path):
         self.name = name
         self.get = self.read_config # remove?
         self.path = path
         self.dir = os.path.split(path)[0]
         self.url = '/' + name
+        self.config_parser = ConfigParser.ConfigParser()
 
-        self.settings = system.settings.app_settings(self, DEFAULT_SETTINGS)
+        config = self.get_config(DEFAULT_SETTINGS)
+        self.settings = system.settings.app_settings(self, config)
         get = self.settings.get
 
         self.theme = get('theme')
@@ -118,6 +122,41 @@ class Application(object):
             if type(default) == bool:
                 value = value not in negative
             result[key] = value
+        return result
+
+    def get_config(self, default=None):
+
+        def as_dict(config):
+            """
+            Converts a ConfigParser object into a dictionary.
+            """
+            the_dict = {}
+            for section in config.sections():
+                for key, val in config.items(section):
+                    #the_dict['.'.join([self.name, key])] = val
+                    the_dict[key] = val
+            return the_dict
+
+        def get_config(pathname):
+            self.config_parser.read(pathname)
+            return as_dict(self.config_parser)
+
+        join = os.path.join
+        split = os.path.split
+
+        local_settings_config_file = join(self.dir, 'config.ini')
+        shared_settings_config_file = join(split(self.dir)[0], 'default.ini')
+        system_settings_config_file = join(split(self.dir)[0], '..', '..', 'default.ini')
+
+        local_settings = get_config(local_settings_config_file)
+        shared_settings = get_config(shared_settings_config_file)
+        system_settings = get_config(system_settings_config_file)
+
+        result = {}
+        result.update(default or {})
+        result.update(system_settings)
+        result.update(shared_settings)
+        result.update(local_settings)
         return result
 
     def read_config(self, section, key, default=None):
