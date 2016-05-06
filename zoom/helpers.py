@@ -404,6 +404,11 @@ def title():
     """Returns application title."""
     return ' | '.join(OrderedSet([system.app.title, site_name()]))
 
+def content_page():
+    """Returns the content page filename without the extension (used with content pages)"""
+    f = route and os.path.splitext(route[-1]) or None
+    return f and f[0] or 'content'
+
 def removal_icon(url):
     """Generates a removal icon"""
     return '<span class="removal_icon"><a href="%s"><img class="remove" alt="remove" src="%s/images/remove.png"></a></span>' % (url, theme_uri())
