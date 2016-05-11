@@ -27,14 +27,27 @@ def loads(text):
     
 
 def dumps(data, *a, **k):
-    """Convert to json with support for date types"""
+    """Convert to json with support for date and decimal types
+
+    >>> dumps('test')
+    '"test"'
+
+    >>> loads(dumps('test'))
+    u'test'
+
+    >>> loads(dumps(datetime.date(2015,1,1)))
+    datetime.date(2015, 1, 1)
+
+    >>> loads(dumps(Decimal('20.40')))
+    Decimal('20.40')
+    """
     def handler(obj):
         if isinstance(obj, datetime.datetime):
             return dict(__type__='datetime',value=obj.isoformat())
         elif isinstance(obj, datetime.date):
             return dict(__type__='date',value=obj.isoformat())
         elif isinstance(obj, Decimal) and not json_support_decimal:
-            return dict(__type__='decimal', value=float(str(obj)))
+            return dict(__type__='decimal', value=str(obj))
         else:
             raise TypeError, 'Object of type %s with value %s is not JSON serializable.' % (type(obj),repr(obj))
     return json.dumps(data, default=handler, *a, **k)
