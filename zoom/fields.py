@@ -530,7 +530,7 @@ class NumberField(TextField):
         >>> n.evaluate()
         {'SIZE': '2123'}
         >>> n.display_value()
-        u'2123 units'
+        u'2,123 units'
 
         >>> n.assign(None)
         >>> n.value == None
@@ -585,13 +585,9 @@ class NumberField(TextField):
             return w
 
     def display_value(self):
-        if self.value == None:
-            v = ''
-        if self.units and self.value<>None:
-            v = '{} {}'.format(self.value, self.units)
-        else:
-            v = self.value
-        return websafe(v)
+        units = self.units and (' ' + self.units) or ''
+        value = self.value and ('{:,}{}'.format(self.value, units)) or ''
+        return websafe(value)
 
 
 class IntegerField(TextField):
@@ -610,14 +606,27 @@ class IntegerField(TextField):
         2
         >>> n.evaluate()
         {'SIZE': 2}
+
+        >>> n = IntegerField('Size', units='meters')
+        >>> n.assign('22234')
+        >>> n.value
+        22234
+        >>> n.display_value()
+        u'22,234 meters'
     """
 
     size = maxlength = 10
     css_class = 'number_field'
     value = 0
+    units = ''
 
     def assign(self, value):
         self.value = int(value)
+
+    def display_value(self):
+        units = self.units and (' ' + self.units) or ''
+        value = self.value and ('{:,}{}'.format(self.value, units)) or ''
+        return websafe(value)
 
 class FloatField(NumberField):
     """
