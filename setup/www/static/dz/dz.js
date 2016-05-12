@@ -95,7 +95,7 @@
             });
         };
 
-        if ( $('.chosen').length > 0 ) { $('.chosen').chosen(); };
+        if ( $('.chosen').length > 0 ) { $('.chosen').chosen({search_contains: true}); };
 
         $('.flag').click(toggle_flag);
 
@@ -118,10 +118,10 @@
               top: 'auto', // Top position relative to parent in px
               left: 'auto' // Left position relative to parent in px
             };
-           var spinner = new Spinner(opts).spin(pb_target); 
+           var spinner = new Spinner(opts).spin(pb_target);
         };
 
     });
 
 
-         
+

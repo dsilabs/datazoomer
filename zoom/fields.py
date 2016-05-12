@@ -26,7 +26,7 @@ from decimal import Decimal
 from validators import *
 from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown, has_iterator_protocol, wrap_iterator
-from helpers import attribute_escape
+from helpers import attribute_escape, link_to
 from request import route
 from zoom import system
 
@@ -284,7 +284,7 @@ class SimpleField(Field):
 
 class MarkdownText(object):
     """a markdown text object that can be placed in a form like a field
-    
+
     >>> f = MarkdownText('One **bold** statement')
     >>> f.edit()
     u'<p>One <strong>bold</strong> statement</p>'
@@ -1568,6 +1568,22 @@ class ChosenMultiselectField(MultiselectField):
                 result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
         return ''.join(result)
+
+
+class RecordListField(ChosenMultiselectField):
+    separator = ', '
+    url = None  # specify like: lambda _,v: url_for_app('groups', v)
+
+    def display_value(self):
+        if self.url:
+            lookup = dict((v,k) for k,v in self.options)
+            value = [link_to(lookup[v], self.url(v)) for v in self.value]
+        else:
+            value = self._scan(self.value, lambda a: a[0])
+        return self.separator.join(value)
+
+    def text_value(self):
+        return self.display_value()
 
 
 class Button(Field):
