@@ -255,6 +255,10 @@ def app_menu():
 def app_title():
     return system.app.title
 
+def app_classed():
+    """ Return the application title in a form for an HTML class attribute"""
+    return attribute_escape(id_for(system.app.title))
+
 def app_side_nav(default='no apps'):
 
     if user.username == system.guest: return ''

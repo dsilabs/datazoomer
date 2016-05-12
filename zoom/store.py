@@ -4,6 +4,7 @@
 
 import datetime
 import decimal
+import jsonz as json
 from zoom.utils import Record, RecordList, kind
 from zoom.tools import db
 
@@ -118,6 +119,9 @@ def entify(rs, klass):
 
         elif datatype == 'instance':
             value = long(rec.id)
+
+        elif datatype in ['list', 'tuple']:
+            value = json.loads(value)
 
         else:
             raise TypeException,'unsupported data type: ' + repr(datatype)
@@ -258,6 +262,11 @@ class EntityStore(object):
             2L
             >>> people.get(id)
             <Person {'name': 'James', 'age': 15}>
+            >>> classes = ['one', 'Not this one']
+            >>> grades = (('one', 'A'), ('Not this one', 'C+'), )
+            >>> id = people.put({'name':'James', 'classes':classes, 'grades': grades})
+            >>> assert classes == people.get(id).classes
+            >>> assert len(people.get(id).grades) == 2  # json dump/load will bring back all tuples as lists
             >>> db.close()
 
         """
@@ -267,8 +276,9 @@ class EntityStore(object):
                 return "%02d-%02d-%02d %02d:%02d:%02d" % (d.year,d.month,d.day,d.hour,d.minute,d.second)
             if type(d) == decimal.Decimal:
                 return str(d)
-            else:
-                return d                
+            if isinstance(d, (list, tuple)):
+                return json.dumps(d)
+            return d
 
         def get_type_str(v):
             t = repr(type(v))
@@ -285,7 +295,7 @@ class EntityStore(object):
         values      = [entity[k] for k in keys]
         datatypes   = [get_type_str(v) for v in values]
         values      = [fixval(i) for i in values] # same fix as above
-        valid_types = ['str','unicode','long','int','float','decimal.Decimal','datetime.date','datetime.datetime','bool','NoneType']
+        valid_types = ['str','unicode','long','int','float','decimal.Decimal','datetime.date','datetime.datetime','bool','NoneType','list','tuple']
 
         for atype in datatypes:
             if atype not in valid_types:
