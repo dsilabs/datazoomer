@@ -62,6 +62,11 @@ def get_groupid(group_name):
     if rec:
         return rec[0].groupid
 
+def get_groupname(group_id):
+    rec = system.database('select * from dz_groups where groupid=%s', group_id)
+    if rec:
+        return rec[0].name
+
 def get_userid(username):
     rec = system.database('select * from dz_users where loginid=%s', username)
     if rec:
