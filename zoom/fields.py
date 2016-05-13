@@ -984,7 +984,8 @@ class CheckboxesField(Field):
         return result
 
     def show(self):
-        return layout_field(self.label, ', '.join(self.value))
+        value = has_iterator_protocol(self.value) and self.value or [self.value]
+        return layout_field(self.label, ', '.join(value))
 
 class CheckboxField(TextField):
     """

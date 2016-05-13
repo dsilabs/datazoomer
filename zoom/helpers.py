@@ -516,6 +516,10 @@ def owner_link():
         return tag_for('a', name, href='mailto:%s' % email)
     return name
 
+def mailto(email, name=None):
+    name = name or email
+    return email and tag_for('a', name, href='mailto:{}'.format(email)) or ''
+
 def owner_email():
     return system.settings.get('owner_email')
 
