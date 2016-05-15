@@ -95,6 +95,8 @@ class Request(object):
         cookies = zoom.cookies.get_cookies(env.get('HTTP_COOKIE'))
         self.ip_address = None
         self.session_token = None
+        self.server = None
+        self.route = None
 
         # gather some commonly required environment variables
         request = dict(
