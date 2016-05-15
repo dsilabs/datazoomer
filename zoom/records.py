@@ -8,11 +8,20 @@ import datetime
 import decimal
 from zoom.utils import Record, RecordList, kind
 
-class ValidException(Exception): pass
-class TypeException(Exception): pass
+class ValidException(Exception):
+    """invalid record"""
+    pass
+
+class TypeException(Exception):
+    """unsupported type"""
+    pass
 
 def setup_test():
+    """set up test database"""
+    # pylint: disable=invalid-name
+
     def create_test_tables(db):
+        """create test tables"""
         db("""
         create table if not exists person (
             id int not null auto_increment,
@@ -23,14 +32,16 @@ def setup_test():
             PRIMARY KEY (id)
             )
         """)
-    
+
     def delete_test_tables(db):
+        """drop test tables"""
         db('drop table if exists person')
 
-    import MySQLdb, db
+    import MySQLdb
+    from zoom.db import Database
 
-    db = db.Database(
-            MySQLdb.Connect, 
+    db = Database(
+            MySQLdb.Connect,
             host='database',
             db='test',
             user='testuser',
@@ -41,22 +52,26 @@ def setup_test():
     return db
 
 
-def ResultIter(q, cls):
-    names = [d[0] == 'id' and '_id' or d[0] for d in q.cursor.description]
-    for rec in q:
-        yield cls((k,v) for k,v in zip(names,rec) if v != None)
+def get_result_iterator(rows, cls):
+    """returns an iterator that iterates over the rows and zips the names onto
+    the items being iterated so they come back as dicts"""
+    names = [d[0] == 'id' and '_id' or d[0] for d in rows.cursor.description]
+    for rec in rows:
+        yield cls((k, v) for k, v in zip(names, rec) if v != None)
 
 
 class Result(object):
-    def __init__(self, q, cls=dict):
-        self.q = q
+    """rows resulting from a method call"""
+    # pylint: disable=too-few-public-methods
+    def __init__(self, rows, cls=dict):
+        self.rows = rows
         self.cls = cls
 
     def __iter__(self):
-        return ResultIter(self.q, self.cls)
+        return get_result_iterator(self.rows, self.cls)
 
     def __len__(self):
-        return self.q.rowcount
+        return self.rows.rowcount
 
     def __repr__(self):
         return repr(list(self))
@@ -73,51 +88,74 @@ class RecordStore(object):
         >>> people.kind
         'person'
         >>> joe = Person(name='Joe', age=20, birthdate=datetime.date(1992,5,5))
-        >>> joe
-        <Person {'name': 'Joe', 'age': 20, 'birthdate': datetime.date(1992, 5, 5)}>
+        >>> repr(joe) == (
+        ...     "<Person {'name': 'Joe', 'age': 20, "
+        ...     "'birthdate': datetime.date(1992, 5, 5)}>"
+        ... )
+        True
         >>> people.put(joe)
         1L
         >>> person = people.get(1L)
-        >>> person
-        <Person {'name': 'Joe', 'age': 20, 'birthdate': datetime.date(1992, 5, 5)}>
+        >>> repr(person) == (
+        ...     "<Person {'name': 'Joe', 'age': 20, "
+        ...     "'birthdate': datetime.date(1992, 5, 5)}>"
+        ... )
+        True
 
-        >>> sally = Person(name='Sally', kids=0, birthdate=datetime.date(1992,5,5))
+        >>> sally = Person(name='Sally', kids=0,
+        ...             birthdate=datetime.date(1992,5,5))
         >>> people.put(sally)
         2L
 
         >>> sally = people.find(name='Sally')
-        >>> sally
-        [<Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 0}>]
+        >>> repr(sally) == (
+        ...     "[<Person {'name': 'Sally', 'birthdate': "
+        ...     "datetime.date(1992, 5, 5), 'kids': 0}>]"
+        ... )
+        True
 
         >>> sally = people.first(name='Sally')
-        >>> sally
-        <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 0}>
+        >>> repr(sally) == (
+        ...     "<Person {'name': 'Sally', "
+        ...     "'birthdate': datetime.date(1992, 5, 5), 'kids': 0}>"
+        ... )
+        True
 
         >>> sally.kids += 1
         >>> people.put(sally)
         2L
 
-        >>> people.first(name='Sally')
-        <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 1}>
+        >>> repr(people.first(name='Sally')) == (
+        ...     "<Person {'name': 'Sally', "
+        ...     "'birthdate': datetime.date(1992, 5, 5), 'kids': 1}>"
+        ... )
+        True
 
         >>> sally = people.first(name='Sally')
         >>> sally.kids += 1
         >>> people.put(sally)
         2L
 
-        >>> people.first(name='Sally')
-        <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 2}>
+        >>> repr(people.first(name='Sally')) == (
+        ...     "<Person {'name': 'Sally', "
+        ...     "'birthdate': datetime.date(1992, 5, 5), 'kids': 2}>"
+        ... )
+        True
         >>> sally = people.first(name='Sally')
         >>> sally.kids += 1
         >>> people.put(sally)
         2L
 
-        >>> people.first(name='Sally')
-        <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 3}>
+        >>> repr(people.first(name='Sally')) == (
+        ...     "<Person {'name': 'Sally', "
+        ...     "'birthdate': datetime.date(1992, 5, 5), 'kids': 3}>"
+        ... )
+        True
         """
 
 
     def __init__(self, db, record_class=dict):
+        # pylint: disable=invalid-name
         self.db = db
         self.record_class = record_class
         self.kind = kind(record_class())
@@ -156,45 +194,49 @@ class RecordStore(object):
         """
 
 
-        keys        = [k for k in record.keys() if k <> '_id']
-        values      = [record[k] for k in keys]
-        datatypes   = [type(i) for i in values]
-        values      = [i for i in values]
+        keys = [k for k in record.keys() if k != '_id']
+        values = [record[k] for k in keys]
+        datatypes = [type(i) for i in values]
+        values = [i for i in values]
         valid_types = [
-                str,
-                unicode,
-                long,
-                int,
-                float,
-                datetime.date,
-                datetime.datetime,
-                bool,
-                type(None), #NoneType,
-                decimal.Decimal,
-                ]
+            str,
+            unicode,
+            long,
+            int,
+            float,
+            datetime.date,
+            datetime.datetime,
+            bool,
+            type(None), #NoneType,
+            decimal.Decimal,
+        ]
 
+        # pylint: disable=invalid-name
+        # pylint: disable=star-args
         db = self.db
 
         for atype in datatypes:
             if atype not in valid_types:
-                raise TypeException,'unsupported type <type %s>' % atype
+                raise TypeException('unsupported type <type %s>' % atype)
 
         if '_id' in record:
-            id = record['_id']
-            sc = ', '.join('%s=%s' % (i,'%s') for i in keys)
-            cmd = 'update %s set %s where id=%d' % (self.kind, sc, id)
-            db(cmd, *values) 
+            _id = record['_id']
+            sc = ', '.join('%s=%s' % (i, '%s') for i in keys)
+            cmd = 'update %s set %s where id=%d' % (self.kind, sc, _id)
+            db(cmd, *values)
         else:
             kc = ', '.join(keys)
             placeholders = ','.join(['%s'] * len(keys))
-            cmd = 'insert into %s (%s) values (%s)' % (self.kind, kc, placeholders)
+            cmd = 'insert into %s (%s) values (%s)' % (
+                self.kind, kc, placeholders)
             _id = db(cmd, *values)
-            id = record['_id'] = _id
+            record['_id'] = _id
 
-        return id
+        return _id
 
 
     def get(self, keys):
+        # pylint: disable=trailing-whitespace
         """
         retrives records
 
@@ -218,7 +260,11 @@ class RecordStore(object):
 
 
         """
-        if keys == None: return None
+
+        # pylint: disable=star-args
+
+        if keys == None:
+            return None
 
         if not isinstance(keys, (list, tuple)):
             keys = (keys, )
@@ -226,7 +272,8 @@ class RecordStore(object):
             as_list = 0
         else:
             keys = [long(key) for key in keys]
-            cmd = 'select * from '+self.kind+' where id in (%s)' % (','.join(['%s']*len(keys)))
+            cmd = 'select * from '+self.kind+' where id in (%s)' % (
+                ','.join(['%s'] * len(keys)))
             as_list = 1
 
         if not keys:
@@ -235,12 +282,13 @@ class RecordStore(object):
             else:
                 return None
 
-        rs = self.db(cmd, *keys)
+        rows = self.db(cmd, *keys)
 
         if as_list:
-            return Result(rs, self.record_class)
+            return Result(rows, self.record_class)
 
-        for rec in Result(rs, self.record_class): return rec
+        for rec in Result(rows, self.record_class):
+            return rec
 
 
     def get_attributes(self):
@@ -260,8 +308,8 @@ class RecordStore(object):
 
         """
         cmd = 'describe %s' % self.kind
-        rs = self.db(cmd)
-        return [rec[0] for rec in rs if rec[0] != 'id']
+        rows = self.db(cmd)
+        return [rec[0] for rec in rows if rec[0] != 'id']
 
 
     def delete(self, key):
@@ -290,7 +338,7 @@ class RecordStore(object):
 
         """
         if hasattr(key, 'get'):
-            key = key._id
+            key = key.get('_id')
         cmd = 'delete from %s where id=%s' % (self.kind, '%s')
         self.db(cmd, key)
 
@@ -320,14 +368,16 @@ class RecordStore(object):
             [True, True]
 
         """
+        # pylint: disable=star-args
+
         if not isinstance(keys, (list, tuple)):
             keys = (keys,)
         slots = (','.join(['%s']*len(keys)))
         cmd = 'select distinct id from %s where id in (%s)' % (self.kind, slots)
-        rs = self.db(cmd, *keys)
+        rows = self.db(cmd, *keys)
 
-        found_keys = [rec[0] for rec in rs]
-        if len(keys)>1:
+        found_keys = [rec[0] for rec in rows]
+        if len(keys) > 1:
             result = [(key in found_keys) for key in keys]
         else:
             result = keys[0] in found_keys
@@ -345,8 +395,12 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sally', age=25))
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Joe', age=25))
-            >>> people.all()
-            [<Person {'name': 'Sally', 'age': 25}>, <Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Joe', 'age': 25}>]
+            >>> repr(people.all()) == (
+            ...     "[<Person {'name': 'Sally', 'age': 25}>, "
+            ...     "<Person {'name': 'Sam', 'age': 25}>, "
+            ...     "<Person {'name': 'Joe', 'age': 25}>]"
+            ... )
+            True
 
         """
         return RecordList(self)
@@ -354,7 +408,7 @@ class RecordStore(object):
     def zap(self):
         """
         deletes all entities of the given kind
-        
+
             >>> db = setup_test()
             >>> class Person(Record): pass
             >>> class People(RecordStore): pass
@@ -362,8 +416,13 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sally', age=25))
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Joe', age=25))
-            >>> people.all()
-            [<Person {'name': 'Sally', 'age': 25}>, <Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Joe', 'age': 25}>]
+            >>> repr(people.all()) == (
+            ...     "[<Person {'name': 'Sally', 'age': 25}>, "
+            ...     "<Person {'name': 'Sam', 'age': 25}>, "
+            ...     "<Person {'name': 'Joe', 'age': 25}>]"
+            ... )
+            True
+
             >>> people.zap()
             >>> people.all()
             []
@@ -395,13 +454,13 @@ class RecordStore(object):
         """
         Find keys that meet search critieria
         """
-        #TODO: add set values
+        # TODO: add set values
+        # pylint: disable=invalid-name
         db = self.db
-        all_keys = []
         items = kv.items()
-        wc = ' and '.join('%s=%s'%(k,'%s') for k,v in items)
-        cmd = 'select distinct id from '+self.kind+' where '+wc
-        q = db(cmd, *[v for k,v in items])
+        wc = ' and '.join('%s=%s'%(k, '%s') for k, v in items)
+        cmd = 'select distinct id from ' + self.kind + ' where ' + wc
+        q = db(cmd, *[v for _, v in items])
         return [i[0] for i in q]
 
     def find(self, **kv):
@@ -415,17 +474,20 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Sally', age=55))
             >>> id = people.put(Person(name='Bob', age=25))
-            >>> people.find(age=25)
-            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+            >>> repr(people.find(age=25)) == (
+            ...     "[<Person {'name': 'Sam', 'age': 25}>, "
+            ...     "<Person {'name': 'Bob', 'age': 25}>]"
+            ... )
+            True
             >>> people.find(name='Sam')
             [<Person {'name': 'Sam', 'age': 25}>]
 
         """
-        all_keys = []
+        # pylint: disable=invalid-name
         items = kv.items()
-        wc = ' and '.join('%s=%s'%(k,'%s') for k,v in items)
-        cmd = 'select * from '+self.kind+' where '+wc
-        q = self.db(cmd, *[v for k,v in items])
+        wc = ' and '.join('%s=%s' % (k, '%s') for k, v in items)
+        cmd = 'select * from ' + self.kind + ' where ' + wc
+        q = self.db(cmd, *[v for _, v in items])
         return Result(q, self.record_class)
 
     def first(self, **kv):
@@ -463,9 +525,9 @@ class RecordStore(object):
             <Person {'name': 'Bob', 'age': 25}>
 
         """
-        r = self._find(**kv)
-        if r:
-            return self.get(r[-1])
+        rows = self._find(**kv)
+        if rows:
+            return self.get(rows[-1])
         return None
 
     def search(self, text):
@@ -479,8 +541,11 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sam Adam Jones', age=25))
             >>> id = people.put(Person(name='Sally Mary Smith', age=55))
             >>> id = people.put(Person(name='Bob Marvin Smith', age=25))
-            >>> list(people.search('smi'))
-            [<Person {'name': 'Sally Mary Smith', 'age': 55}>, <Person {'name': 'Bob Marvin Smith', 'age': 25}>]
+            >>> repr(list(people.search('smi'))) == (
+            ...     "[<Person {'name': 'Sally Mary Smith', 'age': 55}>, "
+            ...     "<Person {'name': 'Bob Marvin Smith', 'age': 25}>]"
+            ... )
+            True
             >>> list(people.search('bo smi'))
             [<Person {'name': 'Bob Marvin Smith', 'age': 25}>]
             >>> list(people.search('smi 55'))
@@ -488,8 +553,10 @@ class RecordStore(object):
 
         """
         def matches(item, terms):
-            v = [str(i).lower() for i in item.values()]
-            return all(any(t in s for s in v) for t in terms)
+            """returns True if an item matches the given search terms"""
+            values = [str(i).lower() for i in item.values()]
+            return all(any(t in s for s in values) for t in terms)
+
         search_terms = list(set([i.lower() for i in text.strip().split()]))
         for rec in self:
             if matches(rec, search_terms):
@@ -508,8 +575,11 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Bob Marvin Smith', age=25))
             >>> list(people.filter(lambda a: 'Mary' in a.name))
             [<Person {'name': 'Sally Mary Smith', 'age': 55}>]
-            >>> list(people.filter(lambda a: a.age < 40))
-            [<Person {'name': 'Sam Adam Jones', 'age': 25}>, <Person {'name': 'Bob Marvin Smith', 'age': 25}>]
+            >>> repr(list(people.filter(lambda a: a.age < 40))) == (
+            ...     "[<Person {'name': 'Sam Adam Jones', 'age': 25}>, "
+            ...     "<Person {'name': 'Bob Marvin Smith', 'age': 25}>]"
+            ... )
+            True
 
         """
         for rec in self:
@@ -543,12 +613,12 @@ class RecordStore(object):
 
         """
         cmd = 'select * from '+self.kind
-        q = self.db(cmd)
-        return ResultIter(q, self.record_class)
+        rows = self.db(cmd)
+        return get_result_iterator(rows, self.record_class)
 
-    def __getitem__(self, n):
+    def __getitem__(self, index):
         """
-        gets nth item
+        get item at index
 
             >>> db = setup_test()
             >>> class Person(Record): pass
@@ -571,9 +641,10 @@ class RecordStore(object):
 
 
         """
-        return self.all()[n]
+        return self.all()[index]
 
     def __str__(self):
+        # pylint: disable=trailing-whitespace
         """
         format for people
 
@@ -610,19 +681,16 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Sally', age=55))
             >>> id = people.put(Person(name='Bob', age=25))
-            >>> people
-            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Sally', 'age': 55}>, <Person {'name': 'Bob', 'age': 25}>]
+            >>> repr(people) == (
+            ...     "[<Person {'name': 'Sam', 'age': 25}>, "
+            ...     "<Person {'name': 'Sally', 'age': 55}>, "
+            ...     "<Person {'name': 'Bob', 'age': 25}>]"
+            ... )
+            True
             >>> people.zap()
             >>> people
             []
 
         """
         return repr(self.all())
-
-def records(klass=dict):
-    return RecordStore(db, klass)
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
 
