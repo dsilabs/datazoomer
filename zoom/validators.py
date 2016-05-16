@@ -59,16 +59,19 @@ class RegexValidator(Validator):
         'invalid input'
     """
 
-    def __init__(self, msg, regex):
-        self.msg = msg
-        self.test = re.compile(regex).match
+    def __init__(self, msg, regex, options=0):
+        Validator.__init__(self, msg, None)
+        self.regex = regex
+        self.options = options
 
     def valid(self, value):
+        # compile regex on first use only
+        self.test = self.test or re.compile(self.regex, self.options).match
         # only test if value exists
-        return not value or bool(Validator.valid(self, value))
+        return not value or bool(self.test(value))
 
 
-class URLValidator(Validator):
+class URLValidator(RegexValidator):
     """
     A URL Validator
 
@@ -83,21 +86,19 @@ class URLValidator(Validator):
     """
     
     def __init__(self):
-        Validator.__init__(
+        RegexValidator.__init__(
             self,
             'Enter a valid URL',
-            re.compile(r'^(?:http|ftp)s?://'  # http:// or https://
+            r'^(?:http|ftp)s?://'  # http:// or https://
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
             r'localhost|'  # localhost...
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
             r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
             r'(?::\d+)?'  # optional port
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE).match
+            r'(?:/?|[/?]\S+)$',
+            re.IGNORECASE
         )
 
-    def valid(self, value):
-        # only test if value exists
-        return not value or bool(Validator.valid(self, value))
 
 class PostalCodeValidator(RegexValidator):
     """
