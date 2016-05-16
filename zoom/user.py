@@ -171,9 +171,15 @@ class User(object):
         return self.initialize()
 
     def set_password(self, password):
-        cmd = "UPDATE dz_users SET password=%s, dtupd=now() where loginid=%s"
-        phash = hash_password(password)
-        system.database(cmd, phash, self.login_id)
+        user = system.users.first(loginid=self.username, status='A')
+        if user:
+            phash = hash_password(password, user.dtadd)
+            cmd = (
+                'update dz_users '
+                'set password=%s, dtupd=now() '
+                'where loginid=%s'
+            )
+            system.db(cmd, phash, self.username)
 
     def is_member(self, groups):
         return is_member(self, groups)
