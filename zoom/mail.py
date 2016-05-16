@@ -11,7 +11,6 @@ import os
 import re
 import json
 from smtplib import SMTP
-from htmllib import HTMLParser
 from cStringIO import StringIO
 from mimetypes import guess_type
 from email import encoders
@@ -59,11 +58,6 @@ class SystemMail(Record):
     pass
 
 
-VALID_EMAIL_RE = re.compile(
-    "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\."
-    "([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$"
-)
-
 BODY_TPL = """
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
@@ -110,6 +104,10 @@ def validate_email(email_address):
         >>> validate_email('a@b.co')
         True
     """
+    VALID_EMAIL_RE = re.compile(
+        "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\."
+        "([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$"
+    )
     return VALID_EMAIL_RE.match(email_address) != None
 
 
@@ -149,6 +147,8 @@ def get_plain_from_html(html):
     '\\nHey\\n\\nThis is some text'
 
     """
+    from htmllib import HTMLParser # import here to avoid high startup cost
+
     textout = StringIO()
     formtext = AbstractFormatter(DumbWriter(textout))
     parser = HTMLParser(formtext)
