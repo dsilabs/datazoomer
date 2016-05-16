@@ -12,7 +12,7 @@ try:
     start_time = timeit.default_timer()
 
     import zoom.startup
-    zoom.startup.run(start_time=timer())
+    zoom.startup.run(start_time=start_time)
 
 except:
     import traceback
