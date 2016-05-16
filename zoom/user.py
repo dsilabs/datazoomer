@@ -33,20 +33,23 @@ def get_current_username():
         system.guest or \
         None
 
-def authenticate(login_id, password):
+def authenticate(username, password):
     """ Authenticate the login """
-    user_record = system.database("SELECT date_format(dtadd,'%%Y-%%m-%%d %%H:%%i:%%s'), password FROM dz_users WHERE loginid=%s and status='A';", login_id)
-    if len(user_record)<>1: return False
-    user_record = user_record[0]
-    dtadd = lambda a: user_record[0]
-    DataZoomerSaltedHash.salt_fn = dtadd
-    BcryptDataZoomerSaltedHash.salt_fn = dtadd
+    user = system.users.first(loginid=username, status='A')
+    if user:
 
-    match, phash = ctx.verify_and_update(password, user_record[1])
-    if match and phash:
-        u = User(login_id)
-        u.set_password(password, phash)
-    return match
+        stored_password_hash = user.password
+
+        timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(user.dtadd)
+        salt_function = lambda a: timestamp
+        DataZoomerSaltedHash.salt_fn = salt_function
+        BcryptDataZoomerSaltedHash.salt_fn = salt_function
+
+        match, phash = ctx.verify_and_update(password, stored_password_hash)
+        if match and phash and phash != stored_password_hash:
+            user.password = phash
+            users.put(user)
+        return match
 
 def deactivate_user(username):
     return system.database('update dz_users set status="I" where loginid=%s', username)
