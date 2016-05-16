@@ -301,6 +301,7 @@ def deliver():
     """deliver mail"""
     # spylint: disable=too-many-locals
 
+    count = 0
     server = connect()
     try:
         mail_store = get_mail_store()
@@ -336,6 +337,7 @@ def deliver():
                     email
                 )
                 mail.status = 'sent'
+                count += 1
             except Exception:
                 mail.status = 'error'
                 raise
@@ -343,6 +345,8 @@ def deliver():
                 mail_store.put(mail)
     finally:
         disconnect(server)
+
+    return count
 
 
 class Attachment(object):
