@@ -19,7 +19,7 @@ import os
 import datetime
 
 from system import system
-from auth import ctx, DataZoomerSaltedHash, BcryptDataZoomerSaltedHash
+from auth import validate_password, hash_password
 
 from .exceptions import UnauthorizedException
 
@@ -37,15 +37,7 @@ def authenticate(username, password):
     """ Authenticate the login """
     user = system.users.first(loginid=username, status='A')
     if user:
-
-        stored_password_hash = user.password
-
-        timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(user.dtadd)
-        salt_function = lambda a: timestamp
-        DataZoomerSaltedHash.salt_fn = salt_function
-        BcryptDataZoomerSaltedHash.salt_fn = salt_function
-
-        match, phash = ctx.verify_and_update(password, stored_password_hash)
+        match, phash = validate_password(password, user.password, user.dtadd)
         if match and phash and phash != stored_password_hash:
             user.password = phash
             users.put(user)
@@ -178,9 +170,9 @@ class User(object):
         system.session.destroy_session()
         return self.initialize()
 
-    def set_password(self, password, phash=None):
+    def set_password(self, password):
         cmd = "UPDATE dz_users SET password=%s, dtupd=now() where loginid=%s"
-        phash = phash is None and ctx.encrypt(password) or phash
+        phash = hash_password(password)
         system.database(cmd, phash, self.login_id)
 
     def is_member(self, groups):
