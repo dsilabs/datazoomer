@@ -63,9 +63,32 @@ def get_context(date_added):
 
     return context
 
+def hash_password(password, date_added):
+    """hash a password"""
+    context = get_context(date_added)
+    return context.encrypt(password)
+
 def validate_password(password, stored_password_hash, date_added):
     """validate a password and return the best hash
     
+    >>> from datetime import datetime
+    >>> hash = '*2470C0C06DEE42FD1618BB99005ADCA2EC9D1E19'
+    >>> validate_password('password', hash, datetime(2015,1,1,1,1,1))
+    (False, None)
+
+    >>> timestamp = datetime(2015,1,1,1,1,1)
+    >>> hash = '$bcrypt-sha256$2a,14$q4iT8GFWNrwfYDIMKaYI0e$KVxn8PWpzKbOgE/qfwG.IVhRIx.Pma6'
+    >>> validate_password('admin', hash, timestamp)
+    (True, None)
+
+    >>> hash = '$bcrypt-sha256$2a,14$q4iT8GFWNrwfYDIMKaYI0e$KVxn8PWpzKbOgE/qfwG.IVhRIx.Pma6'
+    >>> validate_password('admin1', hash, timestamp)
+    (False, None)
+
+    >>> new_hash = hash_password('adminpw', timestamp)
+    >>> validate_password('adminpw', new_hash, timestamp)
+    (True, None)
+
     Validates the supplied password to see if it matches the stored password
     based one of the accepted algorythms and also returns a hash based on the
     best algorythm that is currently supported.  This allows passwords stored
@@ -74,9 +97,4 @@ def validate_password(password, stored_password_hash, date_added):
     """
     context = get_context(date_added)
     return context.verify_and_update(password, stored_password_hash)
-
-def hash_password(password, date_added):
-    """hash a password"""
-    context = get_context(date_added)
-    return context.encrypt(password)
 
