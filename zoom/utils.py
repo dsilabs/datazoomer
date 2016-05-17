@@ -449,8 +449,34 @@ class ItemList(list):
     ----- ------ ------- 
     Joe   12     125    
 
+    >>> data = [
+    ...     ['Joe', 12, 125],
+    ...     ['Sally', 13, 135],
+    ... ]
+    >>> items = ItemList(data)
+    >>> print items
+    Column 0  Column 1  Column 2  
+    --------- --------- --------- 
+    Joe       12        125      
+    Sally     13        135      
+
+
+    >>> data = [
+    ...     ['Joe', 12, 125],
+    ...     ['Sally', 13, 135],
+    ... ]
+    >>> items = ItemList(data, labels=['Name', 'Score', 'Points'])
+    >>> print items
+    Name   Score  Points  
+    ------ ------ ------- 
+    Joe    12     125    
+    Sally  13     135    
+
 
     """
+    def __init__(self, *args, **kwargs):
+        self.labels = kwargs.pop('labels', None)
+        list.__init__(self, *args, **kwargs)
 
     def __str__(self):
         def is_numeric(value):
@@ -467,13 +493,18 @@ class ItemList(list):
 
         num_columns = len(self[0])
 
-        # if first row is not text it doesn't contain labels so generate them
-        if not all(is_text(label) for label in self[0]):
-            labels = [name_column(i) for i in range(num_columns)]
+        # calculate labels
+        if self.labels:
+            labels = self.labels
             offset = 0
         else:
-            labels = self[0]
-            offset = 1
+            # if first row is not all text it doesn't contain labels so generate them
+            if not all(is_text(label) for label in self[0]):
+                labels = [name_column(i) for i in range(num_columns)]
+                offset = 0
+            else:
+                labels = self[0]
+                offset = 1
 
         # calculate column lengths
         data_lengths = {}
