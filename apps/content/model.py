@@ -99,7 +99,7 @@ if user.is_admin:
     ('sitemap','Sitemap','sitemap'),
     )
 
-app = system.app.name #'/'+route[0]
+app = system.app.url
 
 images_dir = os.path.join(system.config.sites_path,system.server_name,'content','images')
 files_dir = os.path.join(system.config.sites_path,system.server_name,'content','files')

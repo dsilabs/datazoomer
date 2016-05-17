@@ -18,6 +18,7 @@ from utils import OrderedSet
 env = os.environ
 
 POSITIVE = ['1','yes',True]
+NEGATIVE = ['0', 'no', False]
 
 def existing(path, subdir=None):
     """Returns existing directories only"""
@@ -38,6 +39,33 @@ class Site(object):
     def __init__(self,**k):
         self.__dict__ = k
 
+
+class SystemTimer(object):
+    def __init__(self, start_time):
+        self.start_time = start_time
+        self.previous_time = start_time
+        self.record = []
+        self.add('modules loaded')
+
+    def add(self, comment):
+        current_time = timeit.default_timer()
+        self.record.append('  {} {}: {:6.1f} ms  {:6.1f} ms'.format(
+            comment, 
+            '.' * (40 - len(comment)),
+            (current_time - self.previous_time) * 1000,
+            (current_time - self.start_time) * 1000,
+        ))
+        self.previous_time = current_time
+
+    def report(self):
+        self.add('finished')
+        title = """
+  Steps Completed                              Time      Total
+ ------------------------------------------- ---------  ---------
+"""
+        return title + '\n'.join(self.record) + '\n'
+
+
 class System(object):
 
     elapsed_time = property(lambda a: timeit.default_timer() - a.start_time)
@@ -51,10 +79,14 @@ class System(object):
             else:
                 raise AttributeError
 
-    def setup(self, instance_path):
+    def setup(self,
+              instance_path,
+              server=request.server,
+              timer=SystemTimer(timeit.default_timer())):
 
         self.debugging = True
-        self.start_time  = timeit.default_timer()
+        self.timer = timer
+        self.start_time = timer.start_time
         self.lib_path = os.path.split(os.path.abspath(__file__))[0]
 
         if not os.path.exists(os.path.join(instance_path, 'dz.conf')):
@@ -65,7 +97,7 @@ class System(object):
             sys.path.insert(0, '.')
 
         # system config file
-        self.config = config = cfg.Config(instance_path,request.server)
+        self.config = config = cfg.Config(instance_path, server)
 
         # connect to the database and stores
         db_engine = config.get('database','engine','mysql')
@@ -94,6 +126,10 @@ class System(object):
             db_params['passwd'] = db_pass
         self.db = db.database(**db_params)
 
+        self.db_debug = config.get('database','debug','0') not in NEGATIVE 
+        self.db.debug = self.db_debug
+        self.database.debug = self.db_debug
+
         # message queues
         from queues import Queues
         self.queues = Queues(self.db)
@@ -108,7 +144,8 @@ class System(object):
         self.debugging = config.get('errors','debugging','0') == '1'
 
         self.request = request
-        self.server_name = request.server  #env.get('SERVER_NAME','localhost')
+        self.server = server
+        self.server_name = server # deprecated
 
         # get current site directory
         self.root        = os.path.split(os.path.abspath(os.getcwd()))[0]
@@ -120,8 +157,8 @@ class System(object):
         self.site = Site(
             name = '',
             theme = '',
-            home = os.path.join(config.sites_path, self.server_name),
-            data_path = os.path.join(config.sites_path,self.server_name,config.get('data','path','data')),
+            home = os.path.join(config.sites_path, server),
+            data_path = os.path.join(config.sites_path, server, config.get('data','path','data')),
             url = self.uri,
             tracking_id = config.get('site', 'tracking_id', ''),
             )

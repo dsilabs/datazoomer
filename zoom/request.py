@@ -97,6 +97,8 @@ class Request:
         cookies = zoom.cookies.get_cookies(env.get('HTTP_COOKIE'))
         self.ip_address = None
         self.session_token = None
+        self.server = None
+        self.route = None
 
         module = env.get('wsgi.version',None) and 'wsgi' or 'cgi'
 

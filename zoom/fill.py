@@ -8,6 +8,9 @@ import re
 parts_re = r"""(\w+)\s*=\s*"([^"]*)"|(\w+)\s*=\s*'([^']*)'|(\w+)\s*=\s*([^\s]+)\s*|("")|"([^"]*)"|(\w+)"""
 tag_parts = re.compile(parts_re)
 
+pattern_tpl = '%s([a-z0-9_]+)\s*(.*?)%s'
+patterns = {}
+
 def fill(tag_start, tag_end, text, callback):
 
     def replace_tag(match):
@@ -23,8 +26,10 @@ def fill(tag_start, tag_end, text, callback):
             result = match.group(0)
         return unisafe(result)
     
-    expr = """%(tag_start)s([a-z0-9_]+)\s*(.*?)%(tag_end)s""" % dict(tag_start=tag_start, tag_end=tag_end)
-    innerre = re.compile(expr,re.IGNORECASE)
+    tags = (tag_start, tag_end)
+    if not tags in patterns:
+        patterns[tags] = re.compile(pattern_tpl % (tag_start, tag_end), re.IGNORECASE)
+    innerre = patterns[tags]
     
     result = []
     lastindex = 0

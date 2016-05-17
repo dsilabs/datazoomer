@@ -255,6 +255,10 @@ def app_menu():
 def app_title():
     return system.app.title
 
+def app_classed():
+    """ Return the application title in a form for an HTML class attribute"""
+    return attribute_escape(id_for(system.app.title))
+
 def app_side_nav(default='no apps'):
 
     if user.username == system.guest: return ''
@@ -404,6 +408,11 @@ def title():
     """Returns application title."""
     return ' | '.join(OrderedSet([system.app.title, site_name()]))
 
+def content_page():
+    """Returns the content page filename without the extension (used with content pages)"""
+    f = route and os.path.splitext(route[-1]) or None
+    return f and f[0] or 'content'
+
 def removal_icon(url):
     """Generates a removal icon"""
     return '<span class="removal_icon"><a href="%s"><img class="remove" alt="remove" src="%s/images/remove.png"></a></span>' % (url, theme_uri())
@@ -506,6 +515,10 @@ def owner_link():
     if email:
         return tag_for('a', name, href='mailto:%s' % email)
     return name
+
+def mailto(email, name=None):
+    name = name or email
+    return email and tag_for('a', name, href='mailto:{}'.format(email)) or ''
 
 def owner_email():
     return system.settings.get('owner_email')

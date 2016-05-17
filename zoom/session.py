@@ -109,10 +109,10 @@ class Session(object):
         def load_existing(sid):
             """load an existing session"""
             database = self._system.database
-            cmd = """
-            select *
-            from dz_sessions
-            where sesskey=%s and expiry>%s and status='A'"""
+            cmd = (
+                'select * from dz_sessions '
+                'where sesskey=%s and expiry>%s and status="A"'
+            )
             curs = database(cmd, sid, time.time())
             if len(curs):
                 try:

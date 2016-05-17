@@ -26,7 +26,7 @@ from decimal import Decimal
 from validators import *
 from utils import name_for, tag_for
 from tools import htmlquote, websafe, markdown, has_iterator_protocol, wrap_iterator
-from helpers import attribute_escape
+from helpers import attribute_escape, link_to
 from request import route
 from zoom import system
 
@@ -284,7 +284,7 @@ class SimpleField(Field):
 
 class MarkdownText(object):
     """a markdown text object that can be placed in a form like a field
-    
+
     >>> f = MarkdownText('One **bold** statement')
     >>> f.edit()
     u'<p>One <strong>bold</strong> statement</p>'
@@ -530,7 +530,7 @@ class NumberField(TextField):
         >>> n.evaluate()
         {'SIZE': '2123'}
         >>> n.display_value()
-        u'2123 units'
+        u'2,123 units'
 
         >>> n.assign(None)
         >>> n.value == None
@@ -585,13 +585,9 @@ class NumberField(TextField):
             return w
 
     def display_value(self):
-        if self.value == None:
-            v = ''
-        if self.units and self.value<>None:
-            v = '{} {}'.format(self.value, self.units)
-        else:
-            v = self.value
-        return websafe(v)
+        units = self.units and (' ' + self.units) or ''
+        value = self.value and ('{:,}{}'.format(self.value, units)) or ''
+        return websafe(value)
 
 
 class IntegerField(TextField):
@@ -610,14 +606,27 @@ class IntegerField(TextField):
         2
         >>> n.evaluate()
         {'SIZE': 2}
+
+        >>> n = IntegerField('Size', units='meters')
+        >>> n.assign('22234')
+        >>> n.value
+        22234
+        >>> n.display_value()
+        u'22,234 meters'
     """
 
     size = maxlength = 10
     css_class = 'number_field'
     value = 0
+    units = ''
 
     def assign(self, value):
         self.value = int(value)
+
+    def display_value(self):
+        units = self.units and (' ' + self.units) or ''
+        value = self.value and ('{:,}{}'.format(self.value, units)) or ''
+        return websafe(value)
 
 class FloatField(NumberField):
     """
@@ -975,7 +984,8 @@ class CheckboxesField(Field):
         return result
 
     def show(self):
-        return layout_field(self.label, ', '.join(self.value))
+        value = has_iterator_protocol(self.value) and self.value or [self.value]
+        return layout_field(self.label, ', '.join(value))
 
 class CheckboxField(TextField):
     """
@@ -1559,6 +1569,22 @@ class ChosenMultiselectField(MultiselectField):
                 result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
         return ''.join(result)
+
+
+class RecordListField(ChosenMultiselectField):
+    separator = ', '
+    url = None  # specify like: lambda _,v: url_for_app('groups', v)
+
+    def display_value(self):
+        if self.url:
+            lookup = dict((v,k) for k,v in self.options)
+            value = [link_to(lookup[v], self.url(v)) for v in self.value]
+        else:
+            value = self._scan(self.value, lambda a: a[0])
+        return self.separator.join(value)
+
+    def text_value(self):
+        return self.display_value()
 
 
 class Button(Field):

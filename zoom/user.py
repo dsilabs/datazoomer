@@ -19,7 +19,7 @@ import os
 import datetime
 
 from system import system
-from auth import ctx, DataZoomerSaltedHash, BcryptDataZoomerSaltedHash
+from auth import validate_password, hash_password
 
 from .exceptions import UnauthorizedException
 
@@ -33,20 +33,15 @@ def get_current_username():
         system.guest or \
         None
 
-def authenticate(login_id, password):
+def authenticate(username, password):
     """ Authenticate the login """
-    user_record = system.database("SELECT date_format(dtadd,'%%Y-%%m-%%d %%H:%%i:%%s'), password FROM dz_users WHERE loginid=%s and status='A';", login_id)
-    if len(user_record)<>1: return False
-    user_record = user_record[0]
-    dtadd = lambda a: user_record[0]
-    DataZoomerSaltedHash.salt_fn = dtadd
-    BcryptDataZoomerSaltedHash.salt_fn = dtadd
-
-    match, phash = ctx.verify_and_update(password, user_record[1])
-    if match and phash:
-        u = User(login_id)
-        u.set_password(password, phash)
-    return match
+    user = system.users.first(loginid=username, status='A')
+    if user:
+        match, phash = validate_password(password, user.password, user.dtadd)
+        if match and phash and phash != stored_password_hash:
+            user.password = phash
+            users.put(user)
+        return match
 
 def deactivate_user(username):
     return system.database('update dz_users set status="I" where loginid=%s', username)
@@ -61,6 +56,11 @@ def get_groupid(group_name):
     rec = system.database('select * from dz_groups where name=%s', group_name)
     if rec:
         return rec[0].groupid
+
+def get_groupname(group_id):
+    rec = system.database('select * from dz_groups where groupid=%s', group_id)
+    if rec:
+        return rec[0].name
 
 def get_userid(username):
     rec = system.database('select * from dz_users where loginid=%s', username)
@@ -170,10 +170,16 @@ class User(object):
         system.session.destroy_session()
         return self.initialize()
 
-    def set_password(self, password, phash=None):
-        cmd = "UPDATE dz_users SET password=%s, dtupd=now() where loginid=%s"
-        phash = phash is None and ctx.encrypt(password) or phash
-        system.database(cmd, phash, self.login_id)
+    def set_password(self, password):
+        user = system.users.first(loginid=self.username, status='A')
+        if user:
+            phash = hash_password(password, user.dtadd)
+            cmd = (
+                'update dz_users '
+                'set password=%s, dtupd=now() '
+                'where loginid=%s'
+            )
+            system.db(cmd, phash, self.username)
 
     def is_member(self, groups):
         return is_member(self, groups)

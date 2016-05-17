@@ -15,9 +15,9 @@ __all__ = ['Database', 'Table', 'Columns', 'Column', 'database']
 
 import string
 import decimal
-import time
 import datetime
 import warnings
+import timeit
 
 warnings.filterwarnings('ignore','Unknown table.*')
 norm = string.maketrans('','')
@@ -144,7 +144,8 @@ class Database(object):
                 253:'CHAR',
                 254:'CHAR',
                 }
-        self.debug = 0
+        self.debug = False
+        self.log = []
 
     def __getattr__(self, name):
         if self.__connection is None:
@@ -168,19 +169,28 @@ class Database(object):
             self.__connection.close()
             self.__connection = None
 
+    def report(self):
+        if self.log:
+            return '  Database Queries\n --------------------\n{}\n'.format(
+                '\n'.join(self.log))
+        return ''
+
     def __call__(self, sql, *args, **keywords):
         """Run a SQL statement.  If the command generates a data result
         the return value will be a dataset, otherwise it will be the
         cursor return value (whatever that is!)."""
         cursor = self.cursor()
 
-        if self.debug:
-            start = time.time()
+        start = timeit.default_timer()
         try:
             result = cursor.execute(sql, args)
         finally:
             if self.debug:
-                print 'SQL (%s): %s - %s<br>\n' % (time.time()-start, sql, args)
+                self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
+                    (timeit.default_timer() - start) * 1000,
+                    sql,
+                    args,
+                ))
 
         if cursor.description:
             return RecordSet(self, cursor)
@@ -191,10 +201,19 @@ class Database(object):
     def execute(self, sql, params=None):
         """Execute sql query and return results. Optional keyword
         args are '%' substituted into query beforehand."""
-        if self.debug:
-            print 'SQL: ', sql, 'Params:', params
         cursor = self.cursor()
-        result = cursor.execute(sql,params)
+
+        start = timeit.default_timer()
+        try:
+            result = cursor.execute(sql,params)
+        finally:
+            if self.debug:
+                self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
+                    (timeit.default_timer() - start) * 1000,
+                    sql,
+                    params,
+                ))
+
         self.lastrowid = cursor.lastrowid # In case it was an insert
         return result
 

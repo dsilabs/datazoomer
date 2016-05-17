@@ -51,7 +51,7 @@ VIEW_SINGLE_RECORD_LIST = """<div class="baselist">
 <tr id="row-1" class="light">
 <td nowrap><a href="/noapp//myapp/joe">Joe</a></td>
 <td nowrap>123 Somewhere St</td>
-<td nowrap>40000</td>
+<td nowrap>40,000</td>
 </tr>
 </tbody>
 </table>
@@ -70,12 +70,12 @@ VIEW_TWO_RECORD_LIST = """<div class="baselist">
 <tr id="row-1" class="light">
 <td nowrap><a href="/noapp//myapp/joe">Joe</a></td>
 <td nowrap>123 Somewhere St</td>
-<td nowrap>40000</td>
+<td nowrap>40,000</td>
 </tr>
 <tr id="row-2" class="dark">
 <td nowrap><a href="/noapp//myapp/sally">Sally</a></td>
 <td nowrap>123 Special St</td>
-<td nowrap>45000</td>
+<td nowrap>45,000</td>
 </tr>
 </tbody>
 </table>
@@ -94,7 +94,7 @@ VIEW_NO_JOE_LIST = u"""<div class="baselist">
 <tr id="row-1" class="light">
 <td nowrap><a href="/noapp//myapp/sally">Sally</a></td>
 <td nowrap>123 Special St</td>
-<td nowrap>45000</td>
+<td nowrap>45,000</td>
 </tr>
 </tbody>
 </table>
@@ -113,12 +113,12 @@ VIEW_UPDATED_JOE_LIST = """<div class="baselist">
 <tr id="row-1" class="light">
 <td nowrap><a href="/noapp//myapp/jim">Jim</a></td>
 <td nowrap>123 Somewhere St</td>
-<td nowrap>40000</td>
+<td nowrap>40,000</td>
 </tr>
 <tr id="row-2" class="dark">
 <td nowrap><a href="/noapp//myapp/sally">Sally</a></td>
 <td nowrap>123 Special St</td>
-<td nowrap>45000</td>
+<td nowrap>45,000</td>
 </tr>
 </tbody>
 </table>
