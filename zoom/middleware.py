@@ -103,7 +103,8 @@ def app(request):
     response = run_as_app(request)
     doc = response.render_doc()
     headers = response.headers.items() + [('Content-length', '%s' % len(doc))]
-    return '200 OK', headers, doc
+    status = response.status
+    return status, headers, doc
 
 def capture_stdout(request, handler, *rest):
     real_stdout = sys.stdout
