@@ -105,7 +105,8 @@ class CSSResponse(Response):
 class RedirectResponse(Response):
     def __init__(self,url):
         Response.__init__(self,'')
-        self.headers['Location']  = url
+        self.status = '302 Found'
+        self.headers['Location'] = url
 
 class FileResponse(Response):
     def __init__(self,filename,content=None):
