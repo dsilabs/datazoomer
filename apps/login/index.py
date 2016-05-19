@@ -32,10 +32,18 @@ class RememberMeField(TextField):
         </div>
         """
 
+class HiddenReferrerField(Hidden):
+    def edit(self):
+        return """
+        <div class="form-group">
+            <input class="form-control" placeholder="Redirect after login" id="REFERRER" name="referrer" type="hidden" value="%s">
+        </div>
+        """ % data.get('referrer','')
 
 login_form = Fields(
     CustomUsernameField('Username', required, valid_username, size=20, value=data.get('username','')),
     CustomPasswordField('Password', required, size=20),
+    HiddenReferrerField('Referrer'),
     RememberMeField('Remember Me'),
     )
 
@@ -63,7 +71,7 @@ class LoginController(Controller):
     def login_button(self):
 
         if login_form.validate(data):
-            
+
             values = login_form.evaluate()
 
             username = values['USERNAME']
@@ -86,6 +94,10 @@ class LoginController(Controller):
                         msg = '<a href="/users/%(user_id)s">%(username)s</a> logged in' % locals()
                         logger.activity('session', msg)
                         logger.info('user %s successfully logged in' % username)
+
+                        referrer = data.get('referrer')
+                        if referrer:
+                            return redirect_to(referrer)
                         return redirect_to('/'+user.default_app)
             else:
                 logger.security('unknown username (%s)' % username)
@@ -95,11 +107,13 @@ class LoginController(Controller):
                 return '{"message": "invalid username or password"}'
             else:
                 error('invalid username or password')
-        
+
 
 def fill(tag,*a,**k):
     if tag == 'username':
         return data.get('USERNAME','')
+    elif tag == 'referrer':
+        return data.get('referrer','')
     elif tag == 'form':
         return login_form.edit()
     elif tag == 'registration_link':
@@ -110,7 +124,7 @@ def fill(tag,*a,**k):
 def view(login_id='',*a,**k):
     page = Page(__name__, fill)
     if not login_id:
-        focus = 'username' 
+        focus = 'username'
     else:
         focus = 'password'
     page.js = """
@@ -120,7 +134,7 @@ def view(login_id='',*a,**k):
     """ % focus
     return page
 
-controller = LoginController()    
+controller = LoginController()
 
 
 
