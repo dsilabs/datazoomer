@@ -68,9 +68,11 @@ Content-type: text/html
 
 PAGE_MISSING_MESSAGE = '<H1>Page Missing</H1>Page not found'
 
+
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
-def generate_response(instance_path, start_time):
+
+def generate_response(instance_path, start_time=None):
 
     profiler = None
     debugging = True
@@ -224,6 +226,7 @@ def generate_response(instance_path, start_time):
 
     return response
 
+
 def run_as_cgi(instance_path='..', start_time=timeit.default_timer()):
 
     if not os.path.exists(os.path.join(instance_path,'dz.conf')):
@@ -233,18 +236,25 @@ def run_as_cgi(instance_path='..', start_time=timeit.default_timer()):
 
     sys.stdout.write(response.render())
 
-def run_as_app(req):
-    request.__dict__ = req.__dict__
+
+def run_as_app(a_request):
+    """run as a wsgi style app"""
+
+    request.__dict__ = a_request.__dict__
+
+    data.clear()
     data.update(request.data)
+
     del route[:]
     route.extend(request.route)
-    #for i in request.route: route.append(i)
 
     if not os.path.exists(os.path.join(request.instance, 'dz.conf')):
         response = HTMLResponse(NEW_INSTALL_MESSAGE)
     else:
         response = generate_response(request.instance)
+
     return response
+
 
 run = run_as_cgi
 
