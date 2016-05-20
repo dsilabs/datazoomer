@@ -71,7 +71,7 @@ js = """
 
 def generate_icon_list(icon_dir):
     url = system.site.url
-    icons = [dict(url=url, name=filename[0:-4]) for filename in sorted(os.listdir(icon_dir)) if filename.endswith('.png')]
+    icons = [dict(url=url, name=filename) for filename in sorted(os.listdir(icon_dir)) if filename.endswith('.png')]
     return list_tpl % ''.join(item_tpl % icon for icon in icons)
 
 def app():
