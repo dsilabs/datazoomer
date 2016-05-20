@@ -20,6 +20,7 @@ import sys
 import cgi
 import urllib
 import uuid
+from timeit import default_timer as timer
 
 from types import ListType
 
@@ -35,8 +36,19 @@ def new_subject():
 
 
 def calc_domain(host):
+    """calculate just the high level domain part of the host name
+
+    remove the port and the www. if it exists
+
+    >>> calc_domain('www.dsilabs.ca:8000')
+    'dsilabs.ca'
+
+    >>> calc_domain('test.dsilabs.ca:8000')
+    'test.dsilabs.ca'
+
+    """
     if host:
-        return host.split(':')[-1:][0].split('www.')[-1:][0]
+        return host.split(':')[0].split('www.')[-1:][0]
     return ''
 
 
@@ -52,10 +64,26 @@ class Webvars(object):
         except ImportError:
             pass
 
+        module = env.get('wsgi.version', None) and 'wsgi' or 'cgi'
+
         if env.get('REQUEST_METHOD','GET').upper() in ['GET']:
             cgi_fields = cgi.FieldStorage(environ=env,keep_blank_values=1)
         else:
-            cgi_fields = cgi.FieldStorage(fp=sys.stdin, environ=env, keep_blank_values=1)
+            if module == 'wsgi':
+                post_env = env.copy()
+                post_env['QUERY_STRING'] = ''
+                cgi_fields = cgi.FieldStorage(
+                    fp=env.get('wsgi.input'),
+                    environ=post_env,
+                    keep_blank_values=True
+                )
+            else:
+                cgi_fields = cgi.FieldStorage(
+                    fp=sys.stdin,
+                    environ=env,
+                    keep_blank_values=1
+                )
+
         webvars = {}
         for key in cgi_fields.keys():
 
@@ -86,12 +114,17 @@ class Webvars(object):
     def __repr__(self):
         return str(self)
 
+def get_parent_dir():
+    return os.path.split(os.path.abspath(os.getcwd()))[0]
 
 class Request:
-    def __init__(self, env=os.environ, instance=None):
+
+    def __init__(self, env=os.environ, instance=None, start_time=None):
         self.setup(env, instance)
+        self.start_time = start_time or timer()
 
     def setup(self, env, instance=None):
+
         path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
         route = path != '/' and path.split('/')[1:] or []
         cookies = zoom.cookies.get_cookies(env.get('HTTP_COOKIE'))
@@ -107,7 +140,10 @@ class Request:
             home = os.getcwd()
         else:
             server = env.get('SERVER_NAME','localhost')
-            home = os.path.dirname(env.get('SCRIPT_FILENAME',''))
+            home = os.path.dirname(env.get('SCRIPT_FILENAME', ''))
+
+        instance = instance or get_parent_dir()
+        root = os.path.join(instance, 'sites', server)
 
         # gather some commonly required environment variables
         request = dict(
@@ -124,7 +160,7 @@ class Request:
             session_token = cookies.get(SESSION_COOKIE_NAME, None),
             subject = cookies.get(SUBJECT_COOKIE_NAME, new_subject()),
             port = env.get('SERVER_PORT'),
-            #server = env.get('SERVER_NAME','localhost'),
+            root=root,
             server = server,
             script = env.get('SCRIPT_FILENAME'),
             home = home,
