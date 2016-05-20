@@ -280,10 +280,6 @@ class System(object):
         return 'System\n------\n' + '\n'.join('%s%s: %s' % (k, '.'*(25 - len(k)), v) for k,v in self.__dict__.items() if v)
 
 system = System()
-#f=open('/home/herb/work/web/sites/labs.dsilabs.ca/data/debug.log', 'a')
-#f.write('system created: {} {}\n'.format(id(system), __file__))
-#f.flush()
-#f.close()
 
 if __name__ == '__main__':
     system.setup('../..')
