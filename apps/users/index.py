@@ -116,7 +116,7 @@ class CollectionView(View):
         return page(browse(items, labels=labels, footer=footer), title=title, search=q, actions=actions)
         
     def clear(self):
-        return redirect_to('/%s' % system.app.name)
+        return home()
 
     def showall(self):
         return redirect_to('/%s?showall=1' % system.app.name)
