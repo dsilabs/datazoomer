@@ -1,7 +1,7 @@
 #
 # This module is responsible for initializing the system, running the application
 # and capturing and rendering all output.
-# import sys
+
 import os
 import StringIO
 import traceback
@@ -133,6 +133,15 @@ def generate_response(instance_path, start_time=None):
                 if profiler:
                     profiler.disable()
 
+            elif manager.can_run_if_login(requested_app_name):
+                """ as it stands now, an attacker can generate a list of enabled apps by
+                    iterating the/a namespace and seeing which ones return a logon form
+                """
+                def referrer():
+                    from urllib import urlencode    # expect this to be infrequent at this point
+                    uri = urlencode(dict(referrer=request.uri))
+                    return uri and "?{}".format(uri) or ''
+                response = redirect_to('/login{}'.format(referrer()))
 
             elif not requested_app_name:
                 app = manager.get_app(default_app_name)
