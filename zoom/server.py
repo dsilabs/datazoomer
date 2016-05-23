@@ -6,6 +6,7 @@
     >>> server = WSGIApplication()
 """
 
+import os
 import sys
 from wsgiref.simple_server import make_server
 from timeit import default_timer as timer
@@ -37,7 +38,7 @@ class WSGIApplication(object):
         reset_modules()
         start_time = timer()
         request = Request(environ, self.instance, start_time)
-        status, headers, content = middleware.handle(
+        status, headers, content = zoom.middleware.handle(
             request,
             self.handlers,
         )
@@ -51,7 +52,8 @@ def run(port=8004, instance=None):
     The instance variable is the path of the directory on the system where the
     sites folder is located. (e.g. /work/web)
     """
-    server = make_server('', port, WSGIApplication(instance))
+    application = WSGIApplication(os.path.abspath(instance))
+    server = make_server('', int(port), application)
     server.serve_forever()
 
 

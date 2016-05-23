@@ -16,6 +16,7 @@ from os.path import exists
 
 __all__ = [
     'auto',
+    'server',
 ]
 
 
@@ -34,9 +35,12 @@ def run(cmd, returncode=False):
     else:
         return str(Popen(shlex.split(cmd), stdout=PIPE).communicate()[0])
 
+def server(options, port=8000, instance='.'):
+    from zoom.server import run
+    run(port, instance)
 
 def auto(options, command, name, *args):
-    """run a command automatically"""
+    """run a command automatically whenever a file changes"""
     if not exists(name):
         print 'missing: %s' % name
         return False
