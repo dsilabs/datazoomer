@@ -208,4 +208,27 @@ class Controller(object):
             return result            
 
 
+class Dispatcher(object):
+    """dispatches actions to a method
+
+    Accepts incoming user input actions and calls the appropriate method to
+    handle the request.  Unlike the Controller and the View, the Dispatcher
+    doesn't alter the incoming input in any way, but rather passes it along
+    verbatim to the method handling the request.
+
+    >>> class MyDispatcher(Dispatcher):
+    ...     def add(self, a, b):
+    ...         return a + b
+    >>> dispatcher = MyDispatcher()
+    >>> dispatcher('add', 1, 2)
+    3
+    """
+
+    def __call__(self, *a, **k):
+
+        method_name = len(a) and as_attr(a[0]) or 'index'
+
+        if hasattr(self, method_name):
+            return evaluate(self, method_name, *a[1:], **k)
+
 
