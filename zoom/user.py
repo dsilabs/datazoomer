@@ -38,9 +38,11 @@ def authenticate(username, password):
     user = system.users.first(loginid=username, status='A')
     if user:
         match, phash = validate_password(password, user.password, user.dtadd)
-        if match and phash and phash != stored_password_hash:
-            user.password = phash
-            users.put(user)
+        # phash is only set if the password validates and the stored hash is not in the preferred scheme
+        #  phash will be the hash of the password in the preferred scheme (avoid the cost of hashing it again)
+        if match and phash:
+            # avoided RecordStore here as it only supports a key of "id"
+            update_user(user.userid, PASSWORD=phash)
         return match
 
 def deactivate_user(username):
