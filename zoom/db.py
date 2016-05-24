@@ -4,7 +4,8 @@
 
 import timeit
 import warnings
-from exceptions import DatabaseException
+
+from zoom.exceptions import DatabaseException
 
 ARRAY_SIZE = 1000
 

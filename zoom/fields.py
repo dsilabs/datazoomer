@@ -1833,6 +1833,13 @@ class RangeSliderField(IntegerField):
         slider = '<div id="{}"><input type="hidden" name="{}" value="{}, {}"></div>'.format(name, name, minv, maxv)
         return '<div class="{}">{}{}</div>'.format(self.css_class, slider, labels)
 
+    def display_value(self):
+        units = self.units and (' ' + self.units) or ''
+        value1, value2 = self.value
+        value = self.value and ('{:,} to {:,}{}'.format(value1, value2, units)) or ''
+        return websafe(value)
+
+
 class FieldIterator(object):
 
     def __init__(self, fields):

@@ -41,9 +41,9 @@ class Site(object):
 
 
 class SystemTimer(object):
-    def __init__(self, start_time):
-        self.start_time = start_time
-        self.previous_time = start_time
+    def __init__(self, start_time=None):
+        self.start_time = start_time or timeit.default_timer()
+        self.previous_time = self.start_time
         self.record = []
         self.add('modules loaded')
 
@@ -148,7 +148,7 @@ class System(object):
         self.server_name = server # deprecated
 
         # get current site directory
-        self.root        = os.path.split(os.path.abspath(os.getcwd()))[0]
+        self.root = request.instance
         self.uri         = config.get('site','uri','/')
         if self.uri[-1]=='/':
             self.uri = self.uri[:-1]

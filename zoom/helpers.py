@@ -727,8 +727,9 @@ def csrf_token():
         system.session.csrf_token = uuid4().hex
     return system.session.csrf_token
 
-def form(action='/'+'/'.join(route),*args,**keywords):
+def form(action=None, **keywords):
     """Returns a form tag."""
+    action = action or request.path
     system.in_form = 1
     esc = attribute_escape
     params = keywords.copy()

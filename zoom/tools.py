@@ -68,10 +68,7 @@ def redirect_to(location):
     if location.startswith('http://'):
         url = location
     else:
-        if request.port=='443':
-            protocol = 'https'
-        else:
-            protocol = 'http'
+        protocol = request.protocol
         host = request.server
         uri = '/'.join(request.uri.split('/')[:-1])
         port = (request.port not in ['80','443']) and (':%s'%request.port) or ''
@@ -137,8 +134,21 @@ def home(view=None):
         {'Location': 'http://localhost/contact/old'}
 
         >>> request.port = '443'
+        >>> request.protocol = 'https'
         >>> home('secure').headers
         {'Location': 'https://localhost/contact/secure'}
+
+        >>> some_other_port = '8004'
+        >>> request.port = some_other_port
+        >>> request.protocol = 'https'
+        >>> home('secure').headers
+        {'Location': 'https://localhost:8004/contact/secure'}
+
+        >>> some_other_port = '8004'
+        >>> request.port = some_other_port
+        >>> request.protocol = 'http'
+        >>> home('notsecure').headers
+        {'Location': 'http://localhost:8004/contact/notsecure'}
 
     """
     if view:

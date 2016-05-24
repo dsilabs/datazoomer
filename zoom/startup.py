@@ -1,9 +1,7 @@
 #
 # This module is responsible for initializing the system, running the application
 # and capturing and rendering all output.
-#
 
-import sys
 import os
 import StringIO
 import traceback
@@ -11,14 +9,15 @@ import datetime
 import cProfile
 import pstats
 import timeit
+import sys
 
 from system import system, SystemTimer
 from log import logger
 from page import Page
 from tools import redirect_to, load_template
 from response import HTMLResponse, RedirectResponse
-from session import SessionExpiredException, SESSION_LIFE
-from request import request, data
+from session import SessionExpiredException
+from request import request, data, route
 from user import user
 from manager import manager
 from visits import visited
@@ -69,9 +68,11 @@ Content-type: text/html
 
 PAGE_MISSING_MESSAGE = '<H1>Page Missing</H1>Page not found'
 
+
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
-def generate_response(instance_path, start_time):
+
+def generate_response(instance_path, start_time=None):
 
     profiler = None
     debugging = True
@@ -234,6 +235,7 @@ def generate_response(instance_path, start_time):
 
     return response
 
+
 def run_as_cgi(instance_path='..', start_time=timeit.default_timer()):
 
     if not os.path.exists(os.path.join(instance_path,'dz.conf')):
@@ -242,6 +244,26 @@ def run_as_cgi(instance_path='..', start_time=timeit.default_timer()):
         response = generate_response(instance_path, start_time)
 
     sys.stdout.write(response.render())
+
+
+def run_as_app(a_request):
+    """run as a wsgi style app"""
+
+    request.__dict__ = a_request.__dict__
+
+    data.clear()
+    data.update(request.data)
+
+    del route[:]
+    route.extend(request.route)
+
+    if not os.path.exists(os.path.join(request.instance, 'dz.conf')):
+        response = HTMLResponse(NEW_INSTALL_MESSAGE)
+    else:
+        response = generate_response(request.instance)
+
+    return response
+
 
 run = run_as_cgi
 
