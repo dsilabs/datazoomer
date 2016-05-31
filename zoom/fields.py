@@ -613,6 +613,10 @@ class IntegerField(TextField):
         22234
         >>> n.display_value()
         u'22,234 meters'
+
+        >>> n.assign('')
+        >>> n.evaluate()
+        {'SIZE': ''}
     """
 
     size = maxlength = 10
@@ -621,7 +625,10 @@ class IntegerField(TextField):
     units = ''
 
     def assign(self, value):
-        self.value = int(value)
+        try:
+            self.value = int(value)
+        except:
+            self.value = self.default
 
     def display_value(self):
         units = self.units and (' ' + self.units) or ''
