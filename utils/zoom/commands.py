@@ -36,6 +36,7 @@ def run(cmd, returncode=False):
         return str(Popen(shlex.split(cmd), stdout=PIPE).communicate()[0])
 
 def server(options, port=8000, instance='.'):
+    """run an instance using Python's builtin HTTP server"""
     from zoom.server import run
     run(port, instance)
 
