@@ -38,7 +38,10 @@ def run(cmd, returncode=False):
 def server(options, port=8000, instance='.'):
     """run an instance using Python's builtin HTTP server"""
     from zoom.server import run
-    run(port, instance)
+    try:
+        run(port, instance)
+    except KeyboardInterrupt:
+        print('\rstopped')
 
 def auto(options, command, name, *args):
     """run a command automatically whenever a file changes"""
