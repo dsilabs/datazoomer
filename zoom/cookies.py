@@ -1,3 +1,25 @@
+"""
+    cookies.py
+
+    datazoomer cookie routines
+
+    The following test is a bit lame because the timestamp makes it tricky to
+    test.  Ideally we'd pass in a timer somehow but the cookie module is
+    handling the time calculation so without diving into the innards of the
+    cookie module this is what we have right now.
+
+    >>> cookie = make_cookie()
+    >>> add_value(cookie, 'name1', 'value1', 60, True)
+    >>> v = get_value(cookie)
+    >>> v.startswith('name1=value1; expires=')
+    True
+    >>> v.endswith(' GMT; httponly; secure')
+    True
+    >>> len(v)
+    69
+
+
+"""
 
 import Cookie
 
@@ -25,7 +47,7 @@ def add_value(cookie, name, value, lifespan, secure):
 
 
 def get_value(cookie):
-    _, v = str(cookie).split(':', 1)
+    _, v = str(cookie).split(': ', 1)
     return v
 
 
@@ -34,6 +56,7 @@ def set_session_cookie(response, session_id, subject, lifespan, secure=True):
     cookie = make_cookie()
     add_value(cookie, SESSION_COOKIE_NAME, session_id, lifespan, secure)
     add_value(cookie, SUBJECT_COOKIE_NAME, subject, ONE_YEAR, secure)
-    k,v = str(cookie).split(':',1)
+    k,v = str(cookie).split(': ',1)
+    v = v.replace('\r',' ').replace('\n',' ') # mod_wsgi doesn't like newlines
     response.headers[k] = v
 
