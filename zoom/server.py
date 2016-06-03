@@ -32,7 +32,7 @@ class WSGIApplication(object):
     """
     def __init__(self, instance='.', handlers=None):
         self.handlers = handlers
-        self.instance = instance
+        self.instance = os.path.abspath(instance)
 
     def __call__(self, environ, start_response):
         reset_modules()
@@ -46,14 +46,16 @@ class WSGIApplication(object):
         return [content]
 
 
-def run(port=8004, instance=None):
+def run(port=8004, instance='.'):
     """run DataZoomer using internal HTTP Server
 
     The instance variable is the path of the directory on the system where the
     sites folder is located. (e.g. /work/web)
     """
-    application = WSGIApplication(os.path.abspath(instance))
+    application = WSGIApplication(instance)
     server = make_server('', int(port), application)
-    server.serve_forever()
-
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
 
