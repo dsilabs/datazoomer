@@ -230,6 +230,8 @@ def generate_response(instance_path, start_time=None):
         if system.logging:
             logger.complete()
 
+    system.release()
+
     if hasattr(response,'printed_output'):
         response.printed_output = printed_output.replace('<','&lt;').replace('>','&gt;')
 

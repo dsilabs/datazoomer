@@ -79,6 +79,10 @@ class System(object):
             else:
                 raise AttributeError
 
+    def release(self):
+        self.db.close()
+        self.database.close()
+
     def setup(self,
               instance_path,
               server=request.server,
