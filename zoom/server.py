@@ -59,3 +59,18 @@ def run(port=8004, instance='.'):
     except KeyboardInterrupt:
         pass
 
+
+def application(environ, start_response):
+    """run DataZoomer using external WSGI Server
+
+    Assumes that the WSGI script is located one directory below the instance
+    directory.  In an typical installation the instance directory would be
+    /work/web and the WSGI script would be located in /work/web/www.
+
+    If you need to launch from somewhere else just build a function like this
+    of your own and create the WSGIApplication instance using a path of your
+    choosing.
+    """
+    os.chdir(environ.get('DOCUMENT_ROOT'))
+    return WSGIApplication(instance='..')(environ, start_response)
+
