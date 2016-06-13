@@ -125,7 +125,7 @@ class Request:
 
     def setup(self, env, instance=None):
 
-        path = urllib.quote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
+        path = urllib.unquote(env.get('PATH_INFO', env.get('REQUEST_URI','').split('?')[0]))
         route = path != '/' and path.split('/')[1:] or []
         cookies = zoom.cookies.get_cookies(env.get('HTTP_COOKIE'))
         self.ip_address = None
