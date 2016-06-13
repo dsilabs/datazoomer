@@ -468,7 +468,7 @@ def username():
 
 def user_full_name():
     """Returns the username."""
-    return ' '.join(user.first_name, user.last_name)
+    return ' '.join([user.first_name, user.last_name])
 
 def user_first_name():
     """Returns the user's first name."""
@@ -485,6 +485,19 @@ def login_id():
 def logout_link():
     """Returns a logout link if the user has access to the logout app."""
     return 'logout' in user.apps and link_to('logout','/logout') or ''
+
+def profile_link(classed="welcome"):
+    """Returns an avatar profile link"""
+    classed = hasattr(classed, '__iter__') and ' '.join(classed) or classed
+    avatar = """
+<img src="/profile/avatar" class="hidden" onerror="this.style.display='none'" alt="">
+
+<div class="{}">
+    <div>Welcome,</div>
+    <div><dz:user_first_name></div>
+</div>
+    """.format(classed)
+    return user.is_authenticated and link_to(avatar,'/profile') or avatar
 
 def upper(text):
     """Returns the given text in upper case."""
