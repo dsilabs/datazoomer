@@ -12,6 +12,7 @@ import traceback
 import ConfigParser
 import shlex
 import platform
+import datetime
 
 import zoom
 from zoom.db import database as DB
@@ -194,6 +195,36 @@ def peek(name, default=None):
     s = store(ServiceState, _db)
     r = s.first(name=name)
     return r and r.value or default
+
+
+# Job Scheduling
+# ==================================================================================
+class Scheduler(object):
+
+    def __init__(self, name, debug=False):
+        self.name = name
+        self.debug = debug
+
+    def every(self, interval, function):
+        """run a function on given time interval
+
+        If any intervals have been missed since the last run then the Scheduler
+        will skip over the missed intervals and just run the function one time
+        to catch up.
+        """
+        name = self.name + '.' + function.__name__ + '.run'
+        if self.debug:
+            print 'event name: ', name
+        now = datetime.datetime.now()
+        next = peek(name, now)
+        if self.debug or now >= next:
+            if now >= next:
+                intervals_missed = (now - next).seconds / interval.seconds
+                next += (intervals_missed + 1) * interval
+                poke(name, next)
+            else:
+                poke(name, now + interval)
+            function()
 
 
 # Job runner
