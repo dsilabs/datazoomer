@@ -216,14 +216,15 @@ class Scheduler(object):
         if self.debug:
             print 'event name: ', name
         now = datetime.datetime.now()
-        next = peek(name, now)
+        last_run = peek(name, now - interval)
+        next = last_run + interval
         if self.debug or now >= next:
             if now >= next:
                 intervals_missed = (now - next).seconds / interval.seconds
-                next += (intervals_missed + 1) * interval
+                next += intervals_missed * interval
                 poke(name, next)
             else:
-                poke(name, now + interval)
+                poke(name, now)
             function()
 
 
