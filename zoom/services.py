@@ -227,6 +227,30 @@ class Scheduler(object):
             function()
 
 
+# Instance
+# ==================================================================================
+class Instance(object):
+
+    def __init__(self, name, path='.'):
+        self.name = name
+        self.config = Config(locate_config('dz.conf', path))
+
+    def run(self, *jobs):
+        sites_path = self.config.get('sites', 'path')
+        for site in os.listdir(sites_path):
+            try:
+                root, _ = os.path.split(sites_path)
+                zoom.system.setup(root, site)
+            except Exception, e:
+                logger.warning('unable to setup {}'.format(site))
+                continue
+            for job in jobs:
+                logger.debug('running {}.{} for {}'.format(self.name, job.__name__, site))
+                job()
+
+
+
+
 # Job runner
 # ==================================================================================
 def cmd(x, returncode=False, location=None):
