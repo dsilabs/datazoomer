@@ -30,6 +30,8 @@ def app():
     standard_apps = manager.get_standard_app_names()
     if 'home' in standard_apps:
         standard_apps.remove('home')
+    if 'flags' in standard_apps:
+        standard_apps.remove('flags')
     system_apps = get_setting('system') or DEFAULT_SYSTEM_APPS
 
     panels = [list_apps(standard_apps)]
