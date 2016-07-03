@@ -72,10 +72,12 @@ def id_for(*args):
         'hi~test'
         >>> id_for("hi test")
         'hi-test'
+        >>> id_for(1234)
+        '1234'
 
     """
     def id_(text):
-        return str(text.strip()).translate(norm, special).lower().replace(' ','-')
+        return str(text).strip().translate(norm, special).lower().replace(' ','-')
 
     return '~'.join([id_(arg) for arg in args])
 
