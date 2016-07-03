@@ -18,7 +18,7 @@ from utils import OrderedSet
 env = os.environ
 
 POSITIVE = ['1','yes',True]
-NEGATIVE = ['0', 'no', False]
+NEGATIVE = ['0', 'False', 'false', 'off', 'no', False]
 
 def existing(path, subdir=None):
     """Returns existing directories only"""
@@ -189,6 +189,9 @@ class System(object):
         # apps
         self.index = config.get('apps', 'index', 'index')
         self.home  = config.get('apps', 'home', 'home')
+
+        # background processing
+        self.background = config.get('background', 'run', True) not in NEGATIVE
 
         # users (experimental)
         self.users = UserStore(self.db)
