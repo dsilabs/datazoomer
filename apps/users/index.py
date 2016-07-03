@@ -60,7 +60,7 @@ class CollectionController(Controller):
                     body = markdown(viewfill(tpl, t.get))
                     subject = 'Welcome - ' + site_name()
                     send(recipients, subject, body)
-                    message('invitation sent')
+                    message('invitation sent to {}'.format(recipients))
                 return redirect_to('/users/%s' % id)
             else:
                 error('passwords do not match')
