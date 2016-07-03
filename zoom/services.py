@@ -28,6 +28,9 @@ con_formatter = logging.Formatter('%(asctime)s  %(name)-15s %(levelname)-8s %(me
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 
+logger = logging.getLogger('services')
+
+
 def get_logger(name):
     """convenience function for services to get a logger"""
     logger = logging.getLogger(name)
@@ -53,7 +56,6 @@ def get_logger(name):
 
     return logger
 
-logger = get_logger('services')
 
 # Config
 # ==================================================================================
