@@ -382,10 +382,34 @@ class Attachment(object):
             self.data = open(self.data)
         return self.data.read
 
+def make_recipients_list(recipients):
+    """build a well formed list of recipients
 
-def send_as(sender, recipients, subject, message, attachments=None):
-    """send an email as a specific sender"""
+    >>> make_recipients_list('joe@testco.com')
+    [('joe@testco.com', 'joe@testco.com')]
 
+    >>> v = make_recipients_list('joe@testco.com;sally@testco.com')
+    >>> v == [
+    ...     ('joe@testco.com', 'joe@testco.com'),
+    ...     ('sally@testco.com', 'sally@testco.com')
+    ... ]
+    True
+
+    >>> make_recipients_list(['joe@testco.com'])
+    [('joe@testco.com', 'joe@testco.com')]
+
+    >>> v = make_recipients_list(
+    ...     [
+    ...         'joe@testco.com',
+    ...         ('Sally', 'sally@testco.com')
+    ... ])
+    >>> v == [
+    ...     ('joe@testco.com', 'joe@testco.com'),
+    ...     ('Sally', 'sally@testco.com')
+    ... ]
+    True
+
+    """
     if type(recipients) == StringType:
         if ';' in recipients:
             recipients = zip(recipients.split(';'), recipients.split(';'))
@@ -394,6 +418,15 @@ def send_as(sender, recipients, subject, message, attachments=None):
 
     if type(recipients) != ListType:
         recipients = [recipients]
+
+    recipients = [type(x) == StringType and (x,x) or x for x in recipients]
+    return recipients
+
+
+def send_as(sender, recipients, subject, message, attachments=None):
+    """send an email as a specific sender"""
+
+    recipients = make_recipients_list(recipients)
 
     if system.mail_delivery != 'background':
         expedite(sender, recipients, subject, message, attachments, 'html')
