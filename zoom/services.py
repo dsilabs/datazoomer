@@ -48,7 +48,6 @@ def get_logger(name):
     error_handler.setFormatter(csv_formatter)
     logger.addHandler(error_handler)
 
-    con_formatter = logging.Formatter('%(asctime)s  %(name)-15s %(levelname)-8s %(message)s')
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(con_formatter)
@@ -231,26 +230,50 @@ class Scheduler(object):
 
 # Instance
 # ==================================================================================
+class Site(object):
+
+    def __init__(self, name):
+        self.name = name
+
+
 class Instance(object):
 
     def __init__(self, name, path='.'):
         self.name = name
         self.config = Config(locate_config('dz.conf', path))
 
+    @property
+    def sites_path(self):
+        return self.config.get('sites', 'path')
+
+    @property
+    def path(self):
+        path, _ = os.path.split(self.sites_path)
+        return path
+
+    @property
+    def sites(self):
+        listdir = os.listdir
+        isdir = os.path.isdir
+        join = os.path.join
+        path = self.sites_path
+        return [Site(name) for name in listdir(path) if isdir(join(path, name))]
+
     def run(self, *jobs):
-        sites_path = self.config.get('sites', 'path')
-        for site in os.listdir(sites_path):
+        logger = logging.getLogger(self.name)
+        for site in self.sites:
             try:
-                root, _ = os.path.split(sites_path)
-                zoom.system.setup(root, site)
+                zoom.system.setup(self.path, site.name)
             except Exception, e:
-                logger.warning('unable to setup {}'.format(site))
+                logger.warning(str(e))
+                logger.warning('unable to setup {}'.format(site.name))
                 continue
-            for job in jobs:
-                logger.debug('running {}.{} for {}'.format(self.name, job.__name__, site))
-                job()
-
-
+            if zoom.system.background:
+                for job in jobs:
+                    logger.debug('running {}.{} for {}'.format(self.name,
+                                                               job.__name__,
+                                                               site.name))
+                    job()
 
 
 # Job runner
