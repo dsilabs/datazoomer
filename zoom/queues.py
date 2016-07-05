@@ -139,7 +139,7 @@ class Topic(object):
             if row_id:
                 message = self.messages.get(row_id)
                 if message:
-                    return row_id, self.name, json.loads(message.body)
+                    return row_id, message.topic, json.loads(message.body)
         raise EmptyException
 
 
