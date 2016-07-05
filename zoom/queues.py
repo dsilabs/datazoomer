@@ -16,6 +16,7 @@ __all__ = [
     'WaitException',
     'StopListening',
     'StopHandling',
+    'StopProcessing',
     ]
 
 now = datetime.datetime.now
@@ -24,6 +25,7 @@ class EmptyException(Exception): pass
 class WaitException(Exception): pass
 class StopListening(Exception): pass
 class StopHandling(Exception): pass
+class StopProcessing(Exception): pass
 
 def response_topic_name(topic, id):
     """calculate the name of the reponse topic for a topic"""
@@ -147,6 +149,7 @@ class Topic(object):
 
             >>> messages = setup_test()
             >>> t = messages.get('test_topic')
+            >>> t.peek()
             >>> t.put('hey!')
             1L
             >>> t.put('you!')
@@ -156,7 +159,10 @@ class Topic(object):
             >>> t.peek()
             u'hey!'
         """
-        return self._peek(newest)[2]
+        try:
+            return self._peek(newest)[2]
+        except EmptyException:
+            return None
 
 
     def _poll(self, newest=None):
@@ -235,16 +241,20 @@ class Topic(object):
             u'you!'
             >>> t.len()
             0L
+            >>> t.pop()
             >>> t.newest = -1
             >>> raised = False
             >>> try:
-            ...     t.pop()
+            ...     t._pop()
             ... except EmptyException:
             ...     raised = True
             >>> raised
             True
         """
-        return self._pop()[2]
+        try:
+            return self._pop()[2]
+        except EmptyException:
+            return None
 
 
     def len(self, newest=None):
@@ -330,12 +340,9 @@ class Topic(object):
         """
         deadline = time.time() + timeout
         while True:
-            try:
-                msg = self.pop()
-            except EmptyException:
-                pass
-            else:
-                return msg
+            msg = self.pop()
+            if msg:
+               return msg
             time.sleep(delay)
             if time.time() > deadline:
                 raise WaitException
@@ -462,23 +469,44 @@ class Topic(object):
                 done = True
         return n
 
-
-    def process(self, f, timeout=1):
-        """respond to and consume current messages only
+    def process(self, f):
+        """respond to and consume current messages
 
             >>> messages = setup_test()
             >>> t = messages.get('test_topic')
-            >>> def echo(m): print 'got', repr(m)
+            >>> def echo(m):
+            ...     if m == 'quit': raise StopProcessing
+            ...     print 'got', repr(m)
             >>> t.put('hey!')
             1L
             >>> t.put('you!')
             2L
+            >>> t.put('quit')
+            3L
             >>> t.process(echo)
             got u'hey!'
             got u'you!'
             2L
+            >>> t.process(echo)
+            0L
         """
-        return self.handle(f, timeout, one_pass=True)
+        n = 0L
+        more_to_do = True
+        while more_to_do:
+            try:
+                row, topic, message = self._pop()
+                result = f(message)
+                response_topic = response_topic_name(topic, row)
+                t = Topic(response_topic, None, self.db)
+                t.put(result)
+                n += 1
+            except StopProcessing:
+                more_to_do = False
+            except EmptyException:
+                more_to_do = False
+            time.sleep(0)
+        return n
+
 
 class Queues(object):
     """
