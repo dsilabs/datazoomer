@@ -13,7 +13,9 @@ import config as cfg
 from users import UserStore
 import session
 import settings
+
 from utils import OrderedSet
+from instance import Instance
 
 env = os.environ
 
@@ -84,9 +86,12 @@ class System(object):
         self.database.close()
 
     def setup(self,
-              instance_path,
+              instance_path=None,
               server=request.server,
               timer=SystemTimer(timeit.default_timer())):
+
+        if instance_path == None:
+            instance_path = Instance('system').path
 
         self.debugging = True
         self.timer = timer

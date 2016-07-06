@@ -17,8 +17,10 @@
 
 """Utilities that rely only on standard python libraries"""
 
+import os
 import string
 import collections
+import ConfigParser
 from sys import version_info
 
 norm = string.maketrans('','')
@@ -617,6 +619,43 @@ class OrderedSet(collections.MutableSet):
             return len(self) == len(other) and list(self) == list(other)
         return set(self) == set(other)
 
+
+def parents(path):
+    if not os.path.isdir(path):
+        return parents(os.path.split(os.path.abspath(path))[0])
+    parent = os.path.abspath(os.path.join(path, os.pardir))
+    if path == parent:
+        return []
+    else:
+        return [path] + parents(parent)
+
+
+def locate_config(filename='services.ini', start='.'):
+    for path in parents(start):
+        pathname = os.path.join(path, filename)
+        if os.path.exists(pathname):
+            return pathname
+    for path in parents(os.path.join(os.path.expanduser('~'))):
+        pathname = os.path.join(path, filename)
+        if os.path.exists(pathname):
+            return pathname
+
+
+class Config(object):
+
+    def __init__(self, filename):
+        self.config = ConfigParser.ConfigParser()
+        if not filename or not os.path.exists(filename):
+            raise Exception('%s file missing' % filename)
+        self.config.read(filename)
+
+    def get(self, section, option, default=None):
+        try:
+            return self.config.get(section, option)
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            if default != None:
+                return default
+            raise
 
 
 if __name__ == '__main__':
