@@ -230,6 +230,8 @@ class Service(object):
     def __init__(self, name, schedule=None):
         self.name = name
         self.schedule = schedule
+        if not zoom.system.is_setup:
+            zoom.system.setup()
 
     def process(self, *jobs):
         """process service requests for all sites"""
