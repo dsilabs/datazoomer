@@ -13,9 +13,9 @@ import config as cfg
 from users import UserStore
 import session
 import settings
-
 from utils import OrderedSet
 from instance import Instance
+from exceptions import SystemException
 
 env = os.environ
 
@@ -72,7 +72,14 @@ class System(object):
 
     elapsed_time = property(lambda a: timeit.default_timer() - a.start_time)
 
+    def __init__(self):
+        self.is_setup = False
+
     def __getattr__(self,name):
+
+        if not system.is_setup:
+            raise SystemException('system not ready')
+
         if name in ['config']:
             path = os.path.abspath(os.path.join(os.path.split(__file__)[0],'../..'))
             self.setup(path)
@@ -236,6 +243,7 @@ class System(object):
         self.session = session.Session(self)
         self.session.load_session()
 
+        self.is_setup = True
 
     def set_theme(self, theme_name):
 
