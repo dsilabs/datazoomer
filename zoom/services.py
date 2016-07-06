@@ -228,7 +228,7 @@ class Scheduler(object):
             function()
 
 
-# Instance
+# Background Processing Classes
 # ==================================================================================
 class Site(object):
 
@@ -237,6 +237,10 @@ class Site(object):
 
 
 class Instance(object):
+    """represents an installed DataZoomer instance
+
+    Use for performing methods on an entire instance.
+    """
 
     def __init__(self, name, path='.'):
         self.name = name
@@ -244,15 +248,18 @@ class Instance(object):
 
     @property
     def sites_path(self):
+        """the path to the sites of the instance"""
         return self.config.get('sites', 'path')
 
     @property
     def path(self):
+        """the path of the instance"""
         path, _ = os.path.split(self.sites_path)
         return path
 
     @property
     def sites(self):
+        """a list of sites for the instance"""
         listdir = os.listdir
         isdir = os.path.isdir
         join = os.path.join
@@ -260,6 +267,7 @@ class Instance(object):
         return [Site(name) for name in listdir(path) if isdir(join(path, name))]
 
     def run(self, *jobs):
+        """run jobs on an entire instance"""
         logger = logging.getLogger(self.name)
         for site in self.sites:
             try:
@@ -274,6 +282,57 @@ class Instance(object):
                                                                job.__name__,
                                                                site.name))
                     job()
+
+
+class Worker(object):
+    """background worker
+
+    Usually used only internally."""
+    def __init__(self, service, function):
+        self.service = service
+        self.function = function
+
+    @property
+    def topic(self):
+        """return the topic this worker listens to"""
+        return ''.join(['service.', self.service, '.', self.function.__name__])
+
+    @property
+    def queue(self):
+        """return the queue this worker uses"""
+        return zoom.system.queues.topic(self.topic, 1)
+
+    def process(self):
+        """process a job"""
+        system = zoom.system
+        return self.queue.process(self.function)
+
+
+class Service(object):
+    """background processing service
+
+    Use this class to create a service.
+    """
+
+    def __init__(self, name, schedule=None):
+        self.name = name
+        self.schedule = schedule
+
+    def process(self, *jobs):
+        """process service requests for all sites"""
+        workers = [Worker(self.name, job).process for job in jobs]
+        Instance(self.name).run(*workers)
+
+    def run(self, job, a0=None, *a, **k):
+        """queue a job"""
+        Worker(self.name, job).queue.put(a0, *a, **k)
+
+    def call(self, job, *a, **k):
+        """queue a job expecting a result"""
+        queue = Worker(self.name, job).queue
+        id = queue.put(*a, **k)
+        result = queue.join([id])[0]
+        return result
 
 
 # Job runner
