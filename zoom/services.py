@@ -12,6 +12,7 @@ import traceback
 import shlex
 import platform
 import datetime
+import argparse
 
 from subprocess import Popen, PIPE
 
@@ -19,6 +20,7 @@ import zoom
 from zoom.db import database as DB
 from zoom.utils import locate_config, Config
 from zoom.instance import Instance
+
 
 class ServiceException(Exception): pass
 
@@ -208,7 +210,7 @@ class Worker(object):
     @property
     def topic(self):
         """return the topic this worker listens to"""
-        return ''.join(['service.', self.service, '.', self.function.__name__])
+        return ''.join(['service.', self.service.name, '.', self.function.__name__])
 
     @property
     def queue(self):
@@ -217,7 +219,6 @@ class Worker(object):
 
     def process(self):
         """process a job"""
-        system = zoom.system
         return self.queue.process(self.function)
 
 
@@ -232,11 +233,29 @@ class Service(object):
         self.schedule = schedule
         if not zoom.system.is_setup:
             zoom.system.setup()
+        self.logger = get_logger(name)
+        self.instance = Instance(self.name)
 
     def process(self, *jobs):
         """process service requests for all sites"""
-        workers = [Worker(self.name, job).process for job in jobs]
-        Instance(self.name).run(*workers)
+        parser = argparse.ArgumentParser('Run background services')
+        parser.add_argument('-q', '--quiet', action='store_true', help='supresss output')
+        parser.add_argument('-n', '--dryrun', action='store_true', help='don\'t actually run the services, just show if they exists and would have been run.')
+        parser.add_argument('-d', '--debug', action='store_true', help='show all debugging information as services run')
+        args = parser.parse_args()
+
+        if args.debug:
+            root_logger.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.DEBUG)
+
+        if args.quiet:
+            console_handler.setLevel(logging.ERROR)
+
+        self.logger.debug('running {}'.format(
+            self.name,
+        ))
+        workers = [Worker(self, job).process for job in jobs]
+        self.instance.run(*workers)
 
     def run(self, job, a0=None, *a, **k):
         """queue a job"""
@@ -307,9 +326,16 @@ def perform(jobs_path):
             save_dir = os.getcwd()
             os.chdir(path)
             try:
-                p = Popen(['python', name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-                output, err = p.communicate(b"")
-                rc = p.returncode
+                if args.dryrun:
+                    logger.info('would run {}'.format(pathname))
+                    err = False
+                    rc = 0
+                    output = ''
+                else:
+                    logger.info('running {}'.format(pathname))
+                    p = Popen(['python', name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                    output, err = p.communicate(b"")
+                    rc = p.returncode
                 if err:
                     report_error('error %s from %s' % (err, pathname), err)
 
@@ -388,7 +414,6 @@ def process(args, time_to_stop=False):
     logger.info('done')
 
 if __name__ == '__main__':
-    import argparse
 
     parser = argparse.ArgumentParser('Run background services')
     parser.add_argument('-q', '--quiet', action='store_true', help='supresss output')
@@ -396,6 +421,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--info', action='store', help='override info log file location')
     parser.add_argument('-e', '--error', action='store', help='override error info location')
     parser.add_argument('-r', '--raw', action='store_true', help='raw output')
+    parser.add_argument('-n', '--dryrun', action='store_true', help='don\'t actually run the services, just show if they exists and would have been run.')
     parser.add_argument('-d', '--debug', action='store_true', help='show all debugging information as services run')
     parser.add_argument('-k', '--keepalive', action='store_true', help='keep running if there is more work to do')
     parser.add_argument('-t', '--timeout', action='store', type=float, default=10, help='number of seconds to idle before stopping')
