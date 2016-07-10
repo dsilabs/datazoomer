@@ -416,7 +416,7 @@ def process(args, time_to_stop=False):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser('Run background services')
-    parser.add_argument('-q', '--quiet', action='store_true', help='supresss output')
+    parser.add_argument('-q', '--quiet', action='store_true', help='supress output')
     parser.add_argument('-l', '--log', action='store_true', help='log activity to info and error log files')
     parser.add_argument('-i', '--info', action='store', help='override info log file location')
     parser.add_argument('-e', '--error', action='store', help='override error info location')
@@ -434,16 +434,19 @@ if __name__ == '__main__':
     if args.quiet:
         console_handler.setLevel(logging.ERROR)
 
-    if args.log:
-        info_log = args.info or os.path.join(args.path[0], 'info.log')
-        error_log = args.error or os.path.join(args.path[0], 'error.log')
+    join = os.path.join
+    abspath = os.path.abspath
 
-        file_handler = logging.FileHandler(info_log, 'a')
+    if args.log:
+        info_log_pathname = abspath(args.info or join(args.path[0], 'info.log'))
+        error_log_pathname = abspath(args.error or join(args.path[0], 'error.log'))
+
+        file_handler = logging.FileHandler(info_log_pathname, 'a')
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(csv_formatter)
         root_logger.addHandler(file_handler)
         
-        error_handler = logging.FileHandler(error_log, 'a')
+        error_handler = logging.FileHandler(error_log_pathname, 'a')
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(csv_formatter)
         root_logger.addHandler(error_handler)
@@ -452,6 +455,12 @@ if __name__ == '__main__':
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(con_formatter)
     root_logger.addHandler(console_handler)
+
+    if args.log:
+        logger.debug('logging errors to %s', error_log_pathname)
+        logger.debug('logging info to %s', info_log_pathname)
+    else:
+        logger.debug('logging is off (use -l to turn on)')
 
     try:
         process(args, run_for(args.timeout))
