@@ -238,7 +238,7 @@ class Service(object):
 
     def process(self, *jobs):
         """process service requests for all sites"""
-        parser = argparse.ArgumentParser('Run background services')
+        parser = argparse.ArgumentParser('Run {!r} background services'.format(self.name))
         parser.add_argument('-q', '--quiet', action='store_true', help='supresss output')
         parser.add_argument('-n', '--dryrun', action='store_true', help='don\'t actually run the services, just show if they exists and would have been run.')
         parser.add_argument('-d', '--debug', action='store_true', help='show all debugging information as services run')
@@ -259,7 +259,7 @@ class Service(object):
 
     def run(self, job, a0=None, *a, **k):
         """queue a job"""
-        Worker(self.name, job).queue.put(a0, *a, **k)
+        Worker(self, job).queue.put(a0, *a, **k)
 
     def call(self, job, *a, **k):
         """queue a job expecting a result"""
@@ -341,6 +341,7 @@ def perform(jobs_path):
 
                 elif rc:
                     if args.keepalive:
+                        logger.debug('keepalive with return code {!r}'.format(rc))
                         more_to_do = True
                     else:
                         report_error(
