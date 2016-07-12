@@ -5,7 +5,9 @@
 """
 
 import os
+import logging
 
+import zoom
 from zoom.utils import parents, locate_config, Config
 
 class Site(object):
@@ -48,6 +50,7 @@ class Instance(object):
         """run jobs on an entire instance"""
         logger = logging.getLogger(self.name)
         for site in self.sites:
+            logger.debug('initializing site {}'.format(site.name))
             try:
                 zoom.system.setup(self.path, site.name)
             except Exception, e:
@@ -57,7 +60,7 @@ class Instance(object):
             if zoom.system.background:
                 for job in jobs:
                     logger.debug('running {}.{} for {}'.format(self.name,
-                                                               job.__name__,
+                                                               job.__self__.function.__name__,
                                                                site.name))
                     job()
 
