@@ -10,6 +10,7 @@ import logging
 import zoom
 from zoom.utils import parents, locate_config, Config
 
+
 class Site(object):
 
     def __init__(self, name):

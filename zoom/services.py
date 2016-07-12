@@ -219,6 +219,7 @@ class Worker(object):
 
     def process(self):
         """process a job"""
+        self.service.logger.debug('processing jobs on queue {!r}'.format(self.topic))
         return self.queue.process(self.function)
 
 
@@ -251,11 +252,16 @@ class Service(object):
         if args.quiet:
             console_handler.setLevel(logging.ERROR)
 
-        self.logger.debug('running {}'.format(
+        self.logger.debug('service {} starting'.format(
             self.name,
         ))
+
         workers = [Worker(self, job).process for job in jobs]
         self.instance.run(*workers)
+
+        self.logger.debug('service {} done'.format(
+            self.name,
+        ))
 
     def run(self, job, a0=None, *a, **k):
         """queue a job"""
@@ -299,7 +305,7 @@ def cmd(x, returncode=False, location=None):
 
 
 def emit(t):
-    if not args.quiet:
+    if t and not args.quiet:
         sys.stdout.write('{}'.format(t))
         sys.stdout.flush()
 
@@ -326,6 +332,7 @@ def perform(jobs_path):
             save_dir = os.getcwd()
             os.chdir(path)
             try:
+
                 if args.dryrun:
                     logger.info('would run {}'.format(pathname))
                     err = False
@@ -333,12 +340,15 @@ def perform(jobs_path):
                     output = ''
                 else:
                     logger.info('running {}'.format(pathname))
-                    p = Popen(['python', name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                    cmd = ['python', name]
+                    if args.debug:
+                        cmd.append('-d')
+                    p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
                     output, err = p.communicate(b"")
                     rc = p.returncode
+
                 if err:
                     report_error('error %s from %s' % (err, pathname), err)
-
                 elif rc:
                     if args.keepalive:
                         logger.debug('keepalive with return code {!r}'.format(rc))
@@ -348,14 +358,8 @@ def perform(jobs_path):
                                 'non-zero code returned by {}'.format(pathname),
                                 "return code: {}\n".format(rc)
                                 )
-                if output:
-                    #service_dir, service_name = os.path.split(path)
-                    #service_logger = logging.getLogger(service_name)
-                    #if args.raw:
-                    emit(output)
-                    pass
-                    #else:
-                    #    service_logger.info('. '.join(l for l in output.splitlines() if l))
+                emit(output)
+
             finally:
                 os.chdir(save_dir)
 
@@ -364,7 +368,8 @@ def perform(jobs_path):
             report_error('Exception raised', t)
 
         finally:
-            logger.debug('ran %s' % path)
+            logger.debug('ran %s' % pathname)
+            logger.debug('return code {!r}, more_to_do={!r}'.format(rc, more_to_do))
 
         return more_to_do
 
@@ -376,6 +381,8 @@ def perform(jobs_path):
             skipfile = os.path.join(pathname, 'skip')
             if os.path.exists(fn) and not os.path.exists(skipfile):
                 work_remaining.append(run_main(fn))
+            elif os.path.exists(skipfile):
+                logger.debug('skipping {}'.format(pathname))
 
     return any(work_remaining)
 
