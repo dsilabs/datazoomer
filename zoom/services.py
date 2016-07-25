@@ -309,6 +309,7 @@ def emit(t):
         sys.stdout.write('{}'.format(t))
         sys.stdout.flush()
 
+
 def perform(jobs_path):
 
     def run_main(pathname):
@@ -320,10 +321,12 @@ def perform(jobs_path):
             emit(msg)
             emit('*' * 40 + '\n\n')
 
-            error_file = os.path.join(path, ERROR_FILE)
+            error_file = os.path.abspath(os.path.join(path, ERROR_FILE))
             f = open(error_file,'w')
             f.write(msg)
             f.close()
+
+            logger.error('error output dumped to {}'.format(error_file))
 
         more_to_do = False
 
@@ -343,6 +346,7 @@ def perform(jobs_path):
                     cmd = ['python', name]
                     if args.debug:
                         cmd.append('-d')
+                    logger.debug('running {!r} in {}'.format(' '.join(cmd), path))
                     p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
                     output, err = p.communicate(b"")
                     rc = p.returncode
@@ -386,8 +390,9 @@ def perform(jobs_path):
 
     return any(work_remaining)
 
+
 def run_for(t):
-    if not t: return False
+    if t == None: return True
     stop_time = time.time() + t
     return lambda: time.time() > stop_time
 
@@ -432,7 +437,7 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--dryrun', action='store_true', help='don\'t actually run the services, just show if they exists and would have been run.')
     parser.add_argument('-d', '--debug', action='store_true', help='show all debugging information as services run')
     parser.add_argument('-k', '--keepalive', action='store_true', help='keep running if there is more work to do')
-    parser.add_argument('-t', '--timeout', action='store', type=float, default=10, help='number of seconds to idle before stopping')
+    parser.add_argument('-t', '--timeout', action='store', type=float, default=None, help='number of seconds to idle before stopping')
     parser.add_argument('-s', '--sleep', action='store', type=float, default=0.5, help='number of seconds to sleep while idling')
     parser.add_argument('path', metavar='P', type=str, nargs='+', help='path to workers')
     args = parser.parse_args()
@@ -473,6 +478,7 @@ if __name__ == '__main__':
     try:
         process(args, run_for(args.timeout))
     except KeyboardInterrupt:
+        sys.stdout.write('\r')
         logger.warning('stopped')
 
 
