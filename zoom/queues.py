@@ -557,6 +557,9 @@ class Queues(object):
     def __call__(self, name, newest=None):
         return Topic(name, newest, self.db)
 
+    def __str__(self):
+        return str(EntityStore(self.db, Message))
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
