@@ -495,7 +495,10 @@ class Topic(object):
         while more_to_do:
             try:
                 row, topic, message = self._pop()
-                result = f(message)
+                if message is None:
+                    result = f()
+                else:
+                    result = f(message)
                 response_topic = response_topic_name(topic, row)
                 t = Topic(response_topic, None, self.db)
                 t.put(result)
