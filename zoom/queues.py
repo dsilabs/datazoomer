@@ -554,6 +554,9 @@ class Queues(object):
         kind = EntityStore(self.db, Message).kind
         return self.db(cmd, kind)
 
+    def clear(self):
+        return EntityStore(self.db, Message).zap()
+
     def __call__(self, name, newest=None):
         return Topic(name, newest, self.db)
 
