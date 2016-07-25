@@ -297,9 +297,9 @@ class EntityStore(object):
         values      = [fixval(i) for i in values] # same fix as above
         valid_types = ['str','unicode','long','int','float','decimal.Decimal','datetime.date','datetime.datetime','bool','NoneType','list','tuple']
 
-        for atype in datatypes:
+        for n, atype in enumerate(datatypes):
             if atype not in valid_types:
-                raise TypeException,'unsupported type <type %s>' % atype
+                raise TypeException,'unsupported type <type %s> in value %r' % (atype, keys[n])
 
         if '_id' in entity:
             id = entity['_id']
