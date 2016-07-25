@@ -14,7 +14,7 @@ import sys
 from system import system, SystemTimer
 from log import logger
 from page import Page
-from tools import redirect_to, load_template
+from tools import redirect_to, load_template, htmlquote
 from response import HTMLResponse, RedirectResponse
 from session import SessionExpiredException
 from request import request, data, route
@@ -187,7 +187,7 @@ def generate_response(instance_path, start_time=None):
             response = Page(load_template('system_application_session_expired', SESSION_EXPIRED_MESSAGE)).render()
 
         except:
-            t = traceback.format_exc()
+            t = htmlquote(traceback.format_exc())
             logger.error(t)
             if debugging:
                 try:
