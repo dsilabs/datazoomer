@@ -16,6 +16,7 @@ import settings
 from utils import OrderedSet
 from instance import Instance
 from exceptions import SystemException
+from zoom.site import Site
 
 env = os.environ
 
@@ -36,10 +37,6 @@ class NoApp(object):
     description = ''
     title = name
     theme = ''
-
-class Site(object):
-    def __init__(self,**k):
-        self.__dict__ = k
 
 
 class SystemTimer(object):

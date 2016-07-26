@@ -9,12 +9,7 @@ import logging
 
 import zoom
 from zoom.utils import parents, locate_config, Config
-
-
-class Site(object):
-
-    def __init__(self, name):
-        self.name = name
+from zoom.site import Site
 
 
 class Instance(object):
@@ -51,7 +46,6 @@ class Instance(object):
         """run jobs on an entire instance"""
         logger = logging.getLogger(self.name)
         for site in self.sites:
-            logger.debug('initializing site {}'.format(site.name))
             try:
                 zoom.system.setup(self.path, site.name)
             except Exception, e:
@@ -59,9 +53,16 @@ class Instance(object):
                 logger.warning('unable to setup {}'.format(site.name))
                 continue
             if zoom.system.background:
+                logger.debug('initialized site {}'.format(site.name))
                 for job in jobs:
-                    logger.debug('running {}.{} for {}'.format(self.name,
-                                                               job.__self__.function.__name__,
-                                                               site.name))
+                    try:
+                        job_name = job.name
+                    except:
+                        job_name = job.__name__
+                    logger.debug('running {}.{} for {}'.format(
+                        self.name,
+                        job_name,
+                        site.name)
+                    )
                     job()
 

@@ -206,11 +206,12 @@ class Worker(object):
     def __init__(self, service, function):
         self.service = service
         self.function = function
+        self.name = type(function) == type('') and function or function.__name__
 
     @property
     def topic(self):
         """return the topic this worker listens to"""
-        return ''.join(['service.', self.service.name, '.', self.function.__name__])
+        return ''.join(['service.', self.service.name, '.', self.name])
 
     @property
     def queue(self):
@@ -221,6 +222,9 @@ class Worker(object):
         """process a job"""
         self.service.logger.debug('processing jobs on queue {!r}'.format(self.topic))
         return self.queue.process(self.function)
+
+    def __call__(self):
+        self.process()
 
 
 class Service(object):
@@ -256,7 +260,7 @@ class Service(object):
             self.name,
         ))
 
-        workers = [Worker(self, job).process for job in jobs]
+        workers = [Worker(self, job) for job in jobs]
         self.instance.run(*workers)
 
         self.logger.debug('service {} done'.format(
@@ -269,10 +273,11 @@ class Service(object):
 
     def call(self, job, *a, **k):
         """queue a job expecting a result"""
-        queue = Worker(self.name, job).queue
+        queue = Worker(self, job).queue
         id = queue.put(*a, **k)
         result = queue.join([id])[0]
         return result
+
 
 
 # Job runner
@@ -342,7 +347,7 @@ def perform(jobs_path):
                     rc = 0
                     output = ''
                 else:
-                    logger.info('running {}'.format(pathname))
+                    logger.debug('running {}'.format(pathname))
                     cmd = ['python', name]
                     if args.debug:
                         cmd.append('-d')
@@ -444,8 +449,6 @@ if __name__ == '__main__':
 
     if args.debug:
         root_logger.setLevel(logging.DEBUG)
-    if args.quiet:
-        console_handler.setLevel(logging.ERROR)
 
     join = os.path.join
     abspath = os.path.abspath
@@ -468,6 +471,9 @@ if __name__ == '__main__':
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(con_formatter)
     root_logger.addHandler(console_handler)
+
+    if args.quiet:
+        console_handler.setLevel(logging.ERROR)
 
     if args.log:
         logger.debug('logging errors to %s', error_log_pathname)
