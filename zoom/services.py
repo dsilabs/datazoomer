@@ -177,6 +177,8 @@ class Scheduler(object):
     def its_time(self, interval):
         """return True if interval time has passed
         """
+        if type(interval) != datetime.timedelta:
+            interval = datetime.timedelta(minutes=interval)
         name = '{}.({}).run'.format(self.name, interval)
         logger.debug('cell name: %s', name)
         now = datetime.datetime.now()
