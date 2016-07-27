@@ -26,25 +26,33 @@ class ServiceException(Exception): pass
 
 ERROR_FILE = 'error.txt'
 
+# Logging
+# ==================================================================================
 csv_formatter = logging.Formatter('"%(asctime)s","%(name)s","%(levelname)s","%(message)s"')
 con_formatter = logging.Formatter('%(asctime)s  %(name)-15s %(levelname)-8s %(message)s')
 
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(con_formatter)
+
 root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
+root_logger.setLevel(logging.DEBUG)
 
 logger = logging.getLogger('services')
+logger.addHandler(console_handler)
+logger.setLevel(logging.DEBUG)
 
 
 def get_logger(name):
     """convenience function for services to get a logger"""
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     info_log = '../info.log'
-    file_handler = logging.FileHandler(info_log, 'a')
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(csv_formatter)
-    logger.addHandler(file_handler)
+    info_handler = logging.FileHandler(info_log, 'a')
+    info_handler.setLevel(logging.INFO)
+    info_handler.setFormatter(csv_formatter)
+    logger.addHandler(info_handler)
 
     error_log = '../error.log'
     error_handler = logging.FileHandler(error_log, 'a')
@@ -52,9 +60,6 @@ def get_logger(name):
     error_handler.setFormatter(csv_formatter)
     logger.addHandler(error_handler)
 
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(con_formatter)
     logger.addHandler(console_handler)
 
     return logger
@@ -172,6 +177,29 @@ class Scheduler(object):
         self.name = name
         self.debug = debug
 
+    def its_time(self, interval):
+        """return True if interval time has passed
+        """
+        name = '{}.({}).run'.format(self.name, interval)
+        logger.debug('cell name: %s', name)
+        now = datetime.datetime.now()
+        last_run = peek(name, now - interval)
+        next = last_run + interval
+        if self.debug or now >= next:
+            logger.debug('time interval has passed')
+            if now >= next:
+                intervals_missed = (now - next).seconds / interval.seconds
+                if intervals_missed:
+                    logger.debug('{} intervals missed'.format(intervals_missed))
+                next += intervals_missed * interval
+                poke(name, next)
+            else:
+                poke(name, now)
+            return True
+        else:
+            logger.debug('next interval {}'.format(next))
+        return False
+
     def every(self, interval, function):
         """run a function on given time interval
 
@@ -180,19 +208,23 @@ class Scheduler(object):
         to catch up.
         """
         name = self.name + '.' + function.__name__ + '.run'
-        if self.debug:
-            print 'event name: ', name
+        logger.debug('cell name: %s', name)
         now = datetime.datetime.now()
         last_run = peek(name, now - interval)
         next = last_run + interval
         if self.debug or now >= next:
+            logger.debug('running now')
             if now >= next:
                 intervals_missed = (now - next).seconds / interval.seconds
+                if intervals_missed:
+                    logger.debug('{} intervals missed'.format(intervals_missed))
                 next += intervals_missed * interval
                 poke(name, next)
             else:
                 poke(name, now)
             function()
+        else:
+            logger.debug('next run {}'.format(next))
 
 
 # Background Processing Classes
@@ -250,8 +282,7 @@ class Service(object):
         args = parser.parse_args()
 
         if args.debug:
-            root_logger.setLevel(logging.DEBUG)
-            self.logger.setLevel(logging.DEBUG)
+            console_hanlder.setLevel(logging.DEBUG)
 
         if args.quiet:
             console_handler.setLevel(logging.ERROR)
@@ -266,6 +297,39 @@ class Service(object):
         self.logger.debug('service {} done'.format(
             self.name,
         ))
+
+    def every(self, interval, *jobs):
+        parser = argparse.ArgumentParser('Run {!r} background services'.format(self.name))
+        parser.add_argument('-q', '--quiet', action='store_true', help='supresss output')
+        parser.add_argument('-n', '--dryrun', action='store_true', help='don\'t actually run the services, just show if they exists and would have been run.')
+        parser.add_argument('-d', '--debug', action='store_true', help='show all debugging information as services run')
+        parser.add_argument('-f', '--force', action='store_true', help='force services to run ahead of schedule')
+        args = parser.parse_args()
+
+        if args.debug:
+            debug_log = '../debug.log'
+            debug_handler = logging.FileHandler(debug_log, 'a')
+            debug_handler.setLevel(logging.DEBUG)
+            debug_handler.setFormatter(csv_formatter)
+            logger.addHandler(debug_handler)
+
+            console_handler.setLevel(logging.DEBUG)
+
+        if args.quiet:
+            console_handler.setLevel(logging.ERROR)
+
+        self.logger.debug('service {!r} starting'.format(
+            self.name,
+        ))
+
+        scheduler = Scheduler(self.name, args.force)
+        if scheduler.its_time(interval):
+            self.instance.run(*jobs)
+
+        self.logger.debug('service {!r} done'.format(
+            self.name,
+        ))
+
 
     def run(self, job, a0=None, *a, **k):
         """queue a job"""
@@ -409,7 +473,7 @@ def process(args, time_to_stop=False):
     jobs_path = args.path[0]
     sleep_time = args.sleep
 
-    logger.info('starting services in %s' % jobs_path)
+    logger.debug('starting services in %s' % jobs_path)
 
     done = False
     first_time = True
@@ -429,7 +493,7 @@ def process(args, time_to_stop=False):
         else:
             done = time_to_stop
 
-    logger.info('done')
+    logger.debug('done')
 
 if __name__ == '__main__':
 
@@ -447,35 +511,39 @@ if __name__ == '__main__':
     parser.add_argument('path', metavar='P', type=str, nargs='+', help='path to workers')
     args = parser.parse_args()
 
-    if args.debug:
-        root_logger.setLevel(logging.DEBUG)
-
     join = os.path.join
     abspath = os.path.abspath
 
     if args.log:
-        info_log_pathname = abspath(args.info or join(args.path[0], 'info.log'))
-        error_log_pathname = abspath(args.error or join(args.path[0], 'error.log'))
 
+        if args.debug:
+            debug_log_pathname = abspath(args.error or join(args.path[0], 'debug.log'))
+            debug_handler = logging.FileHandler(debug_log_pathname, 'a')
+            debug_handler.setLevel(logging.DEBUG)
+            debug_handler.setFormatter(csv_formatter)
+            root_logger.addHandler(debug_handler)
+
+        info_log_pathname = abspath(args.info or join(args.path[0], 'info.log'))
         file_handler = logging.FileHandler(info_log_pathname, 'a')
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(csv_formatter)
         root_logger.addHandler(file_handler)
         
+        error_log_pathname = abspath(args.error or join(args.path[0], 'error.log'))
         error_handler = logging.FileHandler(error_log_pathname, 'a')
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(csv_formatter)
         root_logger.addHandler(error_handler)
 
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(con_formatter)
-    root_logger.addHandler(console_handler)
+    if args.debug:
+        console_handler.setLevel(logging.DEBUG)
 
     if args.quiet:
         console_handler.setLevel(logging.ERROR)
 
     if args.log:
+        if args.debug:
+            logger.debug('logging debug to %s', debug_log_pathname)
         logger.debug('logging errors to %s', error_log_pathname)
         logger.debug('logging info to %s', info_log_pathname)
     else:
