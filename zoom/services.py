@@ -37,10 +37,9 @@ console_handler.setFormatter(con_formatter)
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
+root_logger.addHandler(console_handler)
 
 logger = logging.getLogger('services')
-logger.addHandler(console_handler)
-logger.setLevel(logging.DEBUG)
 
 
 def get_logger(name):
@@ -59,8 +58,6 @@ def get_logger(name):
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(csv_formatter)
     logger.addHandler(error_handler)
-
-    logger.addHandler(console_handler)
 
     return logger
 
