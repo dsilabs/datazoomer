@@ -17,6 +17,7 @@ from os.path import exists
 __all__ = [
     'auto',
     'server',
+    'publish',
 ]
 
 
@@ -28,6 +29,7 @@ def run(cmd, returncode=False):
         'testing\\n'
 
     """
+    print cmd
     if returncode:
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
@@ -86,4 +88,62 @@ def auto(options, command, name, *args):
             print '\rdone\n'
             done = True
 
+
+def publish(options, path, server='git@dsilabs.ca'):
+    """publish a resource to a repository server"""
+
+    abspath = os.path.abspath
+    split = os.path.split
+    join = os.path.join
+
+    source = abspath(path)
+    if not os.path.isdir(path):
+        print('fatal: {} is not a valid path'.format(source))
+    else:
+        stage = source + '.git'
+        path, name = split(source)
+        _, kind = split(path)
+        dest = server + ':' + join('dev', kind)
+
+        if not kind in ['apps', 'libs', 'themes', 'jobs']:
+            raise Exception('fatal: unknown resource type')
+        t = run('ssh {} "ls dev/{}"'.format(server, kind))
+        if name+'.git' in t.splitlines():
+            print('fatal: {} already exists in {}'.format(name, dest))
+        else:
+            status, out, err = run('git clone --bare {} {}'.format(source, stage), True)
+            #print status, out, err
+            if status:
+                print(err)
+            else:
+                status, out, err = run('scp -r {} {}'.format(stage, dest), True)
+                if status:
+                    print(err)
+                else:
+                    run('rm -rf {}'.format(stage))
+
+
+def unpublish(options, path, server='git@dsilabs.ca'):
+    """unpublish a resource from a repository server"""
+
+    abspath = os.path.abspath
+    split = os.path.split
+    join = os.path.join
+
+    source = abspath(path)
+    if not os.path.isdir(path):
+        print('fatal: {} is not a valid path'.format(source))
+    else:
+        stage = source + '.git'
+        path, name = split(source)
+        _, kind = split(path)
+        dest = server + ':' + join('dev', kind)
+
+        if not kind in ['apps', 'libs', 'themes', 'jobs']:
+            raise Exception('fatal: unknown resource type')
+        t = run('ssh {} "ls dev/{}"'.format(server, kind))
+        if name+'.git' not in t.splitlines():
+            print('fatal: {} does not exist in {}'.format(name, dest))
+        else:
+            run('ssh {} "rm -rf dev/{}/{}"'.format(server, kind, name))
 
