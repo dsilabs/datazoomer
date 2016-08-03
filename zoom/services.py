@@ -169,6 +169,7 @@ def peek(name, default=None):
 # Job Scheduling
 # ==================================================================================
 class Scheduler(object):
+    """process scheduler"""
 
     def __init__(self, name, debug=False):
         self.name = name
@@ -298,6 +299,7 @@ class Service(object):
         ))
 
     def every(self, interval, *jobs):
+        """process jobs on an time interval"""
         parser = argparse.ArgumentParser('Run {!r} background services'.format(self.name))
         parser.add_argument('-q', '--quiet', action='store_true', help='supresss output')
         parser.add_argument('-n', '--dryrun', action='store_true', help='don\'t actually run the services, just show if they exists and would have been run.')
@@ -350,7 +352,7 @@ def cmd(x, returncode=False, location=None):
     Run a shell command and return the response as a string
 
         >>> cmds = platform.system() == 'Windows' and "{} /c echo testing".format(os.environ.get('COMSPEC','cmd.exe')) or "echo testing"
-        >>> res =cmd(cmds)
+        >>> res = cmd(cmds)
         >>> assert res.strip() == 'testing'
 
     """
