@@ -50,6 +50,9 @@ def get_apps(app_paths):
 
 class Manager(object):
 
+    def __init__(self):
+        self.apps = []
+
     def setup(self):
         self.app_path  = system.config.get('apps','path')
         self.app_paths = [abspath(path) for path in self.app_path.split(';') if isdir(path)]

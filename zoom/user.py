@@ -153,12 +153,14 @@ class User(object):
     link = property(lambda a: '<a href="/users/%s">%s</a>' % (a.username,a.username))
 
     def __init__(self, login_id=None):
-        if login_id:
-            self.initialize(login_id)
+        self.groups = []
+        self.username = None
         self.is_developer = False
         self.is_administrator = False
         self.theme = None
         self.profile = False
+        if login_id:
+            self.initialize(login_id)
 
     def login(self, login_id, password, remember_me=False):
         if authenticate(login_id, password):
@@ -189,21 +191,34 @@ class User(object):
     def setup(self):
         return self.initialize()
 
+    @property
+    def link(self):
+        return '<a href="/{app}/{user.user_id}">{user.username}</a>'.format(
+            app=system.app.name,
+            user=user
+        )
+
+    @property
+    def is_disabled(self):
+        return bool(self.status == 'D')
+
     def initialize(self, login_id=None):
 
         if not login_id:
             login_id = get_current_username()
 
-        select_user = "SELECT firstname, lastname, phone, loginid, password, email, userid, status FROM dz_users WHERE loginid=%s and status='A'"
-        dataset = system.database(select_user,login_id)
+        select_user = "select * from dz_users where loginid=%s and status='A'"
+        dataset = system.database(select_user, login_id)
         if not len(dataset):
-            select_disabled_account = "SELECT firstname, lastname, phone, loginid, password, email, userid, status FROM dz_users WHERE loginid=%s and status<>'A'"
-            dataset = system.database(select_disabled_account,login_id)
+            select_disabled_account = "SELECT * FROM dz_users WHERE loginid=%s and status<>'A'"
+            dataset = system.database(select_disabled_account, login_id)
             if len(dataset) == 0:
-                insert_user = "INSERT INTO dz_users (loginid,firstname,lastname,email,phone,status,dtupd,dtadd) values (%s,'','','','','A',%s,%s)"
+                # this is a new authenticated user that has been authenticated
+                # by the OS (Windows usually) so add to the guests group
+                insert_user = "insert into dz_users (loginid,firstname,lastname,email,phone,status,dtupd,dtadd) values (%s,'','','','','A',%s,%s)"
                 now = datetime.datetime.now()
-                system.database(insert_user,login_id,now,now)
-                dataset = system.database(select_user,login_id)
+                system.database(insert_user, login_id, now, now)
+                dataset = system.database(select_user, login_id)
                 add_user(login_id, 'guests')
 
         if len(dataset):
@@ -217,7 +232,7 @@ class User(object):
             self.status     = rec.STATUS
             self.user_id    = self.id = rec.USERID
         else:
-            raise Exception('Unable to intialize user.')
+            raise Exception('Unable to initialize user.')
 
         # determine membership in groups
         self.groups    = self.get_groups()

@@ -68,6 +68,8 @@ Content-type: text/html
 
 PAGE_MISSING_MESSAGE = '<H1>Page Missing</H1>Page not found'
 
+UNAUTHORIZED_MESSAGE = '<H1>Unauthorized</H1>Please contact the system administator for assistance.'
+
 
 class CrossSiteRequestForgeryAttempt(Exception): pass
 
@@ -93,6 +95,11 @@ def generate_response(instance_path, start_time=None):
 
             manager.setup()
             system_timer.add('manager initializated')
+
+            if user.is_disabled:
+                # we know who the user is, and their account is disabled
+                msg =  'User {user.link} is disabled'
+                raise UnauthorizedException(msg.format(user=user))
 
             debugging = (system.debugging or system.show_errors or
                          user.is_developer or user.is_administrator)
@@ -173,8 +180,8 @@ def generate_response(instance_path, start_time=None):
             if debugging:
                 raise
             else:
-                response = Page(PAGE_MISSING_MESSAGE).render()
-                response.status = '404'
+                response = Page(UNAUTHORIZED_MESSAGE).render()
+                response.status = '403'
 
         except CrossSiteRequestForgeryAttempt:
             logger.security('cross site forgery attempt')
