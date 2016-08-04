@@ -278,14 +278,11 @@ class CollectionController(Controller):
         data = f.file.read()
         item_id = bucket.put(data)
 
-        # attach the bucket to the current record
+        # create an attachment record for this bucket
         c = self.collection
-        key = a[0]
         field_name = k.get('field_name', 'unknown')
         field_value = k.get('field_value', 'unknown')
-        record = self.collection.locate(key)
         attachment = Attachment(
-            record_id = record._id,
             record_kind = c.store.kind,
             field_name = field_name,
             field_value = field_value,
