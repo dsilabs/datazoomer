@@ -82,6 +82,35 @@ VIEW_TWO_RECORD_LIST = """<div class="baselist">
 <div class="footer">2 peoples</div>
 </div>"""
 
+VIEW_ALL_RECORDS_LIST = """<div class="baselist">
+
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Address</th>
+<th>Salary</th>
+</tr></thead>
+<tbody>
+<tr id="row-1" class="light">
+<td nowrap><a href="/noapp//myapp/jim">Jim</a></td>
+<td nowrap>123 Somewhere St</td>
+<td nowrap>40,000</td>
+</tr>
+<tr id="row-2" class="dark">
+<td nowrap><a href="/noapp//myapp/joe">Joe</a></td>
+<td nowrap>123 Somewhere St</td>
+<td nowrap>40,000</td>
+</tr>
+<tr id="row-3" class="light">
+<td nowrap><a href="/noapp//myapp/sally">Sally</a></td>
+<td nowrap>123 Special St</td>
+<td nowrap>45,000</td>
+</tr>
+</tbody>
+</table>
+<div class="footer">3 peoples</div>
+</div>"""
+
 VIEW_NO_JOE_LIST = u"""<div class="baselist">
 
 <table>
@@ -425,6 +454,158 @@ class TestCollect(unittest.TestCase):
 
 
         user.initialize('guest')
+        user.groups = ['managers']
+        self.collection('delete', 'jim', **{'CONFIRM': 'NO'})
+        t = self.collection()
+        assert_same(VIEW_NO_JOE_LIST, t.content)
+
+        self.collection('delete', 'sally', **{'CONFIRM': 'NO'})
+        t = self.collection()
+        assert_same(VIEW_EMPTY_LIST, t.content)
+
+
+    def test_published(self):
+
+        class PrivatePerson(Person):
+            def allows(self, user, action=None):
+
+                def is_owner(user):
+                    return user.user_id == self.owner_id
+
+                def is_user(user):
+                    return user.is_authenticated
+
+                actions = {
+                    'create': is_user,
+                    'read': is_user,
+                    'update': is_owner,
+                    'delete': is_owner,
+                }
+
+                return actions.get(action)(user)
+
+        self.collection = Collection('People', person_fields, PrivatePerson, url='/myapp')
+        self.collection.can_edit = lambda: True
+
+        self.collection.store.zap()
+        t = self.collection()
+        assert_same(VIEW_EMPTY_LIST, t.content)
+
+        # user one inserts two records
+        user.initialize('user')
+        assert user.is_authenticated
+
+        joe_input = dict(
+            CREATE_BUTTON='y',
+            NAME='Jim',
+            ADDRESS='123 Somewhere St',
+            SALARY=Decimal('40000'),
+        )
+        t = self.collection('new', **joe_input)
+
+        sally_input = dict(
+            CREATE_BUTTON='y',
+            NAME='Sally',
+            ADDRESS='123 Special St',
+            SALARY=Decimal('45000'),
+        )
+        t = self.collection('new', **sally_input)
+        t = self.collection()
+        assert_same(VIEW_UPDATED_JOE_LIST, t.content)
+
+        # user two inserts one record
+        user.initialize('admin')
+        self.collection('new', **dict(
+            CREATE_BUTTON='y',
+            NAME='Joe',
+            ADDRESS='123 Somewhere St',
+            SALARY=Decimal('40000'),
+        ))
+        t = self.collection()
+        assert_same(VIEW_ALL_RECORDS_LIST, t.content)
+
+        # user one can also see all
+        user.initialize('user')
+        t = self.collection()
+        assert_same(VIEW_ALL_RECORDS_LIST, t.content)
+
+        # guest can't read records
+        user.initialize('guest')
+        with self.assertRaises(UnauthorizedException):
+            t = self.collection('joe')
+
+        # authenticated user can read records that belong to others
+        user.initialize('user')
+        t = self.collection('joe')
+
+        # user can't edit records that belong to others
+        user.initialize('guest')
+        with self.assertRaises(UnauthorizedException):
+            t = self.collection('joe', 'edit')
+
+        # user can't edit records that belong to others
+        user.initialize('user')
+        with self.assertRaises(UnauthorizedException):
+            t = self.collection('joe', 'edit')
+
+        # guest can't do delete confirmation for records that belong to others
+        user.initialize('guest')
+        with self.assertRaises(UnauthorizedException):
+            t = self.collection('joe', 'delete')
+
+        # user can't do delete confirmation for records that belong to others
+        user.initialize('user')
+        with self.assertRaises(UnauthorizedException):
+            t = self.collection('joe', 'delete')
+
+        # user can't update records that belong to others
+        with self.assertRaises(UnauthorizedException):
+            t = self.collection('joe', 'edit', **dict(
+                SAVE_BUTTON='y',
+                NAME='Andy',
+                ADDRESS='123 Somewhere St',
+                SALARY=Decimal('40000'),
+            ))
+
+        # user can't delete records that belong to others
+        with self.assertRaises(UnauthorizedException):
+            self.collection('joe', 'delete', **{'CONFIRM': 'NO'})
+
+        # switch back to owner and do the same operations
+        user.initialize('admin')
+        self.collection('joe')
+        self.collection('joe', 'edit')
+        self.collection('joe', 'delete')
+        self.collection('joe', 'edit', **dict(
+            SAVE_BUTTON='y',
+            NAME='Andy',
+            ADDRESS='123 Somewhere St',
+            SALARY=Decimal('40000'),
+        ))
+        self.collection('andy', 'delete', **{'CONFIRM': 'NO'})
+
+        # guest can't delete
+        user.initialize('guest')
+        user.groups = ['managers']
+        with self.assertRaises(UnauthorizedException):
+            self.collection('delete', 'jim', **{'CONFIRM': 'NO'})
+
+        # guest can't delete
+        with self.assertRaises(UnauthorizedException):
+            self.collection('delete', 'sally', **{'CONFIRM': 'NO'})
+
+        # non-owner can't delete
+        user.initialize('admin')
+        user.groups = ['managers']
+        with self.assertRaises(UnauthorizedException):
+            self.collection('delete', 'jim', **{'CONFIRM': 'NO'})
+
+        # non-owner can't delete
+        with self.assertRaises(UnauthorizedException):
+            self.collection('delete', 'sally', **{'CONFIRM': 'NO'})
+
+        # owner can delete
+        user.initialize('user')
         user.groups = ['managers']
         self.collection('delete', 'jim', **{'CONFIRM': 'NO'})
         t = self.collection()

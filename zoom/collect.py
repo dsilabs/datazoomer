@@ -139,6 +139,7 @@ class CollectionView(View):
             record = locate(c, key)
             if record:
                 user.authorize('read', record)
+                user.authorize('update', record)
 
                 c.fields.initialize(record)
                 c.fields.update(data)
@@ -155,6 +156,7 @@ class CollectionView(View):
                 record = locate(c, key)
                 if record:
                     user.authorize('read', record)
+                    user.authorize('delete', record)
                     return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
 
     def image(self, key, name):
