@@ -204,7 +204,6 @@ class Application(object):
         name = 'initialize.py'
         pathname = os.path.join(os.path.split(self.path)[0], name)
         if os.path.exists(pathname):
-            print 'initializing {}!'.format(pathname)
             app = getattr(imp.load_source('main', pathname), 'main')
             if app:
                 app(request)
