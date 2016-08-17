@@ -124,6 +124,9 @@ def generate_response(instance_path, start_time=None):
             if not request.route:
                 request.route.append(default_app_name)
 
+            for app in manager.apps.values():
+                app.initialize(request)
+
             if manager.can_run(requested_app_name):
                 system.app = manager.get_app(requested_app_name)
 

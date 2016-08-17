@@ -18,6 +18,7 @@
 """Application module"""
 
 import os
+import imp
 import ConfigParser
 
 from . import response
@@ -195,10 +196,18 @@ class Application(object):
     def dispatch(self):
         """dispatch request to an app"""
         os.chdir(os.path.split(self.path)[0])
-        import imp
         app = getattr(imp.load_source('app', self.path), 'app')
         if app:
             return app()
+
+    def initialize(self, request):
+        name = 'initialize.py'
+        pathname = os.path.join(os.path.split(self.path)[0], name)
+        if os.path.exists(pathname):
+            print 'initializing {}!'.format(pathname)
+            app = getattr(imp.load_source('main', pathname), 'main')
+            if app:
+                app(request)
 
     def __repr__(self):
         return repr('Application: %s' % self.__dict__)
