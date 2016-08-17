@@ -60,7 +60,7 @@ def can(action):
         ...         self.name = name
         ...
         ...     def can(self, action, thing):
-        ...         return thing.allows(self, action)
+        ...         return thing and thing.allows(self, action)
 
         >>> class Thing(object):
         ...
@@ -87,6 +87,9 @@ def can(action):
         >>> user.name = 'joe'
         >>> user.name
         'joe'
+
+        >>> user.can('edit', None)
+        False
 
         >>> thing = Thing(name='rain')
 

@@ -295,7 +295,7 @@ class User(object):
 
         Object thing must provide allows(user, action) method.
         """
-        return thing.allows(self, action)
+        return bool(thing and thing.allows(self, action))
 
     def authorize(self, action, thing):
         """authorize a user to perform an action on thing
