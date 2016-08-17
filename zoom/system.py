@@ -227,6 +227,8 @@ class System(object):
         self.head     = OrderedSet()
         self.tail     = OrderedSet()
 
+        self.helpers = {}
+
         self.show_errors = config.get('error','users','0') == '1'
 
         self.profile = config.get('system','profile','0') == '1'

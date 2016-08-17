@@ -77,7 +77,9 @@ class Page(object):
 
     def render(self):
 
-        def handle(tag,*args,**keywords):
+        def handle(tag, *args, **keywords):
+
+            # first try filling tag with page attributes
             if hasattr(self, tag):
                 attr = getattr(self, tag)
                 if callable(attr):
@@ -86,10 +88,27 @@ class Page(object):
                     repl = attr
                 return fill('<dz:','>', repl, handle)
 
-            if tag in helpers.__dict__ and callable(helpers.__dict__[tag]):
+            # if that doesn't work look for an app helper
+            elif tag in system.app.helpers:
+                helper = system.app.helpers[tag]
+
+            # if that doesn't work look for a system helper
+            elif tag in system.helpers:
+                helper = system.helpers[tag]
+
+            # if that doesn't work look in the helpers module
+            elif tag in helpers.__dict__ and callable(helpers.__dict__[tag]):
                 """call functions in a module or module-like object"""
                 helper = helpers.__dict__[tag]
-                return fill('<dz:','>', helper(*args, **keywords), handle)
+
+            if callable(helper):
+                repl = helper(*args, **keywords)
+            else:
+                repl = helper
+
+            return fill('<dz:','>', repl, handle)
+
+                
 
         def set_setting(thing, name):
             if thing=='template':

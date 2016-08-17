@@ -96,6 +96,8 @@ class Application(object):
         self.keywords = get('keywords', '')
         self.in_development = get('in_development')
 
+        self.helpers = {}
+
     def get_settings(self):
         """
         get settings specific to this application
