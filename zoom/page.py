@@ -101,12 +101,16 @@ class Page(object):
                 """call functions in a module or module-like object"""
                 helper = helpers.__dict__[tag]
 
-            if callable(helper):
-                repl = helper(*args, **keywords)
             else:
-                repl = helper
+                helper = None
 
-            return fill('<dz:','>', repl, handle)
+            if helper:
+                if callable(helper):
+                    repl = helper(*args, **keywords)
+                else:
+                    repl = helper
+
+                return fill('<dz:','>', repl, handle)
 
                 
 
