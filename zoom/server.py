@@ -11,14 +11,18 @@ import sys
 from wsgiref.simple_server import make_server
 from timeit import default_timer as timer
 
-from zoom.request import Request
-import zoom.middleware
+from .request import Request
+from . import middleware
 
 def reset_modules():
     """reset the modules to a known starting set
 
     memorizes the modules currently in use and then removes any other
-    modules when called again"""
+    modules when called again
+    """
+    # pylint: disable=global-variable-undefined, invalid-name
+    # Maybe a bit of a hack but we know it's undefined, that's how we're using
+    # it, and this is for develoment purposes only in any case.
     global init_modules
     if globals().has_key('init_modules'):
         for module in [x for x in sys.modules.keys() if x not in init_modules]:
@@ -30,6 +34,7 @@ def reset_modules():
 class WSGIApplication(object):
     """a WSGI Application wrapper for DataZoomer
     """
+    # pylint: disable=too-few-public-methods
     def __init__(self, instance='.', handlers=None):
         self.handlers = handlers
         self.instance = os.path.abspath(instance)
@@ -52,8 +57,8 @@ def run(port=8004, instance='.'):
     The instance variable is the path of the directory on the system where the
     sites folder is located. (e.g. /work/web)
     """
-    application = WSGIApplication(instance)
-    server = make_server('', int(port), application)
+    the_appliation = WSGIApplication(instance)
+    server = make_server('', int(port), the_appliation)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
