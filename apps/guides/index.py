@@ -17,7 +17,7 @@ table_of_guides = \
             'Start Here',
             [
                 'Introduction',
-                #'Getting Started with DataZoomer',
+                'Getting Started with DataZoomer',
             ]
         ),
 #        (
@@ -29,8 +29,11 @@ table_of_guides = \
 #        (
 #            'Views',
 #            [
+#                'Introduction to Views',
+#                'Views',
 #                'Layouts and Rendering',
 #                'Fields',
+#                'Helpers',
 #            ]
 #        ),
 #        (
@@ -68,13 +71,26 @@ class MyView(View):
 
         return doc('index', args)
 
-
     def introduction(self):
         zoom.system.app.menu.append('Introduction')
         args = dict(
             side_panel='side panel'
         )
         return doc('introduction', args)
+
+    def getting_started_with_datazoomer(self):
+        zoom.system.app.menu.append('Getting Started')
+        args = dict(
+            side_panel='side panel'
+        )
+        return doc('getting_started_with_datazoomer', args)
+
+    def introduction_to_views(self):
+        zoom.system.app.menu.append('Views')
+        args = dict(
+            side_panel='side panel'
+        )
+        return doc('introduction_to_views', args)
 
 view = MyView()
 
