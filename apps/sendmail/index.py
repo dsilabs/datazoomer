@@ -1,12 +1,13 @@
 
 
 from zoom import *
-from zoom.mail import send, send_secure, RecipientKeyMissing
+from zoom.mail import send, send_secure, RecipientKeyMissing, Attachment
 
 mail_form = Form([
     TextField('Recipient',size=60,maxlength=60),
     TextField('Subject'),
     MemoField('Message'),
+    FileField('Attachment'),
     CheckboxField('Encrypt'),
     ButtonField('Send'),
     ])
@@ -33,8 +34,20 @@ class MyController(Controller):
                     error('Missing pulic key for %s'%e.message)
 
             else:
-                send( input['RECIPIENT'], input['SUBJECT'], input['MESSAGE'] )
-                message('message sent')
+                if 'ATTACHMENT' in input and hasattr(input['ATTACHMENT'], 'filename'):
+                    send(
+                        input['RECIPIENT'],
+                        input['SUBJECT'],
+                        input['MESSAGE'],
+                        [Attachment(
+                            input['ATTACHMENT'].filename,
+                            input['ATTACHMENT'].file,
+                        )],
+                    )
+                    message('message sent with attachment')
+                else:
+                    send(input['RECIPIENT'], input['SUBJECT'], input['MESSAGE'])
+                    message('message sent')
                 return home()
 
 view = MyView()
