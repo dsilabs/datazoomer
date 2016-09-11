@@ -32,6 +32,7 @@ class Result(object):
         return ResultIter(self.cursor)
 
     def __len__(self):
+        # deprecate? - not supported by all databases
         c = self.cursor.rowcount
         return c > 0 and c or 0
 
@@ -170,23 +171,21 @@ class Database(object):
             self.__connection = self.__factory(*self.__args, **self.__keywords)
         return getattr(self.__connection, name)
 
-    def __call__(self, sql, *a):
-        cursor = self.cursor()
-
+    def _execute(self, cursor, method, cmd, *args):
         start = timeit.default_timer()
-        params = len(a)==1 and hasattr(a[0],'items') and a[0] or a
+        params = len(args)==1 and hasattr(args[0], 'items') and args[0] or args
         try:
-            result = cursor.execute(sql, params)
+            result = method(cmd, params)
         except Exception as e:
-            raise DatabaseException(ERROR_TPL.format(sql, a, e))
+            raise DatabaseException(ERROR_TPL.format(cmd, args, e))
         else:
             self.rowcount = cursor.rowcount
         finally:
             if self.debug:
                 self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
                     (timeit.default_timer() - start) * 1000,
-                    sql,
-                    a,
+                    cmd,
+                    args,
                 ))
 
         if cursor.description:
@@ -195,29 +194,16 @@ class Database(object):
             self.lastrowid = getattr(cursor, 'lastrowid', None)
             return self.lastrowid
 
-    def execute_many(self, sql, *a):
+    def execute(self, cmd, *args):
         cursor = self.cursor()
+        return self._execute(cursor, cursor.execute, cmd, *args)
 
-        start = timeit.default_timer()
-        try:
-            result = cursor.executemany(sql, *a)
-        except Exception as e:
-            raise DatabaseException(ERROR_TPL.format(sql, a, e))
-        else:
-            self.rowcount = cursor.rowcount
-        finally:
-            if self.debug:
-                self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
-                    (timeit.default_timer() - start) * 1000,
-                    sql,
-                    a,
-                ))
+    def execute_many(self, cmd, sequence):
+        cursor = self.cursor()
+        return self._execute(cursor, cursor.executemany, cmd, *sequence)
 
-        if cursor.description:
-            return Result(cursor)
-        else:
-            self.lastrowid = getattr(cursor, 'lastrowid', None)
-            return self.lastrowid
+    def __call__(self, cmd, *args):
+        return self.execute(cmd, *args)
 
     def use(self, name):
         """use another database on the same instance"""
