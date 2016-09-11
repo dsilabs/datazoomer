@@ -3,9 +3,9 @@
 """
 
 import timeit
-import warnings
 
 from zoom.exceptions import DatabaseException
+
 
 ARRAY_SIZE = 1000
 
@@ -15,35 +15,45 @@ ERROR_TPL = """
   message: {}
 """
 
-def ResultIter(cursor, arraysize=ARRAY_SIZE):
-    while True:
-        results = cursor.fetchmany(arraysize)
-        if not results:
-            break
-        for result in results:
-            yield result
-
 
 class Result(object):
-    def __init__(self, cursor):
+    """database query result"""
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, cursor, array_size=ARRAY_SIZE):
         self.cursor = cursor
+        self.array_size = array_size
 
     def __iter__(self):
-        return ResultIter(self.cursor)
+        while True:
+            results = self.cursor.fetchmany(self.array_size)
+            if not results:
+                break
+            for result in results:
+                yield result
 
     def __len__(self):
         # deprecate? - not supported by all databases
-        c = self.cursor.rowcount
-        return c > 0 and c or 0
+        count = self.cursor.rowcount
+        return count > 0 and count or 0
 
     def __str__(self):
         """nice for humans"""
         labels = [' %s '%i[0] for i in self.cursor.description]
         values = [[' %s ' % i for i in r] for r in self]
-        allnum = [all(str(v[i][1:-1]).translate(None,'.').isdigit() for v in values) for i in range(len(labels))]
-        widths = [max(len(v[i]) for v in [labels] + values) for i in range(len(labels))]
-        fmt    = ' ' + ' '.join(['%' + (not allnum[i] and '-' or '') + '%ds' % w for i,w in enumerate(widths)])
-        lines  = ['-' * (w) for w in widths]
+        allnum = [
+            all(str(v[i][1:-1]).translate(None, '.').isdigit() for v in values)
+            for i in range(len(labels))
+        ]
+        widths = [
+            max(len(v[i]) for v in [labels] + values)
+            for i in range(len(labels))
+        ]
+        fmt = ' ' + ' '.join([
+            (allnum[i] and '%%%ds' or '%%-%ds') % w
+            for i, w in enumerate(widths)
+        ])
+        lines = ['-' * (w) for w in widths]
         result = '\n'.join(fmt%tuple(i) for i in [labels] + [lines] + values)
         return result
 
@@ -52,15 +62,23 @@ class Result(object):
         return repr(list(self))
 
     def first(self):
-        for i in self: return i
+        """return first item in result"""
+        for i in self:
+            return i
 
 
 class Database(object):
+    # pylint: disable=trailing-whitespace
     """
     database object
 
         >>> import MySQLdb
-        >>> db = database(host='database', db='test', user='testuser', passwd='password')
+        >>> db = database(
+        ...     host='database',
+        ...     db='test',
+        ...     user='testuser',
+        ...     passwd='password'
+        ... )
         >>> db('drop table if exists person')
         0L
         >>> db(\"\"\"
@@ -113,7 +131,8 @@ class Database(object):
         Decimal('1234.56')
         >>> assert amt == t
 
-        >>> db('select * from person where name in (%(buddy)s, %(pal)s)', {'buddy':'Pat', 'pal':'John'})
+        >>> db('select * from person where name in (%(buddy)s, %(pal)s)',
+        ...     {'buddy':'Pat', 'pal':'John'})
         [(2L, 'Pat', None, None, None, Decimal('1234.56'))]
 
         >>> db.execute_many("insert into person (name, salary) values (%s,%s)",
@@ -154,6 +173,7 @@ class Database(object):
         <BLANKLINE>
         >>> assert failed
     """
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, factory, *args, **keywords):
         """Initialize with factory method to generate DB connection
@@ -165,26 +185,32 @@ class Database(object):
         self.__keywords = keywords
         self.debug = False
         self.log = []
+        self.rowcount = None
+        self.lastrowid = None
 
     def __getattr__(self, name):
         if self.__connection is None:
             self.__connection = self.__factory(*self.__args, **self.__keywords)
         return getattr(self.__connection, name)
 
-    def _execute(self, cursor, method, cmd, *args):
+    def _execute(self, cursor, method, command, *args):
+        """execute the SQL command"""
         start = timeit.default_timer()
-        params = len(args)==1 and hasattr(args[0], 'items') and args[0] or args
+        params = len(args) == 1 and \
+                hasattr(args[0], 'items') and \
+                args[0] or \
+                args
         try:
-            result = method(cmd, params)
-        except Exception as e:
-            raise DatabaseException(ERROR_TPL.format(cmd, args, e))
+            method(command, params)
+        except Exception as error:
+            raise DatabaseException(ERROR_TPL.format(command, args, error))
         else:
             self.rowcount = cursor.rowcount
         finally:
             if self.debug:
                 self.log.append('  SQL ({:5.1f} ms): {!r} - {!r}'.format(
                     (timeit.default_timer() - start) * 1000,
-                    cmd,
+                    command,
                     args,
                 ))
 
@@ -194,31 +220,44 @@ class Database(object):
             self.lastrowid = getattr(cursor, 'lastrowid', None)
             return self.lastrowid
 
-    def execute(self, cmd, *args):
+    def execute(self, command, *args):
+        """execute a SQL command with optional parameters"""
         cursor = self.cursor()
-        return self._execute(cursor, cursor.execute, cmd, *args)
+        return self._execute(cursor, cursor.execute, command, *args)
 
-    def execute_many(self, cmd, sequence):
+    def execute_many(self, command, sequence):
+        """execute a SQL command with a sequence of parameters"""
+        # pylint: disable=star-args
         cursor = self.cursor()
-        return self._execute(cursor, cursor.executemany, cmd, *sequence)
+        return self._execute(cursor, cursor.executemany, command, *sequence)
 
-    def __call__(self, cmd, *args):
-        return self.execute(cmd, *args)
+    def __call__(self, command, *args):
+        return self.execute(command, *args)
 
     def use(self, name):
         """use another database on the same instance"""
+        # pylint: disable=star-args
         args = list(self.__args)
         keywords = dict(self.__keywords, db=name)
         return Database(self.__factory, *args, **keywords)
 
     def report(self):
+        """produce a SQL log report"""
         if self.log:
             return '  DB Queries\n --------------------\n{}\n'.format(
                 '\n'.join(self.log))
         return ''
 
-
-def database(engine='mysql', host='database', db='test', user='testuser', *a, **k):
+def database(
+    engine='mysql',
+    host='database',
+    db='test',
+    user='testuser',
+    *a,
+    **k
+):
+    """create a database object"""
+    # pylint: disable=invalid-name
 
     if engine == 'mysql':
         import MySQLdb
@@ -233,29 +272,49 @@ def database(engine='mysql', host='database', db='test', user='testuser', *a, **
 
     elif engine == 'pymysql':
         import pymysql
-        db = Database(pymysql.connect, host=host, db=db, user=user, charset='utf8', *a, **k)
+        db = Database(
+            pymysql.connect,
+            host=host,
+            db=db,
+            user=user,
+            charset='utf8',
+            *a,
+            **k
+        )
         db.autocommit(1)
         return db
 
     elif engine == 'pymysql_back':
-        """ pymysql engine with mysqldb/dz backwards compatibility
-
-            This is mainly done for tests, running dz tests, unchanged, under pymysql
-        """
+        # pymysql engine with mysqldb/dz backwards compatibility
+        # This is mainly done for tests, running dz tests, unchanged, under
+        # pymysql
         import pymysql
         from pymysql.converters import conversions
         from pymysql.constants import FIELD_TYPE
         from pymysql.cursors import Cursor
         class LegacyCursor(Cursor):
+            """MySQLdb combatible cursor"""
             def __getattribute__(self, name):
                 r = object.__getattribute__(self, name)
-                if name == 'lastrowid': r = long(r)
+                if name == 'lastrowid':
+                    r = long(r)
                 return r
 
         mysqldb_compat = conversions.copy()
         mysqldb_compat[FIELD_TYPE.LONG] = long
         mysqldb_compat[FIELD_TYPE.LONGLONG] = long
-        db = Database(pymysql.connect, host=host, db=db, user=user, conv=mysqldb_compat, charset='latin1', use_unicode=False, cursorclass=LegacyCursor, *a, **k)
+        db = Database(
+            pymysql.connect,
+            host=host,
+            db=db,
+            user=user,
+            conv=mysqldb_compat,
+            charset='latin1',
+            use_unicode=False,
+            cursorclass=LegacyCursor,
+            *a,
+            **k
+        )
         db.autocommit(1)
 
         return db
