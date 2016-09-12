@@ -136,7 +136,7 @@ def generate_response(instance_path, start_time=None):
 
                 system_timer.add('app ready')
 
-                response = system.app.run()
+                response = system.app.run(request)
 
                 system_timer.add('app returned')
 
@@ -159,7 +159,7 @@ def generate_response(instance_path, start_time=None):
                     system.app = app
                 else:
                     raise Exception(default_app_name + ' app missing')
-                response = system.app.run()
+                response = system.app.run(request)
 
             elif manager.can_run(default_app_name):
                 response = redirect_to('/')

@@ -188,17 +188,23 @@ class Application(object):
                         msg = tpl.format(section, key, config_file1, config_file2, config_file3)
                         raise Exception(msg)
 
-    def run(self):
+    def run(self, request):
         """run an app"""
-        result = self.dispatch()
+        result = self.dispatch(request)
         return respond(result)
 
-    def dispatch(self):
+    def dispatch(self, request):
         """dispatch request to an app"""
         os.chdir(os.path.split(self.path)[0])
         app = getattr(imp.load_source('app', self.path), 'app')
         if app:
-            return app()
+            try:
+                return app(request)
+            except TypeError as error:
+                if 'takes no arguments' in str(error):
+                    # legacy app
+                    return app()
+                raise
 
     def initialize(self, request):
         name = 'initialize.py'
