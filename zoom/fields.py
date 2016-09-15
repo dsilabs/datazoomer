@@ -29,6 +29,7 @@ from tools import htmlquote, websafe, markdown, has_iterator_protocol, wrap_iter
 from helpers import attribute_escape, link_to
 from request import route
 from zoom import system
+from zoom.component import component
 
 HINT_TPL = \
         """
@@ -922,22 +923,21 @@ class DateField(SimpleField):
                     Type='text',
                     Class=self.css_class,
                 )
+        js = []
         if self.min != None:
-            js = """
+            js.append("""
             $(function(){
                 $('#%s').datepicker('option', 'minDate', '%s');
             });
-            """
-            system.js.add(js % (self.id, self.min.strftime(self.input_format)))
+            """ % (self.id, self.min.strftime(self.input_format)))
 
         if self.max != None:
-            js = """
+            js.append("""
             $(function(){
                 $('#%s').datepicker('option', 'maxDate', '%s');
             });
-            """
-            system.js.add(js % (self.id, self.max.strftime(self.input_format)))
-        return tag_for('input', **parameters)
+            """ % (self.id, self.max.strftime(self.input_format)))
+        return component(tag_for('input', **parameters), js=js)
 
     def show(self):
         return self.visible and bool(self.value) and layout_field(self.label,self.display_value()) or ''

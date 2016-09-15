@@ -40,6 +40,7 @@ NOTES:
 
 import json
 from zoom import id_for, system
+from zoom.component import component
 
 available_tilesets = {
     # (service, attribution)
@@ -137,10 +138,12 @@ class Leaflet(JS):
         return self.render()
 
     def render(self):
-        system.libs = system.libs | self.scripts
-        system.styles = system.styles | self.styles
-        system.css.add(self.css())
-        return self.html()
+        return component(
+            self.html(),
+            css=self.css(),
+            libs=self.scripts,
+            styles=self.styles
+        )
 
     def html(self):
         id = self.ref
