@@ -1,12 +1,14 @@
 """
-    api.py
+    zoom.api
 
     Accesses a datazoomer site via the API.
 """
 import cookielib
 import urllib
 import urllib2
+
 from zoom.jsonz import loads
+
 
 def get_opener():
     """get a url opener"""
@@ -15,10 +17,12 @@ def get_opener():
     opener.addheaders.append(('Accept', 'application/json'))
     return opener
 
+
 def get_test_site():
     """get test site URL"""
     import os
     return os.environ.get('DATAZOOMER_TEST_SITE', 'http://localhost')
+
 
 class API(object):
     """
@@ -55,7 +59,7 @@ class API(object):
         response = self.opener.open(url).read()
         try:
             result = loads(response)
-        except:
+        except Exception:
             print 'JSON Conversion Failed: response was %s' % repr(response)
             result = response
         return result
@@ -70,12 +74,12 @@ class API(object):
         else:
             try:
                 result = loads(response)
-            except:
-                print 'JSON Conversion Failed: response was %s' % repr(response)
+            except Exception:
+                msg = 'JSON Conversion Failed: response was %s'
+                print msg % repr(response)
                 result = response
         return result
 
     def __call__(self, *a, **k):
         """post data to the remote site"""
         return self.post(*a, **k)
-
