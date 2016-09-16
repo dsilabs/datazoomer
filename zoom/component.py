@@ -200,8 +200,7 @@ def component(*args, **kwargs):
             part.extend(as_iterable(value))
         else:
             part |= OrderedSet(as_iterable(value))
-    for key in ['css', 'js', 'styles', 'libs']:
+    for key in ['css', 'js', 'styles', 'libs', 'head', 'tail']:
         part = getattr(system, key)
         part |= parts.get(key, [])
     return ''.join(parts['html'])
-
