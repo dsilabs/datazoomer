@@ -1,6 +1,7 @@
 """
-    format and send mail
+    zoom.mail
 
+    format and send mail
     note: requires Python 2.5 or newer
 """
 
@@ -37,21 +38,31 @@ __all__ = (
 )
 
 
+VALID_EMAIL_RE = re.compile(
+    "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\."
+    "([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$"
+)
+
+
 class EmailEncryptionFail(Exception):
     """gpg failure"""
     pass
+
 
 class SenderKeyMissing(Exception):
     """gpg sender key mssing"""
     pass
 
+
 class RecipientKeyMissing(Exception):
     """gpg recipient key mssing"""
     pass
 
+
 class AttachmentDataException(Exception):
     """raised when asked to deliver data in background process"""
     pass
+
 
 class SystemMail(Record):
     """system message"""
@@ -65,18 +76,21 @@ BODY_TPL = """
 <table width="100%">
  <tr>
   <td align="left">
-  <img src="{logo_url}" alt="banner logo"> 
+  <img src="{logo_url}" alt="banner logo">
   </td>
  </tr>
  <tr>
   <td align="left">
-  <font face="helvetica,arial,freesans,clean,sans-serif" size="2">{message}</font>
+    <font face="helvetica,arial,freesans,clean,sans-serif" size="2">
+    {message}
+    </font>
   </td>
  </tr>
 </table>
 </BODY>
 </HTML>
 """
+
 
 def get_mail_store():
     """returns the mail store"""
@@ -104,11 +118,7 @@ def validate_email(email_address):
         >>> validate_email('a@b.co')
         True
     """
-    VALID_EMAIL_RE = re.compile(
-        "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\."
-        "([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$"
-    )
-    return VALID_EMAIL_RE.match(email_address) != None
+    return VALID_EMAIL_RE.match(email_address) is not None
 
 
 def display_email_address(email):
@@ -147,7 +157,7 @@ def get_plain_from_html(html):
     '\\nHey\\n\\nThis is some text'
 
     """
-    from htmllib import HTMLParser # import here to avoid high startup cost
+    from htmllib import HTMLParser  # import here to avoid high startup cost
 
     textout = StringIO()
     formtext = AbstractFormatter(DumbWriter(textout))
@@ -184,7 +194,7 @@ def compose(sender, recipients, subject, body, attachments, style):
         'This message is in MIME format. '
         'You will not see this in a MIME-aware mail reader.\n'
     )
-    email.epilogue = '' # To guarantee the message ends with a newline
+    email.epilogue = ''  # To guarantee the message ends with a newline
 
     # Encapsulate the plain and HTML versions of the message body in an
     # 'alternative' part, so message agents can decide which they
@@ -224,7 +234,7 @@ def compose(sender, recipients, subject, body, attachments, style):
         maintype, subtype = ctype.split('/', 1)
 
         if maintype == 'text' or (
-            ctype == None and
+            ctype is not None and
             attachment.filename[-4:].lower() == '.ini'
         ):
             # Note: we should handle calculating the charset
@@ -263,6 +273,7 @@ def connect():
         server.login(smtp_user, smtp_passwd)
 
     return server
+
 
 def disconnect(server):
     """disconnect from the mail server"""
@@ -382,6 +393,7 @@ class Attachment(object):
             self.data = open(self.data)
         return self.data.read
 
+
 def make_recipients_list(recipients):
     """build a well formed list of recipients
 
@@ -419,7 +431,7 @@ def make_recipients_list(recipients):
     if type(recipients) != ListType:
         recipients = [recipients]
 
-    recipients = [type(x) == StringType and (x,x) or x for x in recipients]
+    recipients = [type(x) == StringType and (x, x) or x for x in recipients]
     return recipients
 
 
@@ -444,12 +456,15 @@ def send(recipients, subject, message, attachments=None):
 
 def send_secure_as(sender, recipient, subject, message):
     """send a secure email as a specific sender"""
-    import gnupg # importing here because in reality gnupg is rarely required
+
+    def find_key(key):
+        """find a gpg key"""
+        return [a for a in gpg.list_keys() if key in a['uids'][0]]
+
+    import gnupg  # importing here because in reality gnupg is rarely required
 
     gnupg_home = system.config.get('mail', 'gnupg_home', '')
     gpg = gnupg.GPG(gnupghome=gnupg_home)
-
-    find_key = lambda x: [a for a in gpg.list_keys() if x in a['uids'][0]]
 
     if not find_key(recipient):
         raise RecipientKeyMissing(recipient)
@@ -467,11 +482,10 @@ def send_secure(recipient, subject, message):
     send_secure_as(from_addr, recipient, subject, message)
 
 
-
 if __name__ == '__main__':
     #
-    #running this script will send a test email to the site owner as
-    #specified in the config file"""
+    # running this script will send a test email to the site owner as
+    # specified in the config file"""
     #
     # pylint: disable=invalid-name
     from StringIO import StringIO
