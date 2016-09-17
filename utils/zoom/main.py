@@ -12,6 +12,7 @@ from zoom import ItemList
 
 import commands
 
+
 class SimpleException(Exception):
     """an exception that traps everything"""
     pass
@@ -61,10 +62,10 @@ def main():
 
     parser = OptionParser()
     parser.add_option("-f", "--file", dest="filename",
-                        help="write report to FILE", metavar="FILE")
+                      help="write report to FILE", metavar="FILE")
     parser.add_option("-q", "--quiet", dest="verbose",
-                        action="store_false", default=True,
-                        help="don't print status messages to stdout")
+                      action="store_false", default=True,
+                      help="don't print status messages to stdout")
     (options, args) = parser.parse_args()
 
     try:
@@ -79,4 +80,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

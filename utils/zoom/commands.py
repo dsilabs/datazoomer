@@ -1,8 +1,7 @@
 """
-    zoom
+    zoom CLI
 
-    DataZoomer command line utility
-
+    DataZoomer command line utility.
 """
 # pylint: disable=unused-argument
 
@@ -37,11 +36,13 @@ def run(cmd, returncode=False):
     else:
         return str(Popen(shlex.split(cmd), stdout=PIPE).communicate()[0])
 
+
 def server(options, port=8000, instance='.'):
     """run an instance using Python's builtin HTTP server"""
-    from zoom.server import run
-    run(port, instance)
+    from zoom.server import run as runweb
+    runweb(port, instance)
     print('\rstopped')
+
 
 def auto(options, command, name, *args):
     """run a command automatically whenever a file changes"""
@@ -64,14 +65,13 @@ def auto(options, command, name, *args):
     while not done:
         try:
             try:
-                timestamp = {name: os.stat(name).st_mtime
-                            for name in subjects}
+                timestamp = {name: os.stat(name).st_mtime for name in subjects}
             except OSError:
                 pass
 
             for name in timestamp:
-                if (not name in oldstamp) or (
-                    oldstamp[name] < timestamp[name]):
+                if (name not in oldstamp) or \
+                        (oldstamp[name] < timestamp[name]):
 
                     oldstamp[name] = timestamp[name]
                     cmd = ' '.join([command, name] + list(args))
@@ -105,18 +105,20 @@ def publish(options, path, server='git@dsilabs.ca'):
         _, kind = split(path)
         dest = server + ':' + join('dev', kind)
 
-        if not kind in ['apps', 'libs', 'themes', 'jobs']:
+        if kind not in ['apps', 'libs', 'themes', 'jobs']:
             raise Exception('fatal: unknown resource type')
         t = run('ssh {} "ls dev/{}"'.format(server, kind))
         if name+'.git' in t.splitlines():
             print('fatal: {} already exists in {}'.format(name, dest))
         else:
-            status, out, err = run('git clone --bare {} {}'.format(source, stage), True)
-            #print status, out, err
+            status, out, err = \
+                run('git clone --bare {} {}'.format(source, stage), True)
+            # print status, out, err
             if status:
                 print(err)
             else:
-                status, out, err = run('scp -r {} {}'.format(stage, dest), True)
+                status, out, err = \
+                    run('scp -r {} {}'.format(stage, dest), True)
                 if status:
                     print(err)
                 else:
@@ -139,11 +141,10 @@ def unpublish(options, path, server='git@dsilabs.ca'):
         _, kind = split(path)
         dest = server + ':' + join('dev', kind)
 
-        if not kind in ['apps', 'libs', 'themes', 'jobs']:
+        if kind not in ['apps', 'libs', 'themes', 'jobs']:
             raise Exception('fatal: unknown resource type')
         t = run('ssh {} "ls dev/{}"'.format(server, kind))
         if name+'.git' not in t.splitlines():
             print('fatal: {} does not exist in {}'.format(name, dest))
         else:
             run('ssh {} "rm -rf dev/{}/{}"'.format(server, kind, name))
-
