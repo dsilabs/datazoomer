@@ -14,6 +14,7 @@ from timeit import default_timer as timer
 from .request import Request
 from . import middleware
 
+
 def reset_modules():
     """reset the modules to a known starting set
 
@@ -24,7 +25,7 @@ def reset_modules():
     # Maybe a bit of a hack but we know it's undefined, that's how we're using
     # it, and this is for develoment purposes only in any case.
     global init_modules
-    if globals().has_key('init_modules'):
+    if 'init_modules' in globals():
         for module in [x for x in sys.modules.keys() if x not in init_modules]:
             del sys.modules[module]
     else:
@@ -43,7 +44,7 @@ class WSGIApplication(object):
         reset_modules()
         start_time = timer()
         request = Request(environ, self.instance, start_time)
-        status, headers, content = zoom.middleware.handle(
+        status, headers, content = middleware.handle(
             request,
             self.handlers,
         )
@@ -78,4 +79,3 @@ def application(environ, start_response):
     """
     os.chdir(environ.get('DOCUMENT_ROOT'))
     return WSGIApplication(instance='..')(environ, start_response)
-
