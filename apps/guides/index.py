@@ -26,16 +26,16 @@ table_of_guides = \
 #                'Dynamic Record Basics',
 #            ]
 #        ),
-#        (
-#            'Views',
-#            [
-#                'Introduction to Views',
+        (
+            'Views',
+            [
+                'Introduction to Views',
 #                'Views',
 #                'Layouts and Rendering',
 #                'Fields',
 #                'Helpers',
-#            ]
-#        ),
+            ]
+        ),
 #        (
 #            'Controllers',
 #            [
