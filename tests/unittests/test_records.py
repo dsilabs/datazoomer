@@ -1,42 +1,66 @@
 """
-    Test the store module
-    
-    Copyright (c) 2005-2012 Dynamic Solutions Inc. (support@dynamic-solutions.com)
-    
-    This file is part of DataZoomer.
+    Test the records module
 """
 
-from zoom.store import Entity, EntityStore
-from zoom.db import Database
-
-import MySQLdb
+from zoom.records import Record, RecordStore
+from zoom.db import database
 
 import unittest
 from decimal import Decimal
 
 from datetime import date, time, datetime
 
-class Person(Entity): pass
-class TestPerson(Entity): pass
+class Person(Record): pass
+class TestPerson(Record): pass
 
 class TestDb(unittest.TestCase):
 
     def setUp(self):
+        def create_test_tables(db):
+            """create test tables"""
+            db('drop table if exists person')
+            db("""
+            create table person (
+                id int not null auto_increment,
+                name      varchar(100),
+                age       smallint,
+                kids      smallint,
+                birthdate date,
+                done      boolean,
+                PRIMARY KEY (id)
+                )
+            """)
+            db('drop table if exists account')
+            db("""
+            create table account (
+                account_id int not null auto_increment,
+                name      varchar(100),
+                added date,
+                PRIMARY KEY (account_id)
+                )
+            """)
+
         params = dict(
             host='database',
             user='testuser',
             passwd='password',
             db='test',
         )
-        self.db = Database(MySQLdb.Connect, **params)
-        self.db.autocommit(1)
-        self.people = EntityStore(self.db, Person)
+        self.db = database('mysql', **params)
+        create_test_tables(self.db)
+        self.people = RecordStore(self.db, Person)
         self.joe_id = self.people.put(Person(name='Joe', age=50))
         self.sam_id = self.people.put(Person(name='Sam', age=25))
         self.people.put(Person(name='Ann', age=30))
 
     def tearDown(self):
+        def delete_test_tables(db):
+            """drop test tables"""
+            db('drop table if exists person')
+            db('drop table if exists account')
+
         self.people.zap()
+        delete_test_tables(self.db)
         self.db.close()
 
     def test_put(self):
@@ -89,7 +113,11 @@ class TestDb(unittest.TestCase):
     def test_none(self):
         al_id = self.people.put(Person(name='Al', age=None))
         al = self.people.get(al_id)
-        self.assertEqual(al.age, None)
+        # note, this behaviour is different than the Entity store
+        # because in an EntityStore None is a storable value
+        # whereas in a regular database table None is equivalant
+        # to null and there is no way to distinguish None.
+        self.assertEqual(getattr(al, 'age', None), None)
 
     def test_bool(self):
         al_id = self.people.put(Person(name='Al', done=False))
@@ -102,7 +130,7 @@ class TestDb(unittest.TestCase):
 
     def test_kind(self):
         self.assertEqual(self.people.kind, 'person')
-        self.assertEqual(EntityStore(self.db,TestPerson).kind, 'test_person')
+        self.assertEqual(RecordStore(self.db,TestPerson).kind, 'test_person')
 
     def test_len(self):
         self.assertEqual(3, len(self.people))

@@ -1,10 +1,15 @@
 """
-    key value store
+    zoom.tables
+
+    (deprecated - use zoom.records instead)
 """
 
 import datetime
-from zoom.utils import Record
-from zoom.store import ValidException, TypeException, Entity, EntityList, kind
+
+from zoom.utils import Record, kind
+from zoom.store import Entity, EntityList
+from zoom.exceptions import TypeException
+
 
 def create_tables(db):
     db("""
@@ -23,13 +28,13 @@ def delete_tables(db):
 
 def setup_test():
     import MySQLdb, database
-    #from system import system
     db = database.Database(
-            MySQLdb.Connect, 
-            host='database',
-            db='test',
-            user='testuser',
-            passwd='password')
+        MySQLdb.Connect, 
+        host='database',
+        db='test',
+        user='testuser',
+        passwd='password'
+    )
     delete_tables(db)
     create_tables(db)
     return db

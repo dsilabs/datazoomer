@@ -4,34 +4,36 @@
 
 import datetime
 import decimal
-import jsonz as json
-from zoom.utils import Record, RecordList, kind
-from zoom.tools import db
 
-
-class ValidException(Exception): pass
-class TypeException(Exception): pass
+import zoom.utils
+import zoom.tools
+import zoom.exceptions
+import zoom.jsonz
 
 
 def create_storage(db):
-    db("""
-    create table if not exists entities (
-        id int not null auto_increment,
-        kind      varchar(100),
-        PRIMARY KEY (id)
-        )
-    """)
-    db("""
-    create table if not exists attributes (
-        id int not null auto_increment,
-        kind      varchar(100),
-        row_id    int not null,
-        attribute varchar(100),
-        datatype  varchar(30),
-        value     text,
-        PRIMARY KEY (id)
-        )
-    """)
+    db(
+        """
+        create table if not exists entities (
+            id int not null auto_increment,
+            kind      varchar(100),
+            PRIMARY KEY (id)
+            )
+        """
+    )
+    db(
+        """
+        create table if not exists attributes (
+            id int not null auto_increment,
+            kind      varchar(100),
+            row_id    int not null,
+            attribute varchar(100),
+            datatype  varchar(30),
+            value     text,
+            PRIMARY KEY (id)
+            )
+        """
+    )
 
 
 def delete_storage(db):
@@ -40,26 +42,26 @@ def delete_storage(db):
 
 
 def setup_test():
-    import MySQLdb, db as database
+    from db import database
 
-    db = database.Database(
-            MySQLdb.Connect, 
-            host='database',
-            db='test',
-            user='testuser',
-            passwd='password')
-    db.autocommit(1)
+    db = database(
+        'mysql',
+        host='database',
+        db='test',
+        user='testuser',
+        passwd='password'
+    )
     delete_storage(db)
     create_storage(db)
     return db
 
 
-class Entity(Record):
+class Entity(zoom.utils.Record):
     """any thing that works like a dict will do"""
     pass
 
 
-class EntityList(RecordList):
+class EntityList(zoom.utils.RecordList):
     """a list of Entities"""
     pass
 
@@ -121,10 +123,11 @@ def entify(rs, klass):
             value = long(rec.id)
 
         elif datatype in ['list', 'tuple']:
-            value = json.loads(value)
+            value = zoom.jsonz.loads(value)
 
         else:
-            raise TypeException,'unsupported data type: ' + repr(datatype)
+            msg = 'unsupported data type: ' + repr(datatype)
+            raise zoom.exceptions.TypeException, msg
 
         entities.setdefault(row_id, klass(_id=row_id))[attribute] = value
 
@@ -219,7 +222,7 @@ class EntityStore(object):
         <Person {'name': 'Sally', 'birthdate': datetime.date(1992, 5, 5), 'kids': 3}>
         >>> EntityStore(db, 'person').first(name='Joe')['age']
         20
-        >>> from utils import PY2
+        >>> from zoom.utils import PY2
         >>> name = PY2 and unicode('somename') or str('somename')
         >>> id = misc.put(dict(host='database', name=name))
         >>> my_info = misc.get(id)
@@ -230,7 +233,7 @@ class EntityStore(object):
     def __init__(self, db, klass=dict):
         self.db = db
         self.klass = type(klass) == str and dict or klass
-        self.kind = type(klass) == str and klass or kind(klass())
+        self.kind = type(klass) == str and klass or zoom.utils.kind(klass())
 
     def put(self, entity):
         """
@@ -277,7 +280,7 @@ class EntityStore(object):
             if type(d) == decimal.Decimal:
                 return str(d)
             if isinstance(d, (list, tuple)):
-                return json.dumps(d)
+                return zoom.jsonz.dumps(d)
             return d
 
         def get_type_str(v):
@@ -299,7 +302,7 @@ class EntityStore(object):
 
         for n, atype in enumerate(datatypes):
             if atype not in valid_types:
-                raise TypeException,'unsupported type <type %s> in value %r' % (atype, keys[n])
+                raise zoom.exceptions.TypeException,'unsupported type <type %s> in value %r' % (atype, keys[n])
 
         if '_id' in entity:
             id = entity['_id']
@@ -707,7 +710,7 @@ class EntityStore(object):
 Store = EntityStore
 
 def store(klass=dict):
-    return EntityStore(db, klass)
+    return EntityStore(zoom.tools.db, klass)
 
 if __name__ == '__main__':
     import doctest

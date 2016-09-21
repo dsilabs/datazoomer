@@ -6,15 +6,10 @@
 
 import datetime
 import decimal
+
+# pylint: disable=unused-import
 from zoom.utils import Record, RecordList, kind
-
-class ValidException(Exception):
-    """invalid record"""
-    pass
-
-class TypeException(Exception):
-    """unsupported type"""
-    pass
+from zoom.exceptions import TypeException
 
 def setup_test():
     """set up test database"""
@@ -32,21 +27,29 @@ def setup_test():
             PRIMARY KEY (id)
             )
         """)
+        db("""
+        create table if not exists account (
+            account_id int not null auto_increment,
+            name      varchar(100),
+            added date,
+            PRIMARY KEY (account_id)
+            )
+        """)
 
     def delete_test_tables(db):
         """drop test tables"""
         db('drop table if exists person')
+        db('drop table if exists account')
 
-    import MySQLdb
-    from zoom.db import Database
+    from zoom.db import database
 
-    db = Database(
-            MySQLdb.Connect,
-            host='database',
-            db='test',
-            user='testuser',
-            passwd='password')
-    db.autocommit(1)
+    db = database(
+        'mysql',
+        host='database',
+        db='test',
+        user='testuser',
+        passwd='password'
+    )
     delete_test_tables(db)
     create_test_tables(db)
     return db
@@ -211,9 +214,7 @@ class RecordStore(object):
             decimal.Decimal,
         ]
 
-        # pylint: disable=invalid-name
         # pylint: disable=star-args
-        db = self.db
 
         for atype in datatypes:
             if atype not in valid_types:
@@ -221,15 +222,15 @@ class RecordStore(object):
 
         if '_id' in record:
             _id = record['_id']
-            sc = ', '.join('%s=%s' % (i, '%s') for i in keys)
-            cmd = 'update %s set %s where id=%d' % (self.kind, sc, _id)
-            db(cmd, *values)
+            set_clause = ', '.join('%s=%s' % (i, '%s') for i in keys)
+            cmd = 'update %s set %s where id=%d' % (self.kind, set_clause, _id)
+            self.db(cmd, *values)
         else:
-            kc = ', '.join(keys)
+            names = ', '.join(keys)
             placeholders = ','.join(['%s'] * len(keys))
             cmd = 'insert into %s (%s) values (%s)' % (
-                self.kind, kc, placeholders)
-            _id = db(cmd, *values)
+                self.kind, names, placeholders)
+            _id = self.db(cmd, *values)
             record['_id'] = _id
 
         return _id
@@ -454,14 +455,11 @@ class RecordStore(object):
         """
         Find keys that meet search critieria
         """
-        # TODO: add set values
-        # pylint: disable=invalid-name
-        db = self.db
         items = kv.items()
-        wc = ' and '.join('%s=%s'%(k, '%s') for k, v in items)
-        cmd = 'select distinct id from ' + self.kind + ' where ' + wc
-        q = db(cmd, *[v for _, v in items])
-        return [i[0] for i in q]
+        clause = ' and '.join('%s=%s'%(k, '%s') for k, v in items)
+        cmd = 'select distinct id from ' + self.kind + ' where ' + clause
+        result = self.db(cmd, *[v for _, v in items])
+        return [i[0] for i in result]
 
     def find(self, **kv):
         """
@@ -483,12 +481,11 @@ class RecordStore(object):
             [<Person {'name': 'Sam', 'age': 25}>]
 
         """
-        # pylint: disable=invalid-name
         items = kv.items()
-        wc = ' and '.join('%s=%s' % (k, '%s') for k, v in items)
-        cmd = 'select * from ' + self.kind + ' where ' + wc
-        q = self.db(cmd, *[v for _, v in items])
-        return Result(q, self.record_class)
+        where_clause = ' and '.join('%s=%s' % (k, '%s') for k, v in items)
+        cmd = 'select * from ' + self.kind + ' where ' + where_clause
+        result = self.db(cmd, *[v for _, v in items])
+        return Result(result, self.record_class)
 
     def first(self, **kv):
         """
