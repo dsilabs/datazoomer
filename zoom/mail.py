@@ -25,7 +25,8 @@ from types import TupleType, ListType, StringType
 from formatter import AbstractFormatter, DumbWriter
 
 from zoom.system import system
-from zoom.store import Record, EntityStore
+from zoom.store import EntityStore
+from zoom.utils import Record
 
 
 __all__ = (
