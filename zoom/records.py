@@ -30,7 +30,7 @@ def setup_test():
         db("""
         create table if not exists account (
             account_id int not null auto_increment,
-            name      varchar(100),
+            name varchar(100),
             added date,
             PRIMARY KEY (account_id)
             )
@@ -78,6 +78,9 @@ class Result(object):
 
     def __repr__(self):
         return repr(list(self))
+
+    def __str__(self):
+        return str(RecordList(self))
 
 
 class RecordStore(object):
@@ -154,15 +157,73 @@ class RecordStore(object):
         ...     "'birthdate': datetime.date(1992, 5, 5), 'kids': 3}>"
         ... )
         True
+
+
+        >>> class Account(Record): pass
+        >>> class Accounts(RecordStore): pass
+        >>> accounts = Accounts(db, Account, key='account_id')
+        >>> accounts.kind
+        'account'
+
+        >>> account = Account(name='Joe', added=datetime.date(1992,5,5))
+        >>> repr(account) == (
+        ...     "<Account {'name': 'Joe', 'added': datetime.date(1992, 5, 5)}>"
+        ... )
+        True
+        >>> id = accounts.put(account)
+        >>> id
+        1L
+        >>> accounts.put(Account(name='Sam', added=datetime.date(2001,1,1)))
+        2L
+        >>> accounts.put(Account(name='Sal', added=datetime.date(2001,1,1)))
+        3L
+
+        >>> account = accounts.get(1)
+        >>> print accounts
+        account
+        account_id  name  added       
+        ----------- ----- ----------- 
+        1           Joe   1992-05-05  
+        2           Sam   2001-01-01  
+        3           Sal   2001-01-01  
+        3 records
+
+        >>> print accounts.first(name='Sam')
+        Account
+          name ................: 'Sam'
+          account_id ..........: 2L
+          added ...............: datetime.date(2001, 1, 1)
+
+        >>> print accounts.find(added=datetime.date(2001, 1, 1))
+        account
+        account_id  name  added       
+        ----------- ----- ----------- 
+        2           Sam   2001-01-01  
+        3           Sal   2001-01-01  
+        2 records
+
+        >>> accounts.delete(2L)
+        >>> print accounts
+        account
+        account_id  name  added       
+        ----------- ----- ----------- 
+        1           Joe   1992-05-05  
+        3           Sal   2001-01-01  
+        2 records
+
         """
 
 
-    def __init__(self, db, record_class=dict):
+    def __init__(self, db, record_class=dict, key='id'):
         # pylint: disable=invalid-name
         self.db = db
         self.record_class = record_class
         self.kind = kind(record_class())
+        self.key = key
 
+    @property
+    def id_name(self):
+        return self.key == 'id' and '_id' or self.key
 
     def put(self, record):
         """
@@ -220,10 +281,15 @@ class RecordStore(object):
             if atype not in valid_types:
                 raise TypeException('unsupported type <type %s>' % atype)
 
-        if '_id' in record:
-            _id = record['_id']
+        if self.id_name in record:
+            _id = record[self.id_name]
             set_clause = ', '.join('%s=%s' % (i, '%s') for i in keys)
-            cmd = 'update %s set %s where id=%d' % (self.kind, set_clause, _id)
+            cmd = 'update %s set %s where %s=%d' % (
+                self.kind,
+                set_clause,
+                self.key,
+                _id
+            )
             self.db(cmd, *values)
         else:
             names = ', '.join(keys)
@@ -269,12 +335,17 @@ class RecordStore(object):
 
         if not isinstance(keys, (list, tuple)):
             keys = (keys, )
-            cmd = 'select * from '+self.kind+' where id=%s'
+            cmd = 'select * from '+self.kind+' where ' + self.key + '=%s'
             as_list = 0
         else:
             keys = [long(key) for key in keys]
-            cmd = 'select * from '+self.kind+' where id in (%s)' % (
-                ','.join(['%s'] * len(keys)))
+            cmd = (
+                'select * from '
+                + self.kind
+                + ' where '
+                + self.key
+                + ' in (%s)'
+            ) % (','.join(['%s'] * len(keys)))
             as_list = 1
 
         if not keys:
@@ -339,8 +410,8 @@ class RecordStore(object):
 
         """
         if hasattr(key, 'get'):
-            key = key.get('_id')
-        cmd = 'delete from %s where id=%s' % (self.kind, '%s')
+            key = key.get(self.id_name)
+        cmd = 'delete from %s where %s=%s' % (self.kind, self.key, '%s')
         self.db(cmd, key)
 
 
@@ -374,7 +445,8 @@ class RecordStore(object):
         if not isinstance(keys, (list, tuple)):
             keys = (keys,)
         slots = (','.join(['%s']*len(keys)))
-        cmd = 'select distinct id from %s where id in (%s)' % (self.kind, slots)
+        cmd = 'select distinct %s from %s where %s in (%s)' % (
+            self.key, self.kind, self.key, slots)
         rows = self.db(cmd, *keys)
 
         found_keys = [rec[0] for rec in rows]
@@ -457,7 +529,14 @@ class RecordStore(object):
         """
         items = kv.items()
         clause = ' and '.join('%s=%s'%(k, '%s') for k, v in items)
-        cmd = 'select distinct id from ' + self.kind + ' where ' + clause
+        cmd = ' '.join([
+            'select distinct',
+            self.key,
+            'from',
+            self.kind,
+            'where',
+            clause,
+        ])
         result = self.db(cmd, *[v for _, v in items])
         return [i[0] for i in result]
 

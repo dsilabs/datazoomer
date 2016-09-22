@@ -13,33 +13,35 @@ from datetime import date, time, datetime
 class Person(Record): pass
 class TestPerson(Record): pass
 
-class TestDb(unittest.TestCase):
+
+class TestRecordStore(unittest.TestCase):
+
+    def __init__(self, *a, **k):
+        unittest.TestCase.__init__(self, *a, **k)
+        self.key = 'id'
+
+    @property
+    def id_name(self):
+        return self.key == 'id' and '_id' or self.key
+
+    def create_tables(self, db):
+        db('drop table if exists person')
+        db("""
+        create table person (
+            {key} int not null auto_increment,
+            name      varchar(100),
+            age       smallint,
+            kids      smallint,
+            birthdate date,
+            done      boolean,
+            PRIMARY KEY ({key})
+            )
+        """.format(key=self.key))
+
+    def get_record_store(self):
+        return RecordStore(self.db, Person, key=self.key)
 
     def setUp(self):
-        def create_test_tables(db):
-            """create test tables"""
-            db('drop table if exists person')
-            db("""
-            create table person (
-                id int not null auto_increment,
-                name      varchar(100),
-                age       smallint,
-                kids      smallint,
-                birthdate date,
-                done      boolean,
-                PRIMARY KEY (id)
-                )
-            """)
-            db('drop table if exists account')
-            db("""
-            create table account (
-                account_id int not null auto_increment,
-                name      varchar(100),
-                added date,
-                PRIMARY KEY (account_id)
-                )
-            """)
-
         params = dict(
             host='database',
             user='testuser',
@@ -47,8 +49,11 @@ class TestDb(unittest.TestCase):
             db='test',
         )
         self.db = database('mysql', **params)
-        create_test_tables(self.db)
-        self.people = RecordStore(self.db, Person)
+
+        self.create_tables(self.db)
+
+        self.people = self.get_record_store()
+
         self.joe_id = self.people.put(Person(name='Joe', age=50))
         self.sam_id = self.people.put(Person(name='Sam', age=25))
         self.people.put(Person(name='Ann', age=30))
@@ -66,11 +71,26 @@ class TestDb(unittest.TestCase):
     def test_put(self):
         jane_id = self.people.put(Person(name='Jane', age=25))
         person = self.people.get(jane_id)
-        self.assertEqual(dict(person), dict(_id=jane_id, name='Jane', age=25))
+        self.assertEqual(
+            dict(person),
+            {
+                self.id_name: jane_id,
+                'name': 'Jane',
+                'age': 25,
+            }
+        )
 
     def test_get(self):
         joe = self.people.get(self.joe_id)
-        self.assertEqual(dict(joe), dict(_id=self.joe_id, name='Joe', age=50))
+        self.assertEqual(
+            dict(joe),
+            #dict(_id=self.joe_id, name='Joe', age=50)
+            {
+                self.id_name: self.joe_id,
+                'name': 'Joe',
+                'age': 50,
+            }
+        )
 
     def test_get_missing(self):
         joe = Person(name='Joe', age=50)
@@ -83,7 +103,7 @@ class TestDb(unittest.TestCase):
         r = self.people.get(keys)
         sam = self.people.get(self.sam_id)
         joe = self.people.get(self.joe_id)
-        sort_order = lambda a: keys.index(a['_id'])
+        sort_order = lambda a: keys.index(a[self.id_name])
         self.assertEqual(sorted(r, key=sort_order), [sam, joe])
 
     def test_get_put_get(self):
@@ -139,4 +159,12 @@ class TestDb(unittest.TestCase):
         self.assertEqual(3, len(self.people))
         self.people.zap()
         self.assertEqual(0, len(self.people))
+
+
+class TestKeyedRecordStore(TestRecordStore):
+
+    def __init__(self, *a, **k):
+        TestRecordStore.__init__(self, *a, **k)
+        self.key = 'person_id'
+
 
