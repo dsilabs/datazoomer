@@ -70,7 +70,7 @@ class CollectionView(View):
 
         c = self.collection
         f = self.collection.fields
-        actions = c.can_edit() and ['New'] or []
+        actions = user.can('create', c) and ['New'] or []
 
         if q:
             logger.activity(system.app.name, '%s searched %s with %r' % (user.link, c.name.lower(), q))
@@ -116,7 +116,6 @@ class CollectionView(View):
                 actions.append(action_for(record, 'Edit'))
             if user.can('delete', record):
                 actions.append(action_for(record, 'Delete'))
-            #actions = c.can_edit() and actions_for(record, 'Edit', 'Delete') or []
             c.fields.initialize(c.entity(record))
 
             if 'updated' in record and 'updated_by' in record:
@@ -129,35 +128,39 @@ class CollectionView(View):
 
     def new(self):
         c = self.collection
-        if c.can_edit():
-            form = Form(c.fields, ButtonField('Create', cancel=c.url))
-            return page(form.edit(), title='New '+c.item_name)
+        user.authorize('create', c)
+        form = Form(c.fields, ButtonField('Create', cancel=c.url))
+        return page(form.edit(), title='New '+c.item_name)
 
     def edit(self, key, **data):
         c = self.collection
-        if c.can_edit():
-            record = locate(c, key)
-            if record:
-                user.authorize('read', record)
-                user.authorize('update', record)
 
-                c.fields.initialize(record)
-                c.fields.update(data)
-                form = Form(c.fields, ButtonField('Save', cancel=record.url))
-                return page(form.edit(), title=c.item_name)
-            else:
-                return page('%s missing' % key)
+        user.authorize('update', c)
+
+        record = locate(c, key)
+        if record:
+            user.authorize('read', record)
+            user.authorize('update', record)
+
+            c.fields.initialize(record)
+            c.fields.update(data)
+            form = Form(c.fields, ButtonField('Save', cancel=record.url))
+            return page(form.edit(), title=c.item_name)
+        else:
+            return page('%s missing' % key)
 
     def delete(self, key, CONFIRM='YES'):
         c = self.collection
-        if c.can_edit():
-            if CONFIRM != 'NO':
-                c = self.collection
-                record = locate(c, key)
-                if record:
-                    user.authorize('read', record)
-                    user.authorize('delete', record)
-                    return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
+
+        user.authorize('delete', c)
+
+        if CONFIRM != 'NO':
+            c = self.collection
+            record = locate(c, key)
+            if record:
+                user.authorize('read', record)
+                user.authorize('delete', record)
+                return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
 
     def image(self, key, name):
         record = self.collection.locate(key)
@@ -193,67 +196,73 @@ class CollectionController(Controller):
 
     def create_button(self, *a, **data):
         c = self.collection
-        if c.can_edit():
-            if c.fields.validate(data):
-                record = c.entity()
-                record.update(c.fields)
-                record.pop('key',None)
+
+        user.authorize('create', c)
+
+        if c.fields.validate(data):
+            record = c.entity()
+            record.update(c.fields)
+            record.pop('key',None)
+            try:
+                key = record.key
+            except AttributeError:
+                key = None
+            if key and locate(c, record.key) is not None:
+                error(duplicate_key_msg)
+            else:
+                record.created = now
+                record.updated = now
+                record.owner = user.username
+                record.owner_id = user.user_id
+                record.created_by = user.username
+                record.updated_by = user.username
                 try:
-                    key = record.key
+                    record.key = record.key # property to attribute for storage
                 except AttributeError:
-                    key = None
-                if key and locate(c, record.key) is not None:
-                    error(duplicate_key_msg)
-                else:
-                    record.created = now
-                    record.updated = now
-                    record.owner = user.username
-                    record.owner_id = user.user_id
-                    record.created_by = user.username
-                    record.updated_by = user.username
-                    try:
-                        record.key = record.key # property to attribute for storage
-                    except AttributeError:
-                        pass # can happen when key depends on database auto-increment value
-                    c.store.put(record)
-                    logger.activity(system.app.name, '%s added %s %s' %
-                                    (user.link, c.item_name.lower(),
-                                     record.link))
-                    return redirect_to(c.url)
+                    pass # can happen when key depends on database auto-increment value
+                c.store.put(record)
+                logger.activity(system.app.name, '%s added %s %s' %
+                                (user.link, c.item_name.lower(),
+                                 record.link))
+                return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
         c = self.collection
-        if c.can_edit():
-            if c.fields.validate(data):
-                record = locate(c, key)
-                if record:
-                    user.authorize('update', record)
-                    record.update(c.fields)
-                    record.pop('key',None)
-                    if record.key <> key and locate(c, record.key):
-                        error(duplicate_key_msg)
-                    else:
-                        record.updated = now
-                        record.updated_by = user.username
-                        record.key = record.key # property to attribute for storage
-                        c.store.put(record)
-                        logger.activity(system.app.name, '%s edited %s %s' %
-                                        (user.link, c.item_name.lower(),
-                                         record.link))
-                        return redirect_to(record.url)
+
+        user.authorize('update', c)
+
+        if c.fields.validate(data):
+            record = locate(c, key)
+            if record:
+                user.authorize('update', record)
+                record.update(c.fields)
+                record.pop('key',None)
+                if record.key <> key and locate(c, record.key):
+                    error(duplicate_key_msg)
+                else:
+                    record.updated = now
+                    record.updated_by = user.username
+                    record.key = record.key # property to attribute for storage
+                    c.store.put(record)
+                    logger.activity(system.app.name, '%s edited %s %s' %
+                                    (user.link, c.item_name.lower(),
+                                     record.link))
+                    return redirect_to(record.url)
 
     def delete(self, key, CONFIRM='YES'):
         c = self.collection
-        if c.can_edit():
-            if CONFIRM == 'NO':
-                record = locate(c, key)
-                if record:
-                    user.authorize('delete', record)
-                    c.store.delete(record)
-                    logger.activity(system.app.name, '%s deleted %s %s' %
-                                    (user.link, c.item_name.lower(),
-                                     record.link))
-                    return redirect_to(c.url)
+
+        user.authorize('delete', c)
+
+        if CONFIRM == 'NO':
+            record = locate(c, key)
+            if record:
+                user.authorize('delete', record)
+                c.store.delete(record)
+                logger.activity(system.app.name, '%s deleted %s %s' %
+                                (user.link, c.item_name.lower(),
+                                 record.link))
+                return redirect_to(c.url)
 
     def delete_image(self, key, name):
         record = self.collection.locate(key)
@@ -344,6 +353,7 @@ class Collection(object):
         self.filter = None # attach callable here to filter browse list
 
     def can_edit(self, user=user):
+        # legacy - use user.can('action', object) instead
         return user.is_member(['managers'])
 
     def order(self, item):
@@ -365,6 +375,22 @@ class Collection(object):
     def __str__(self):
         return 'collection of ' + str(self.store)
 
+    def allows(self, user, action):
+
+        def is_manager(user):
+            return user.is_member('managers')
+
+        actions = {
+            'create': is_manager,
+            'read': is_manager,
+            'update': is_manager,
+            'delete': is_manager,
+        }
+
+        if action not in actions:
+            raise Exception('action missing: {}'.format(action))
+
+        return actions.get(action)(user)
 
 
 

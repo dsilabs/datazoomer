@@ -313,13 +313,15 @@ class TestCollect(unittest.TestCase):
         t = self.collection()
         assert_same(VIEW_TWO_RECORD_LIST, t.content)
 
+        # only authorized users can edit collections
         user.groups = []
-        self.collection('joe', 'edit', **dict(
-            SAVE_BUTTON='y',
-            NAME='Jim',
-            ADDRESS='123 Somewhere St',
-            SALARY=Decimal('40000'),
-        ))
+        with self.assertRaises(UnauthorizedException):
+            self.collection('joe', 'edit', **dict(
+                SAVE_BUTTON='y',
+                NAME='Jim',
+                ADDRESS='123 Somewhere St',
+                SALARY=Decimal('40000'),
+            ))
         t = self.collection()
         assert_same(VIEW_TWO_RECORD_LIST, t.content)
 
@@ -334,7 +336,8 @@ class TestCollect(unittest.TestCase):
         assert_same(VIEW_UPDATED_JOE_LIST, t.content)
 
         user.groups = []
-        self.collection('delete', 'jim', **{'CONFIRM': 'NO'})
+        with self.assertRaises(UnauthorizedException):
+            self.collection('delete', 'jim', **{'CONFIRM': 'NO'})
         t = self.collection()
         assert_same(VIEW_UPDATED_JOE_LIST, t.content)
 
@@ -414,7 +417,7 @@ class TestCollect(unittest.TestCase):
         t = self.collection()
         assert_same(VIEW_UPDATED_JOE_LIST, t.content)
 
-        # user can't read eecords that belong to others
+        # user can't read records that belong to others
         with self.assertRaises(UnauthorizedException):
             t = self.collection('joe')
 
@@ -494,6 +497,7 @@ class TestCollect(unittest.TestCase):
         # user one inserts two records
         user.initialize('user')
         assert user.is_authenticated
+        user.groups = ['managers']
 
         joe_input = dict(
             CREATE_BUTTON='y',
