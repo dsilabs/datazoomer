@@ -214,11 +214,11 @@ class RecordStore(object):
         """
 
 
-    def __init__(self, db, record_class=dict, key='id'):
+    def __init__(self, db, record_class=dict, name=None, key='id'):
         # pylint: disable=invalid-name
         self.db = db
         self.record_class = record_class
-        self.kind = kind(record_class())
+        self.kind = name or kind(record_class())
         self.key = key
 
     @property

@@ -15,9 +15,15 @@ class TestPerson(Record): pass
 
 
 class TestRecordStore(unittest.TestCase):
+    """RecordStore Tests
+
+    Tests the normal case where the table name corresponds to the kind of
+    object being stored and the ID is id.
+    """
 
     def __init__(self, *a, **k):
         unittest.TestCase.__init__(self, *a, **k)
+        self.name = 'person'
         self.key = 'id'
 
     @property
@@ -25,9 +31,9 @@ class TestRecordStore(unittest.TestCase):
         return self.key == 'id' and '_id' or self.key
 
     def create_tables(self, db):
-        db('drop table if exists person')
+        db('drop table if exists {name}'.format(name=self.name))
         db("""
-        create table person (
+        create table {name} (
             {key} int not null auto_increment,
             name      varchar(100),
             age       smallint,
@@ -36,10 +42,10 @@ class TestRecordStore(unittest.TestCase):
             done      boolean,
             PRIMARY KEY ({key})
             )
-        """.format(key=self.key))
+        """.format(key=self.key, name=self.name))
 
     def get_record_store(self):
-        return RecordStore(self.db, Person, key=self.key)
+        return RecordStore(self.db, Person)
 
     def setUp(self):
         params = dict(
@@ -61,8 +67,7 @@ class TestRecordStore(unittest.TestCase):
     def tearDown(self):
         def delete_test_tables(db):
             """drop test tables"""
-            db('drop table if exists person')
-            db('drop table if exists account')
+            db('drop table if exists {}'.format(self.name))
 
         self.people.zap()
         delete_test_tables(self.db)
@@ -162,9 +167,53 @@ class TestRecordStore(unittest.TestCase):
 
 
 class TestKeyedRecordStore(TestRecordStore):
+    """Keyed RecordStore Tests
+
+    Tests the case where the table name corresponds to the kind of
+    object being stored but the key of the table is not standard and is
+    instead passed in as a parameter.
+    """
 
     def __init__(self, *a, **k):
         TestRecordStore.__init__(self, *a, **k)
+        self.name = 'person'
         self.key = 'person_id'
+
+    def get_record_store(self):
+        return RecordStore(self.db, Person, key=self.key)
+
+
+class TestNamedRecordStore(TestRecordStore):
+    """Named RecordStore Tests
+
+    Tests the case where the table name does not correspond to the kind of
+    object being stored but is passed in instead, and where the key of the
+    table is standard.
+    """
+
+    def __init__(self, *a, **k):
+        TestRecordStore.__init__(self, *a, **k)
+        self.name = 'person'
+        self.key = 'id'
+
+    def get_record_store(self):
+        return RecordStore(self.db, Person, name=self.name)
+
+
+class TestNamedKeyedRecordStore(TestRecordStore):
+    """Named RecordStore Tests
+
+    Tests the case where both the table name does not correspond to the kind of
+    object being stored but is passed in instead, and the key of the
+    table is passed in rather than using the usual ID column.
+    """
+
+    def __init__(self, *a, **k):
+        TestRecordStore.__init__(self, *a, **k)
+        self.name = 'person'
+        self.key = 'person_id'
+
+    def get_record_store(self):
+        return RecordStore(self.db, Person, name=self.name, key=self.key)
 
 
