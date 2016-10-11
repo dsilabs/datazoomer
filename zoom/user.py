@@ -222,9 +222,10 @@ class User(object):
                 add_user(login_id, 'guests')
 
         if len(dataset):
-            self.login_id   = login_id
-            self.username   = login_id
             rec = dataset[0]
+            self.login_id   = get_username(rec.USERID)  # supplied login_id can be case insensitive
+            self.username   = self.login_id
+
             self.first_name = rec.firstname
             self.last_name  = rec.lastname
             self.phone      = rec.phone
