@@ -199,12 +199,12 @@ class TestOldUser(TestUser):
         user = OldUser('user1')
         self.assertEqual(user.user_id, 3L)
 
-    #def test_get_user_case_insensitive(self):
-    #    user = OldUser('Admin')
-    #    self.assertEqual(user.user_id, 1L)
-    #    self.assertEqual(user.login_id, 'admin')
-    #    self.assertEqual(user.username, 'admin')
-    #    self.assertEqual(user.first_name, 'Admin')
+    def test_get_user_case_insensitive(self):
+        user = OldUser('Admin')
+        self.assertEqual(user.user_id, 1L)
+        self.assertEqual(user.login_id, 'admin')
+        self.assertEqual(user.username, 'admin')
+        self.assertEqual(user.first_name, 'Admin')
 
     def test_user_groups(self):
         user = OldUser('admin')
