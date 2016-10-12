@@ -195,7 +195,7 @@ class User(object):
     def link(self):
         return '<a href="/{app}/{user.user_id}">{user.username}</a>'.format(
             app=system.app.name,
-            user=user
+            user=self
         )
 
     @property
