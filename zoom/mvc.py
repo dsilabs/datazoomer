@@ -1,4 +1,6 @@
 
+from inspect import getargspec
+
 from request import data
 from user import user
 from exceptions import PageMissingException, UnauthorizedException
@@ -12,16 +14,24 @@ def evaluate(o, i, *a, **k):
     name = as_attr(i)
     if hasattr(o, name):
         attr = getattr(o, name)
-        if callable(attr):
+        method = callable(attr) and attr
+        if method:
             try:
-                try:
-                    return attr(*a, **k)
-                except TypeError, e:
-                    if 'takes exactly' in e.message or 'got an unexpected' in e.message:
-                        return attr()
-                    raise
-            except:
-                if user.is_developer:
+                return method(*a, **k)
+            except TypeError, e:
+                # catch errors generated as a result of calling
+                # older style methods, and let those go through
+                sig = getargspec(method)
+                if list(sig) == [['self'], None, None, None]:
+                    # looks like an old style (parameterless) method
+                    # so try calling it without parameters
+                    return method()
+
+                elif user.is_developer:
+                    # its not a old style method issue, its just been
+                    # called incorrectly so show the developer what
+                    # got passed and raise the error as it was originall
+                    # raised
                     print 'parameters passed', a, k
                 raise
         else:
