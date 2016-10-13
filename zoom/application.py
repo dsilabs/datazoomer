@@ -23,6 +23,7 @@ import ConfigParser
 
 from . import response
 from zoom.system import system
+from zoom.settings import NEGATIVE
 
 DEFAULT_SETTINGS = dict(
     title='',
@@ -90,7 +91,7 @@ class Application(object):
         self.version = get('version')
         self.icon = get('icon')
         self.title = get('title') or name.capitalize()
-        self.visible = get('visible')
+        self.visible = get('visible') not in NEGATIVE
         self.description = get('description', '')
         self.categories = list_it(get('categories', ''))
         self.tags = list_it(get('tags', ''))
