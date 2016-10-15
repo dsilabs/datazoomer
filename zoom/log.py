@@ -1,12 +1,15 @@
 """
-    log.py
+    zoom.log
 
     system logger
 """
 
-import os, datetime
+import os
+import datetime
+
 from zoom.system import system
 from zoom.user import user
+
 
 class Logger(object):
     """system logger"""
@@ -50,7 +53,7 @@ class Logger(object):
         """Insert an entry into the system log."""
         # pylint: disable=star-args
 
-        if not self.system.logging:
+        if not (self.system.is_setup and self.system.logging):
             return False
 
         elapsed = self.system.elapsed_time * 1000
@@ -77,12 +80,13 @@ class Logger(object):
 
         return result
 
+
 def audit(action, subject1, subject2=''):
     """Place an entry in the audit log"""
     now = datetime.datetime.now()
     query = """
-        insert into audit_log 
-        (app,user,activity,subject1,subject2,timestamp) 
+        insert into audit_log
+        (app,user,activity,subject1,subject2,timestamp)
         values (%s,%s,%s,%s,%s,%s)
         """
     system.database(
@@ -97,4 +101,3 @@ def audit(action, subject1, subject2=''):
 
 # pylint: disable=invalid-name
 logger = Logger(system)
-
