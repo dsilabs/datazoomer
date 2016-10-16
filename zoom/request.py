@@ -38,8 +38,8 @@ class Webvars(object):
         # pylint: disable=no-member
         try:
             import msvcrt
-            msvcrt.setmode(0, os.O_BINARY) # stdin  = 0
-            msvcrt.setmode(1, os.O_BINARY) # stdout = 1
+            msvcrt.setmode(0, os.O_BINARY)  # stdin  = 0
+            msvcrt.setmode(1, os.O_BINARY)  # stdout = 1
         except ImportError:
             pass
 
@@ -79,7 +79,7 @@ class Webvars(object):
         self.__dict__ = items
 
     def __getattr__(self, name):
-        return '' # return blank for missing attributes
+        return ''  # return blank for missing attributes
 
     def __str__(self):
         return repr(self.__dict__)
@@ -87,14 +87,16 @@ class Webvars(object):
     def __repr__(self):
         return str(self)
 
+
 def get_parent_dir():
     """get the directory above the current directory"""
     return os.path.split(os.path.abspath(os.getcwd()))[0]
 
+
 class Request(object):
     """A web request"""
 
-    # pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods, too-many-instance-attributes
 
     def __init__(self, env=None, instance=None, start_time=None):
         env = env or os.environ
@@ -104,6 +106,10 @@ class Request(object):
         self.server = None
         self.route = []
         self.data = {}
+        self.referrer = None
+        self.uri = None
+        self.subject = None
+        self.method = None
         self.setup(env, instance)
 
     def setup(self, env, instance=None):
@@ -155,7 +161,7 @@ class Request(object):
             domain=calc_domain(env.get('HTTP_HOST')),
             uri=env.get('REQUEST_URI', 'index.py'),
             query=env.get('QUERY_STRING'),
-            ip=env.get('REMOTE_ADDR'), # deprecated
+            ip=env.get('REMOTE_ADDR'),  # deprecated
             ip_address=env.get('REMOTE_ADDR'),
             user=env.get('REMOTE_USER'),
             cookies=cookies,
@@ -170,7 +176,7 @@ class Request(object):
             method=env.get('REQUEST_METHOD'),
             module=module,
             mode=env.get('mod_wsgi.process_group', None) \
-                and 'daemon' or 'embedded',
+            and 'daemon' or 'embedded',
             protocol=env.get('HTTPS', 'off') == 'on' and 'https' or 'http',
             referrer=env.get('HTTP_REFERER'),
             wsgi_version=env.get('wsgi.version'),
@@ -199,4 +205,3 @@ request = Request()
 webvars = Webvars()
 data = request.data
 route = request.route
-
