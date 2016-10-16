@@ -110,6 +110,7 @@ class Request(object):
         self.uri = None
         self.subject = None
         self.method = None
+        self.instance = None
         self.setup(env, instance)
 
     def setup(self, env, instance=None):

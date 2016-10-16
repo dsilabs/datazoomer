@@ -7,7 +7,6 @@
 """
 
 from __future__ import generators
-
 import warnings as pywarnings
 
 from system import system
@@ -47,5 +46,3 @@ __license__ = "GNU General Public License (GPL) V3"
 __contributors__ = [
     "Sean Hayes <hayes.dsi@gmail.com>",
 ]
-
-ITEM_MISSING_ERROR = '<H1>Not Found</H1>Unable to locate page.'
