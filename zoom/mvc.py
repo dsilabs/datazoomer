@@ -1,3 +1,9 @@
+"""
+    zoom.mvc
+
+    classes to support the model, view, controller pattern
+"""
+
 
 from inspect import getargspec
 
