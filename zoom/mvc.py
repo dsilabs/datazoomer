@@ -5,10 +5,13 @@ from request import data
 from user import user
 from exceptions import PageMissingException, UnauthorizedException
 
-__all__ = ['View','Controller','authorize']
+
+__all__ = ['View', 'Controller', 'authorize']
+
 
 def as_attr(text):
-    return text.replace('-','_').lower()
+    return text.replace('-', '_').lower()
+
 
 def evaluate(o, i, *a, **k):
     name = as_attr(i)
@@ -19,10 +22,12 @@ def evaluate(o, i, *a, **k):
             try:
                 return method(*a, **k)
             except TypeError, e:
-                # catch errors generated as a result of calling
-                # older style methods, and let those go through
-                sig = getargspec(method)
-                if list(sig) == [['self'], None, None, None]:
+                try:
+                    sig = getargspec(method)
+                except TypeError:
+                    sig = None
+
+                if sig and list(sig) == [['self'], None, None, None]:
                     # looks like an old style (parameterless) method
                     # so try calling it without parameters
                     return method()
@@ -32,10 +37,11 @@ def evaluate(o, i, *a, **k):
                     # called incorrectly so show the developer what
                     # got passed and raise the error as it was originall
                     # raised
-                    print 'parameters passed', a, k
-                raise
+                    print 'called', method, 'with', a, k
+                raise e
         else:
             return attr
+
 
 def remove_buttons(data):
     buttons = {}
@@ -46,6 +52,7 @@ def remove_buttons(data):
             buttons[lname] = data[name]
             del data[name]
     return buttons, data
+
 
 def authorize(*roles):
     def wrapper(func):
@@ -58,6 +65,7 @@ def authorize(*roles):
             raise UnauthorizedException('Unauthorized')
         return authorize_and_call
     return wrapper
+
 
 def can(action):
     """activity based authentication
@@ -138,14 +146,14 @@ def can(action):
         return authorize_and_call
     return wrapper
 
+
 class View(object):
-    """
+    """View
 
-        View a model
-
+    Use to display a model.
     """
     def __call__(self, *a, **k):
-        
+
         buttons, inputs = remove_buttons(k)
 
         if len(a):
@@ -156,22 +164,25 @@ class View(object):
                 """Show a specific collection view"""
                 result = evaluate(self, view_name, *a[1:], **inputs)
 
-            elif len(a)==1:
+            elif len(a) == 1:
                 """Show the default view of an item"""
                 try:
                     result = self.show(a[0], **inputs)
                 except TypeError, e:
-                    if 'takes exactly' in e.message or 'got an unexpected' in e.message:
+                    error_messages = 'takes exactly', 'got an unexpected'
+                    if any(m in e.message for m in error_messages):
+                        # if unable to show object with parameters, try
+                        # showing without them
                         result = self.show(a[0])
                     else:
                         raise
 
-            elif len(a)>1:
+            elif len(a) > 1:
                 result = evaluate(self, a[-1:][0], '/'.join(a[:-1]), **inputs)
 
             else:
                 """No view"""
-                result = None            
+                result = None
         else:
             """Default collection view"""
             result = evaluate(self, 'index', **inputs)
@@ -184,10 +195,10 @@ class View(object):
 
 
 class Controller(object):
-    """
+    """Controller
 
-        Use this class whenever an action is going to change the state of the model.
-
+    Use this class when an action is going to change the state
+    of the model.
     """
 
     def __call__(self, *a, **k):
@@ -195,8 +206,6 @@ class Controller(object):
         result = None
 
         buttons, inputs = remove_buttons(k)
-
-        #print a, buttons, inputs
 
         # Buttons
         if buttons:
@@ -210,15 +219,15 @@ class Controller(object):
         # Collection methods
         if hasattr(self, method_name):
             result = evaluate(self, method_name, *a[1:], **inputs)
-                
-        # Object methods    
-        elif len(a)>1 :
+
+        # Object methods
+        elif len(a) > 1:
             method_name = len(a) and as_attr(a[-1:][0])
             result = evaluate(self, method_name, *a[:-1], **inputs)
 
         # If controller returned a result, we're done
         if result:
-            return result            
+            return result
 
 
 class Dispatcher(object):
@@ -243,5 +252,3 @@ class Dispatcher(object):
 
         if hasattr(self, method_name):
             return evaluate(self, method_name, *a[1:], **k)
-
-

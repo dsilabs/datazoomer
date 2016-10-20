@@ -1,18 +1,27 @@
 """
     Test the mvc module
 
-    Copyright (c) 2005-2012 Dynamic Solutions Inc. (support@dynamic-solutions.com)
+    Copyright (c) 2005-2012 Dynamic Solutions Inc.
+    (support@dynamic-solutions.com)
 
     This file is part of DataZoomer.
 """
 
-import os, unittest
+import os
+import unittest
 
 from zoom.mvc import evaluate, View, Controller, Dispatcher
 
+
+class MyCallable(object):
+
+    def __call__(self, s):
+        return s.lower()
+
+
 class TestEvaluate(unittest.TestCase):
 
-    class MyView(object):
+    class MyView(View):
 
         v1 = 'avalue'
 
@@ -34,6 +43,12 @@ class TestEvaluate(unittest.TestCase):
 
         def f3(self, key, *args, **kwargs):
             return key, args, kwargs
+
+        def upper(self, s):
+            return s.upper()
+
+        lower = MyCallable()
+
     view = MyView()
 
     def test_evaluate(self):
@@ -48,8 +63,8 @@ class TestEvaluate(unittest.TestCase):
             evaluate(self.view, 'f3')
 
     def test_legacy_parameterless_method(self):
-        #with self.assertRaises(TypeError):
-        #    evaluate(self.view, 'f1', 'key', name='test')
+        with self.assertRaises(TypeError):
+            evaluate(self.view, 'f1', 'key', name='test')
         self.assertEqual(evaluate(self.view, 'f1', 'key', name='test'), 'done')
 
     def test_legacy_parameterless_method(self):
@@ -60,3 +75,22 @@ class TestEvaluate(unittest.TestCase):
             evaluate(self.view, 'f1b', 'key', name='test')
         # make sure we're reporting the offending call
         self.assertEqual(str(e.exception)[:9], 'f() takes')
+
+    def test_exception_raising(self):
+        self.assertEqual(self.view('upper', 'x'), 'X')
+        with self.assertRaises(TypeError) as e:
+            self.assertEqual(self.view('upper', 'x', 'y'), 'X')
+        self.assertEqual(self.view.lower('Y'), 'y')
+        msg = 'upper() takes exactly 2 arguments (3 given)'
+        self.assertEqual(str(e.exception), msg)
+
+        self.assertEqual(self.view.lower('X'), 'x')
+        with self.assertRaises(TypeError) as e:
+            self.assertEqual(self.view.lower('X', 'Y'), 'x')
+        msg = '__call__() takes exactly 2 arguments (3 given)'
+        self.assertEqual(str(e.exception), msg)
+
+        with self.assertRaises(TypeError) as e:
+            self.assertEqual(self.view('lower', 'X', 'Y'), 'x')
+        msg = '__call__() takes exactly 2 arguments (3 given)'
+        self.assertEqual(str(e.exception), msg)
