@@ -1,5 +1,5 @@
 """
-    app
+    zoom.app
 
     datazoomer app
 """
@@ -13,6 +13,7 @@ from .tools import load_content
 from .exceptions import PageMissingException
 
 # pylint: disable=no-self-use
+
 
 class App(object):
     """DataZoomer App
@@ -36,7 +37,8 @@ class App(object):
         content = """
         <div class="jumbotron">
             <h1>Page Not Found</h1>
-            <p>The page you requested could not be found.  Please contact the administrator or try again.<p>
+            <p>The page you requested could not be found.
+            Please contact the administrator or try again.<p>
         </div>
         """
         return Page(content)
@@ -72,7 +74,7 @@ class App(object):
             app = if_callable(getattr(source, 'app', None))
             view = if_callable(getattr(source, 'view', None))
             controller = if_callable(getattr(source, 'controller', None))
-            filler = if_callable(getattr(source, 'filler', None)) # deprecated
+            filler = if_callable(getattr(source, 'filler', None))  # deprecated
         else:
             app = None
             view = None
@@ -100,5 +102,3 @@ class App(object):
         route = request.route
         data = request.data
         return self.process(*route, **data)
-
-
