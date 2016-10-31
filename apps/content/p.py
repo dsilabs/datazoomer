@@ -138,7 +138,7 @@ class PageView:
         page.css = css
         page.head = markitup_head
         result = page.render()
-        result.content = result.content.replace(content_placeholder, unisafe(content))
+        result.content = result.content.replace(content_placeholder, unisafe(htmlquote(content)))
         result.content = result.content.replace(title_placeholder, title)
         result.content = result.content.replace(description_placeholder, description)
         result.content = result.content.replace(keywords_placeholder, keywords)

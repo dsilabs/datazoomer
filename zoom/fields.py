@@ -1712,16 +1712,16 @@ class MemoField(Field):
     css_class = 'memo_field'
 
     def edit(self):
-        input = tag_for(
+        input = str(tag_for(
                 'textarea',
-                content=self.value,
+                content=htmlquote(self.value),
                 name=self.name,
                 id=self.id,
                 size=self.size,
                 cols=self.cols,
                 rows=self.rows,
                 Class=self.css_class,
-                )
+                ))
         if self.hint or self.msg:
             table_start  = '<table class="transparent" width=100%><tr><td width=10%>'
             table_middle = '</td><td>'
@@ -1761,7 +1761,7 @@ class EditField(Field):
     def edit(self):
         input = tag_for(
                 'textarea',
-                content=self.value,
+                content=str(htmlquote(self.value)),
                 name=self.name,
                 id=self.id,
                 size=self.size,
