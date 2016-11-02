@@ -171,6 +171,16 @@ def component(*args, **kwargs):
     >>> system.css
     OrderedSet(['mycss'])
 
+    >>> component(css='mycss', html='test')
+    'test'
+    >>> system.css
+    OrderedSet(['mycss'])
+
+    >>> component('test', html='more', css='mycss')
+    'testmore'
+    >>> system.css
+    OrderedSet(['mycss'])
+
     >>> component('test', 'two', css=['mycss','css2'], js='myjs')
     'testtwo'
     >>> system.css
@@ -192,7 +202,7 @@ def component(*args, **kwargs):
     is_iterable = lambda a: hasattr(a, '__iter__')
     as_iterable = lambda a: not is_iterable(a) and (a,) or a
     parts = {
-        'html': args,
+        'html': list(args),
     }
     for key, value in kwargs.items():
         part = parts.setdefault(key, OrderedSet())
