@@ -6,10 +6,8 @@
 
 from zoom.records import Record, RecordStore
 
-from zoom.records import Record, RecordStore
 
-
-class Group(Record):
+class GroupRecord(Record):
     key = property(lambda a: a.groupid)
 
 
@@ -21,11 +19,11 @@ class Group(Record):
 #    key = property(lambda a: a.userid, a.groupid)
 #
 
-class Groups(RecordStore):
+class GroupStore(RecordStore):
     """DataZoomer Groups
     """
     def __init__(self, db):
-        RecordStore.__init__(self, db, Group, name='dz_groups', key='groupid')
+        RecordStore.__init__(self, db, GroupStore, name='dz_groups', key='groupid')
 
 
 #class Subgroups(RecordStore):

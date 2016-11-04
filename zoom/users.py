@@ -7,7 +7,6 @@
 """
 
 from zoom.records import Record, RecordStore
-from zoom.groups import Groups
 
 class UserRecord(Record):
     key = property(lambda a: a.userid)
@@ -22,4 +21,3 @@ class UserStore(RecordStore):
     """
     def __init__(self, db):
         RecordStore.__init__(self, db, UserRecord, name='dz_users', key='userid')
-
