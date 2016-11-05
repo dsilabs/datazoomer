@@ -21,6 +21,7 @@
 from zoom.state import system
 from zoom.utils import OrderedSet
 
+
 class Component(object):
     """component of a page response
 
@@ -171,6 +172,9 @@ def component(*args, **kwargs):
     >>> system.css
     OrderedSet(['mycss'])
 
+    >>> component(100, css='mycss')
+    '100'
+
     >>> component(css='mycss', html='test')
     'test'
     >>> system.css
@@ -213,4 +217,4 @@ def component(*args, **kwargs):
     for key in ['css', 'js', 'styles', 'libs', 'head', 'tail']:
         part = getattr(system, key)
         part |= parts.get(key, [])
-    return ''.join(parts['html'])
+    return ''.join(map(str, parts['html']))
