@@ -5,15 +5,19 @@
 """
 
 
-from inspect import getargspec
+from inspect import getargspec, getfile
+from os.path import abspath, split, join, isfile
 
+from zoom.utils import kind
+from zoom.component import component
 from request import data
 from user import user
 from exceptions import PageMissingException, UnauthorizedException
 
-
 __all__ = ['View', 'Controller', 'authorize']
 
+MISSING = '<span class="missing-view">{} missing</span>'
+MISSING_CSS = '.missing-view { color: red }'
 
 def as_attr(text):
     return text.replace('-', '_').lower()
@@ -158,6 +162,10 @@ class View(object):
 
     Use to display a model.
     """
+    def __init__(self, model=None, **kwargs):
+        self.model = model
+        self.__dict__.update(kwargs)
+
     def __call__(self, *a, **k):
 
         buttons, inputs = remove_buttons(k)
@@ -200,12 +208,79 @@ class View(object):
         raise PageMissingException
 
 
+class DynamicView(View):
+    """dynamic view - experimental!
+
+    A class that provides views of other objects dynamically loading
+    its own templates in the process.  Templates are rendered using
+    python format() function so object structures can be taversed
+    in the usual way within templates.
+
+    The the view is referred to as self.  Any attribtues or properties
+    can be simply accessed using self.<name> for whatever the name is.
+
+    The object optionally passed as the first parameter upon construction
+    is referred to as self.model.  Additional objects can be added as
+    keyword parameters, which can then also be referenced with self.<name>.
+    """
+
+    asset_types = ['html', 'css']
+
+    def __init__(self, model=None, **k):
+        View.__init__(self, model, **k)
+        path, _ = split(getfile(self.__class__))
+        self._asset_path = path + '/views'
+
+    def get_assets(self, name=None):
+        def load(pathname):
+            with open(pathname) as f:
+                return f.read()
+        start = join(self._asset_path, kind(self))
+        if name:
+            start += '.' + name
+        result = {}
+        for asset_type in self.asset_types:
+            pathname = '{}.{}'.format(start, asset_type)
+            if isfile(pathname):
+                result[asset_type] = load(pathname)
+        return result
+
+    def render(self, view=None):
+        assets = self.get_assets(view)
+        if assets:
+            result = {}
+            for k, v in assets.items():
+                if k in ['html']:
+                    result[k] = v.format(self=self)
+                else:
+                    result[k] = v
+            return component(**result)
+
+    def __getattr__(self, view):
+        try:
+            return getattr(self.model, view)
+        except AttributeError, e:
+            component(css=MISSING_CSS)
+            return \
+                self.render(view) or \
+                MISSING.format('.'.join([self.__class__.__name__, view]))
+
+    def __repr__(self):
+        return self.render() or component(
+            MISSING.format(self.__class__.__name__, ''),
+            css=MISSING_CSS
+            )
+
+
 class Controller(object):
     """Controller
 
     Use this class when an action is going to change the state
     of the model.
     """
+    def __init__(self, model=None, **kwargs):
+        self.model = model
+        self.__dict__.update(kwargs)
 
     def __call__(self, *a, **k):
 
@@ -251,6 +326,9 @@ class Dispatcher(object):
     >>> dispatcher('add', 1, 2)
     3
     """
+    def __init__(self, model=None, **kwargs):
+        self.model = model
+        self.__dict__.update(kwargs)
 
     def __call__(self, *a, **k):
 
