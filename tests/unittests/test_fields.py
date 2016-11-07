@@ -111,6 +111,19 @@ class TestMemoField(unittest.TestCase, TextTests):
         )
 
 
+class TestMarkdownField(unittest.TestCase, TextTests):
+
+    def setUp(self, *a, **k):
+        TextTests.setUp(self, MarkdownField)
+        self.show_css_class = 'textarea'
+        self.show_template = '<div class="{self.show_css_class}"><p>{text}</p></div>'
+        self.edit_template = '{widget}'
+        self.widget_template = (
+            '<TEXTAREA ROWS="6" NAME="FIELD1" COLS="60" ID="FIELD1" '
+            'CLASS="{self.css_class}" SIZE="10">{text}</TEXTAREA>'
+        )
+
+
 class TestEditField(unittest.TestCase, TextTests):
 
     def setUp(self, *a, **k):
