@@ -146,3 +146,25 @@ class TestTextField(unittest.TestCase, TextTests):
         )
 
 
+class TestEmailField(unittest.TestCase, TextTests):
+
+    def setUp(self, *a, **k):
+        TextTests.setUp(self, EmailField)
+        self.show_template = '<{text}>'
+        self.edit_template = """
+        <table class="transparent">
+            <tr>
+                <td nowrap>{widget}</td>
+                <td>
+                    <div class="hint"></div>
+                </td>
+            </tr>
+        </table>
+        """
+        self.widget_template = (
+            '<INPUT NAME="FIELD1" VALUE="{text}" '
+            'CLASS="{self.css_class}" MAXLENGTH="40" '
+            'TYPE="text" ID="FIELD1" SIZE="40" />'
+        )
+
+

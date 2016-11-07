@@ -408,7 +408,7 @@ class EmailField(TextField):
             if t.startswith('<p>') and t.endswith('</p>'):
                 return t[3:-4]
             return t
-        address = self.value or self.default
+        address = htmlquote(self.value or self.default)
         return self.visible and address and antispam_format(address) or ''
 
 
