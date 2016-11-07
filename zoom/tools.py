@@ -362,13 +362,21 @@ def htmlquote(text):
 
         >>> htmlquote(u"<'&\">")
         u'&lt;&#39;&amp;&quot;&gt;'
+
+        >>> htmlquote("<'&\">")
+        '&lt;&#39;&amp;&quot;&gt;'
     """
-    text = text.replace(u"&", u"&amp;") # Must be done first!
-    text = text.replace(u"<", u"&lt;")
-    text = text.replace(u">", u"&gt;")
-    text = text.replace(u"'", u"&#39;")
-    text = text.replace(u'"', u"&quot;")
+    replacements = (
+        ('&', '&amp;'),
+        ('<', '&lt;'),
+        ('>', '&gt;'),
+        ("'", '&#39;'),
+        ('"', '&quot;'),
+    )
+    for replacement in replacements:
+        text = text.replace(*replacement)
     return text
+
 
 def unisafe(val):
     if val is None:
