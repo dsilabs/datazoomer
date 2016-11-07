@@ -109,10 +109,11 @@ class MyView(View):
         content = form1.show()
         return page(content, actions=actions, title='Show Mode')
 
-    def edit(self, key=None):
+    def edit(self, key=None, *a, **k):
         path = os.path.join(system.site.data_path, 'buckets')
         bucket = Bucket(path)
         form1.update(sample)
+        form1.update(k)
         content = form1.edit()
         return page(content, actions=actions, title='Edit Mode')
 
