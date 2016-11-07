@@ -54,13 +54,13 @@ class TextTests(object):
     def test_widget_with_unicode(self):
         f = self.field_type('Field1')
         f.initialize({'field1': self.encoded_text})
-        t = self.widget_template.format(self=self, text=self.encoded_text)
+        t = self.widget_template.format(self=self, text=htmlquote(self.encoded_text))
         self.compare(t, f.widget())
 
     def test_edit_with_unicode(self):
         f = self.field_type('Field1')
         f.initialize({'field1': self.encoded_text})
-        widget = self.widget_template.format(self=self, text=self.encoded_text)
+        widget = self.widget_template.format(self=self, text=htmlquote(self.encoded_text))
         edit = self.edit_template.format(widget=widget)
         t = (
             '<div class="field">'
@@ -111,6 +111,19 @@ class TestMemoField(unittest.TestCase, TextTests):
         )
 
 
+class TestEditField(unittest.TestCase, TextTests):
+
+    def setUp(self, *a, **k):
+        TextTests.setUp(self, EditField)
+        self.show_css_class = 'textarea'
+        self.show_template = '<div class="{self.show_css_class}">{text}</div>'
+        self.edit_template = '{widget}'
+        self.widget_template = (
+            '<TEXTAREA HEIGHT="6" CLASS="{self.css_class}" SIZE="10" '
+            'NAME="FIELD1" ID="FIELD1">{text}</TEXTAREA>'
+        )
+
+
 class TestTextField(unittest.TestCase, TextTests):
 
     def setUp(self, *a, **k):
@@ -131,4 +144,5 @@ class TestTextField(unittest.TestCase, TextTests):
             'CLASS="{self.css_class}" MAXLENGTH="40" '
             'TYPE="text" ID="FIELD1" SIZE="40" />'
         )
+
 

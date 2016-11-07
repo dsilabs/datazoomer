@@ -337,6 +337,18 @@ class TextField(SimpleField):
     css_class = 'text_field'
 
     def widget(self):
+
+        value = self.value or self.default
+        try:
+            value = htmlquote(value)
+        except AttributeError:
+            value = value
+
+        # note: this code is not currently DRY because
+        # the order of the parameters matters, so to
+        # avoid breaking all of the related tests I
+        # have chosen to leave this bit of code "wet" for
+        # now.
         if self.placeholder:
             return tag_for(
                 'input',
@@ -344,7 +356,7 @@ class TextField(SimpleField):
                 id = self.id,
                 size = self.size,
                 maxlength=self.maxlength,
-                value = self.value or self.default,
+                value = value,
                 Type = self._type,
                 Class = self.css_class,
                 placeholder = self.placeholder,
@@ -356,7 +368,7 @@ class TextField(SimpleField):
                 id = self.id,
                 size = self.size,
                 maxlength=self.maxlength,
-                value = self.value or self.default,
+                value = value,
                 Type = self._type,
                 Class = self.css_class,
             )
@@ -1714,7 +1726,7 @@ class MemoField(Field):
     def widget(self):
         return tag_for(
             'textarea',
-            content=self.value,
+            content=htmlquote(self.value),
             name=self.name,
             id=self.id,
             size=self.size,
@@ -1771,17 +1783,19 @@ class EditField(Field):
     size=10
     css_class = 'edit_field'
 
+    def widget(self):
+        return tag_for(
+            'textarea',
+            content=htmlquote(self.value),
+            name=self.name,
+            id=self.id,
+            size=self.size,
+            height=self.height,
+            Class=self.css_class,
+        )
+
     def edit(self):
-        input = tag_for(
-                'textarea',
-                content=str(htmlquote(self.value)),
-                name=self.name,
-                id=self.id,
-                size=self.size,
-                Class=self.css_class,
-                height=self.height
-                )
-        return layout_field(self.label, input)
+        return layout_field(self.label, self.widget())
 
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and layout_field(self.label,'<div class="textarea">%s</div>' % self.display_value(), edit=False) or ''
