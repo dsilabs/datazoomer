@@ -1711,24 +1711,37 @@ class MemoField(Field):
     cols=60
     css_class = 'memo_field'
 
+    def widget(self):
+        return tag_for(
+            'textarea',
+            content=self.value,
+            name=self.name,
+            id=self.id,
+            size=self.size,
+            cols=self.cols,
+            rows=self.rows,
+            Class=self.css_class,
+        )
+
     def edit(self):
-        input = str(tag_for(
-                'textarea',
-                content=htmlquote(self.value),
-                name=self.name,
-                id=self.id,
-                size=self.size,
-                cols=self.cols,
-                rows=self.rows,
-                Class=self.css_class,
-                ))
+        widget = self.widget()
         if self.hint or self.msg:
             table_start  = '<table class="transparent" width=100%><tr><td width=10%>'
             table_middle = '</td><td>'
             table_end    = '</td></tr></table>'
-            return layout_field(self.label, table_start + input  + table_middle + self.render_msg() + self.render_hint() + table_end )
+            return layout_field(
+                self.label,
+                ''.join([
+                    table_start,
+                    widget,
+                    table_middle,
+                    self.render_msg(),
+                    self.render_hint(),
+                    table_end
+                ])
+            )
         else:
-            return layout_field(self.label, input)
+            return layout_field(self.label, widget)
 
     def show(self):
         return self.visible and (bool(self.value) or bool(self.default)) and layout_field(self.label,'<div class="textarea">%s</div>' % self.display_value(), edit=False) or ''
