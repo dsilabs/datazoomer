@@ -222,20 +222,20 @@ class DynamicView(View):
     The object optionally passed as the first parameter upon construction
     is referred to as self.model.  Additional objects can be added as
     keyword parameters, which can then also be referenced with self.<name>.
-
-    The js_wrapper is something we should have introduced earlier.  The
-    existing js rendering does not do this but it should have.  Consequently
-    we have apps having to test for themselves whether the document is
-    loaded when the framework could have done this.  Introducing it here
-    so that at least new apps using DynamicView do not have to do this
-    but ideally this logic would be implemented further along in the
-    rendering process so that it could be done once for the entire rendered
-    js code section.  We cant count on that yet so we're going to try
-    doing it here for every DynamicView - which is not ideal, but at least
-    it frees up the developer from having to do it now.  We will fix the
-    actual implementation once we know we wont break any legacy apps
-    in the process.
     """
+
+    # The js_wrapper is something we should have introduced earlier.  The
+    # existing js rendering does not do this but it should have.  Consequently
+    # we have apps having to test for themselves whether the document is
+    # loaded when the framework could have done this.  Introducing it here
+    # so that at least new apps using DynamicView do not have to do this
+    # but ideally this logic would be implemented further along in the
+    # rendering process so that it could be done once for the entire rendered
+    # js code section.  We cant count on that yet so we're going to try
+    # doing it here for every DynamicView - which is not ideal, but at least
+    # it frees up the developer from having to do it now.  We will fix the
+    # actual implementation once we know we wont break any legacy apps
+    # in the process.
 
     asset_types = ['html', 'css', 'js']
 
@@ -278,6 +278,16 @@ class DynamicView(View):
             return component(**result)
 
     def __getattr__(self, view):
+        if view.startswith('_'):
+            # This object is not an iterator but it sometimes gets asked this
+            # way so since we're providing a catch-all attribute handler we
+            # want to make sure we don't mislead the caller into thinking
+            # we have an __iter__ method.  While we're at it we should make
+            # sure we're not misleading about anything starting with '_'.
+            raise AttributeError('{!r} object has no attribute {!r}'.format(
+                self.__class__.__name__,
+                view
+            ))
         try:
             return getattr(self.model, view)
         except AttributeError, e:
@@ -288,7 +298,7 @@ class DynamicView(View):
 
     def __repr__(self):
         return self.render() or component(
-            MISSING.format(self.__class__.__name__, ''),
+            MISSING.format(self.__class__.__name__),
             css=MISSING_CSS
             )
 
