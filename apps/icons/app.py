@@ -14,7 +14,7 @@ class IconList(zoom.mvc.DynamicView):
         def is_png(name):
             return name.endswith('.png')
         names = sorted(filter(is_png, os.listdir(self.path)))
-        return component(*list(Icon(name=name) for name in names))
+        return component(list(Icon(name=name) for name in names))
 
 def app():
     path = os.path.join(system.root, 'www', 'static', 'dz', 'icons')

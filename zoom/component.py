@@ -197,16 +197,49 @@ def component(*args, **kwargs):
     >>> system.js
     OrderedSet(['myjs', 'js2'])
 
+    >>> component(['test1'], ('test2',), 'test3')
+    'test1test2test3'
+
+    >>> from mvc import DynamicView
+    >>> class MyThing(DynamicView):
+    ...     def __str__(self):
+    ...         return self.model
+    >>> hasattr(MyThing('test'), '__iter__')
+    False
+    >>> component(['test1'], ('test2',), 'test3', MyThing('test4'))
+    'test1test2test3test4'
+    >>> component(MyThing('test4'))
+    'test4'
+    >>> component(MyThing('test4'), MyThing('test5'))
+    'test4test5'
+    >>> component((MyThing('test4'), MyThing('test5')))
+    'test4test5'
+    >>> args = (MyThing('test4'), MyThing('test5'))
+    >>> component(args)
+    'test4test5'
+    >>> component(*list(args))
+    'test4test5'
+
     >>> system.setup()
     >>> component('test', js=[])
     'test'
     >>> system.js
     OrderedSet()
     """
-    is_iterable = lambda a: hasattr(a, '__iter__')
-    as_iterable = lambda a: not is_iterable(a) and (a,) or a
+    def is_iterable(item):
+        return hasattr(item, '__iter__')
+
+    def as_iterable(item):
+        return not is_iterable(item) and (item,) or item
+
+    def flatten(items):
+        items_as_iterables = list(is_iterable(i) and i or (i,) for i in items)
+        #print repr(items_as_iterables)
+        #return ''
+        return [i for j in items_as_iterables for i in j]
+
     parts = {
-        'html': list(args),
+        'html': flatten(args),
     }
     for key, value in kwargs.items():
         part = parts.setdefault(key, OrderedSet())
