@@ -1,0 +1,81 @@
+[{
+  "_id": 1,
+  "first_name": "Shawn",
+  "last_name": "James",
+  "email": "sjames0@jugem.jp",
+  "gender": "Male",
+  "birthdate": "2012-07-08",
+  "wage": 21.12
+}, {
+  "_id": 2,
+  "first_name": "Jeremy",
+  "last_name": "Gonzales",
+  "email": "jgonzales1@npr.org",
+  "gender": "Male",
+  "birthdate": "1923-09-25",
+  "wage": 17.38
+}, {
+  "_id": 3,
+  "first_name": "Kimberly",
+  "last_name": "Morales",
+  "email": "kmorales2@dagondesign.com",
+  "gender": "Female",
+  "birthdate": "1959-06-20",
+  "wage": 18.62
+}, {
+  "_id": 4,
+  "first_name": "Jonathan",
+  "last_name": "Green",
+  "email": "jgreen3@zimbio.com",
+  "gender": "Male",
+  "birthdate": "1929-09-17",
+  "wage": 18.37
+}, {
+  "_id": 5,
+  "first_name": "Daniel",
+  "last_name": "Ward",
+  "email": "dward4@amazonaws.com",
+  "gender": "Male",
+  "birthdate": "1982-03-19",
+  "wage": 20.57
+}, {
+  "_id": 6,
+  "first_name": "Rachel",
+  "last_name": "Castillo",
+  "email": "rcastillo5@freewebs.com",
+  "gender": "Female",
+  "birthdate": "1998-12-24",
+  "wage": 18.52
+}, {
+  "_id": 7,
+  "first_name": "Raymond",
+  "last_name": "Kennedy",
+  "email": "rkennedy6@aol.com",
+  "gender": "Male",
+  "birthdate": "1974-02-11",
+  "wage": 16.48
+}, {
+  "_id": 8,
+  "first_name": "Shirley",
+  "last_name": "Oliver",
+  "email": "soliver7@mapquest.com",
+  "gender": "Female",
+  "birthdate": "1975-09-03",
+  "wage": 22.67
+}, {
+  "_id": 9,
+  "first_name": "Carl",
+  "last_name": "Adams",
+  "email": "cadams8@microsoft.com",
+  "gender": "Male",
+  "birthdate": "1991-09-25",
+  "wage": 23.64
+}, {
+  "_id": 10,
+  "first_name": "Randy",
+  "last_name": "Hansen",
+  "email": "rhansen9@un.org",
+  "gender": "Male",
+  "birthdate": "2003-06-01",
+  "wage": 15.94
+}]
