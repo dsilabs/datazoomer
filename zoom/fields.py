@@ -217,9 +217,9 @@ class Field(object):
         """
         Render hint.
 
-        >>> name_field = TextField('Name',hint='Full name')
-        >>> name_field.render_hint()
-        '<span class="hint">Full name</span>'
+            >>> name_field = TextField('Name',hint='Full name')
+            >>> name_field.render_hint()
+            '<span class="hint">Full name</span>'
         """
         if self.hint: return '<span class="hint">%s</span>' % self.hint
         else: return ''
@@ -228,12 +228,12 @@ class Field(object):
         """
         Render validation error message.
 
-        >>> name_field = TextField('Name',required)
-        >>> name_field.update(NAME='')
-        >>> name_field.valid()
-        False
-        >>> name_field.render_msg()
-        '<span class="wrong">required</span>'
+            >>> name_field = TextField('Name',required)
+            >>> name_field.update(NAME='')
+            >>> name_field.valid()
+            False
+            >>> name_field.render_msg()
+            '<span class="wrong">required</span>'
         """
         if self.msg: return '<span class="wrong">%s</span>' % self.msg
         else: return ''
@@ -246,13 +246,13 @@ class Field(object):
             >>> name_field.update(NAME='Fred')
             >>> name_field.valid()
             True
+
             >>> name_field.update(NAME='')
             >>> name_field.valid()
             False
             >>> name_field.msg
             'required'
         """
-
         for v in self.validators:
             if not v.valid(self.value):
                 self.msg = v.msg
@@ -266,6 +266,7 @@ class Field(object):
             >>> name_field = TextField('Name',required)
             >>> name_field.validate(city='Vancouver')
             False
+
             >>> name_field.validate(name='Fred')
             True
         """
@@ -1922,11 +1923,11 @@ class Fields(object):
 
     """
 
-    def __init__(self,*a):
-        if len(a) == 1 and type(a[0]) == types.ListType:
-            self.fields = a[0]
+    def __init__(self, *args):
+        if len(args) == 1 and type(args[0]) == types.ListType:
+            self.fields = args[0]
         else:
-            self.fields = list(a)
+            self.fields = list(args)
 
     def show(self):
         return ''.join([field.show() for field in self.fields])
@@ -1939,6 +1940,31 @@ class Fields(object):
         for field in self.fields:
             result = dict(result, **field.as_dict())
         return result
+
+    def __getitem__(self, name):
+        """access a contained field
+
+            >>> fields = Fields(
+            ...     TextField('Name', value='Amy'),
+            ...     PhoneField('Phone', value='2234567890'),
+            ... )
+            >>> fields['name'].label
+            'Name'
+
+            >>> hint = 'xxx.xxx.xxxx'
+            >>> fields = Fields(
+            ...     Section('Personal', [
+            ...         TextField('Name', value='Amy'),
+            ...         PhoneField('Phone', value='2234567890', hint=hint),
+            ...     ]),
+            ... )
+            >>> fields['personal'].name
+            'PERSONAL'
+            >>> fields['personal']['phone'].hint
+            'xxx.xxx.xxxx'
+        """
+        lookup = {f.name.lower(): f for f in self.fields}
+        return lookup[name]
 
     def initialize(self, *a, **k):
         """
@@ -2053,10 +2079,14 @@ class Section(Fields):
         u'<H2>Personal</H2>\\n<div class="field"><div class="field_label">Name</div><div class="field_show">Joe</div></div>'
     """
 
-    def __init__(self,label,fields,hint=''):
-        Fields.__init__(self,fields)
+    def __init__(self, label, fields, hint=''):
+        Fields.__init__(self, fields)
         self.label = label
         self.hint = hint
+
+    @property
+    def name(self):
+        return self.label and name_for(self.label)
 
     def render_hint(self):
         if self.hint: return '<span class="hint">%s</span>' % self.hint
