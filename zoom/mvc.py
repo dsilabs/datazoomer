@@ -247,7 +247,7 @@ class DynamicView(View):
 
     def __init__(self, model=None, **k):
         View.__init__(self, model, **k)
-        path, _ = split(getfile(self.__class__))
+        path, _ = split(abspath(getfile(self.__class__)))
         self._asset_path = path + '/views'
 
     def get_assets(self, name=None):
