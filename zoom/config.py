@@ -45,16 +45,16 @@ class Config(object):
             raise            
 
         # read the default config file - one per environment
-        self.config = get_config(sites_path, 'default', 'site.ini')
+        self.config = get_config(self.sites_path, 'default', 'site.ini')
         if not self.config:
             # legacy location
-            self.config = get_config(sites_path, 'default.conf')
+            self.config = get_config(self.sites_path, 'default.conf')
 
         if server_name:
-            self.site_config = get_config(sites_path, server_name, 'site.ini')
+            self.site_config = get_config(self.sites_path, server_name, 'site.ini')
             if not self.site_config:
                 # legacy location
-                self.site_config = get_config(sites_path, server_name, 'site.conf')
+                self.site_config = get_config(self.sites_path, server_name, 'site.conf')
 
         # read the site config file - one per site
         self.site_path = os.path.join(self.sites_path, server_name)
