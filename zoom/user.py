@@ -177,13 +177,22 @@ class User(object):
     def set_password(self, password):
         user = system.users.first(loginid=self.username, status='A')
         if user:
-            phash = hash_password(password, user.dtadd)
-            cmd = (
-                'update dz_users '
-                'set password=%s, dtupd=now() '
-                'where loginid=%s'
-            )
-            system.db(cmd, phash, self.username)
+            self.set_hashed_password(hash_password(password))
+            # phash = hash_password(password, user.dtadd)
+            # cmd = (
+            #     'update dz_users '
+            #     'set password=%s, dtupd=now() '
+            #     'where loginid=%s'
+            # )
+            # system.db(cmd, phash, self.username)
+
+    def set_hashed_password(self, hashed_password):
+        cmd = (
+            'update dz_users '
+            'set password=%s, dtupd=now() '
+            'where loginid=%s'
+        )
+        system.db(cmd, hashed_password, self.username)
 
     def is_member(self, groups):
         return is_member(self, groups)
@@ -309,4 +318,3 @@ class User(object):
 
 
 user = User()
-
