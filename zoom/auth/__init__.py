@@ -6,6 +6,8 @@
 
 __all__ = ['validate_password', 'hash_password']
 
+import datetime
+
 def get_context(date_added):
     """create a password encryption context"""
     try:
@@ -63,14 +65,14 @@ def get_context(date_added):
 
     return context
 
-def hash_password(password, date_added):
+def hash_password(password, date_added=datetime.datetime.now()):
     """hash a password"""
     context = get_context(date_added)
     return context.encrypt(password)
 
 def validate_password(password, stored_password_hash, date_added):
     """validate a password and return the best hash
-    
+
     >>> from datetime import datetime
     >>> hash = '*2470C0C06DEE42FD1618BB99005ADCA2EC9D1E19'
     >>> validate_password('password', hash, datetime(2015,1,1,1,1,1))
@@ -97,4 +99,3 @@ def validate_password(password, stored_password_hash, date_added):
     """
     context = get_context(date_added)
     return context.verify_and_update(password, stored_password_hash)
-
