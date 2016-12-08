@@ -1,5 +1,5 @@
 
-import re 
+import re
 import time
 import uuid
 import datetime
@@ -7,6 +7,7 @@ import datetime
 from zoom import *
 from zoom.user import User, add_user
 from zoom.fill import viewfill
+from zoom.auth import hash_password
 
 
 REGISTRATION_TIMEOUT = 3600 # one hour
@@ -111,9 +112,13 @@ fields = Fields([
 
 def submit_registration(data):
     """receive data submitted via registration form"""
+    password = hash_password(data.pop('PASSWORD'))
+    del data['CONFIRM']
+
     rec = Registration(**data)
     rec.token = token = uuid.uuid4().hex
     rec.expiry = time.time() + REGISTRATION_TIMEOUT
+    rec.password = password
 
     if is_test_account(rec):
         logger.warning('no email sent to test account')
@@ -182,7 +187,7 @@ def register_user(data):
         LASTNAME=data.last_name,
         LOGINID=data.username,
         EMAIL=data.email,
-        PASSWORD=gen_password(),
+        PASSWORD=data.password,
         DTUPD=now,
         DTADD=now,
         STATUS='A',
@@ -192,14 +197,11 @@ def register_user(data):
     table = db.table('dz_users', 'USERID')
     new_id = table.insert(user_rec)
 
-    # set user password
-    new_user = User(data.username)
-    new_user.set_password(data.password)
 
     # make sure new users don't accidentally get access
     db('delete from dz_members where userid=%s', new_id)
 
     # add default group
+    new_user = User(data.username)
     add_user(new_user.username, 'users')
     return new_id
-
