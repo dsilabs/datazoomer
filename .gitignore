@@ -4,3 +4,4 @@
 testsold
 .ropeproject
 *log
+__pycache__
