@@ -9,6 +9,7 @@ import string
 import collections
 import ConfigParser
 import decimal
+import datetime
 
 from sys import version_info
 
@@ -173,6 +174,34 @@ class Storage(dict):
     def __repr__(self):
         return '<Storage ' + dict.__repr__(self) + '>'
 
+
+def get_attributes(obj):
+    def properties(obj):
+        if type(obj) == dict:
+            return []
+        items = obj.__class__.__dict__.items()
+        return [k for k, v in items if hasattr(v, '__get__')]
+
+    def looks_like_an_id(text):
+        return text.endswith('_id')
+
+    all_keys = obj.keys() + properties(obj)
+    id_keys = [key for key in all_keys if looks_like_an_id(key)]
+    special_keys = id_keys + [
+        'id', 'userid', 'groupid', 'key',
+        'name', 'title', 'description',
+        'first_name', 'middle_name', 'last_name', 'fname', 'lname'
+    ]
+    result = []
+    for key in special_keys:
+        if key in all_keys:
+            result.append(key)
+    for key in sorted(all_keys):
+        if key not in special_keys:
+            result.append(key)
+    return result
+
+
 class Record(Storage):
     """
     A dict with attribute access to items, attributes and properties
@@ -255,22 +284,7 @@ class Record(Storage):
     """
 
     def attributes(self):
-        def properties(self):
-            items = self.__class__.__dict__.items()
-            return [k for k, v in items if hasattr(v, '__get__')]
-        all_keys = self.keys() + properties(self)
-        special_keys = (
-            '_id', 'id', 'key', 'name', 'title', 'description',
-            'first_name', 'middle_name', 'last_name', 'fname', 'lname'
-        )
-        result = []
-        for key in special_keys:
-            if key in all_keys:
-                result.append(key)
-        for key in sorted(all_keys):
-            if key not in special_keys:
-                result.append(key)
-        return result
+        return get_attributes(self)
 
     def valid(self):
         return 1
@@ -350,87 +364,62 @@ class RecordList(list):
 
     def __str__(self):
         """
-        represent as a string 
+        represent as a string
 
             >>> import datetime
             >>> class Person(Record): pass
             >>> class People(RecordList): pass
             >>> people = People()
-            >>> people.append(Person(_id=1, name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
-            >>> people.append(Person(_id=2, name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
-            >>> people.append(Person(_id=3, name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
+            >>> people.append(Person(_id=1, name='Joe', age=20,
+            ...     birthdate=datetime.date(1992,5,5)))
+            >>> people.append(Person(_id=2, name='Samuel', age=25,
+            ...     birthdate=datetime.date(1992,4,5)))
+            >>> people.append(Person(_id=3, name='Sam', age=35,
+            ...     birthdate=datetime.date(1992,3,5)))
             >>> print people
             person
-                id  age  name    birthdate   
-            ------- ---- ------- ----------- 
-                 1  20   Joe     1992-05-05  
-                 2  25   Samuel  1992-04-05  
-                 3  35   Sam     1992-03-05  
-            3 records
+            _id name   age birthdate
+            --- ------ --- ----------
+              1 Joe     20 1992-05-05
+              2 Samuel  25 1992-04-05
+              3 Sam     35 1992-03-05
+            3 person records
 
             >>> people = People()
-            >>> people.append(Person(userid=1, name='Joe', age=20, birthdate=datetime.date(1992,5,5)))
-            >>> people.append(Person(userid=2, name='Samuel', age=25, birthdate=datetime.date(1992,4,5)))
-            >>> people.append(Person(userid=3, name='Sam', age=35, birthdate=datetime.date(1992,3,5)))
+            >>> people.append(Person(userid=1, name='Joe', age=20,
+            ...     birthdate=datetime.date(1992,5,5)))
+            >>> people.append(Person(userid=2, name='Samuel', age=25,
+            ...     birthdate=datetime.date(1992,4,5)))
+            >>> people.append(Person(userid=3, name='Sam', age=35,
+            ...     birthdate=datetime.date(1992,3,5)))
             >>> print people
             person
-            userid  age  name    birthdate   
-            ------- ---- ------- ----------- 
-            1       20   Joe     1992-05-05  
-            2       25   Samuel  1992-04-05  
-            3       35   Sam     1992-03-05  
-            3 records
+            userid name   age birthdate
+            ------ ------ --- ----------
+                 1 Joe     20 1992-05-05
+                 2 Samuel  25 1992-04-05
+                 3 Sam     35 1992-03-05
+            3 person records
 
         """
-        def by_value_size(a, b):
-            d = data_lengths
-            return not d[a] and -999 or not d[b] and -999 or d[a]-d[b]
+        def get_names(obj):
+            try:
+                result = obj.attributes()
+            except AttributeError:
+                result = obj.keys()
+            return result
 
-        if len(self) == 0:
+        if not bool(self):
             return 'Empty list'
 
-        title = ['%s\n' % kind(self[0])]
+        title = '%s\n' % kind(self[0])
 
-        data_lengths = {}
-        for rec in self:
-            for field in self[0].keys():
-                n = data_lengths.get(field, 0)
-                m = len('%s' % rec.get(field, ''))
-                if n < m:
-                    data_lengths[field] = m
+        keys = labels = get_attributes(self[0])
+        rows = [[record.get(key) for key in keys] for record in self]
 
-        fields = data_lengths.keys()
-        fields.sort(by_value_size)
+        footer = '\n{} {} records'.format(len(self), kind(self[0]))
 
-        lines = []
-        fmtstr = []
-
-        if '_id' in fields:
-            fields.remove('_id')
-            fields.insert(0, '_id')
-            title.append('    id  ')
-            lines.append('------- ')
-            fmtstr.append('%6d  ')
-            ofields = fields[1:]
-        else:
-            ofields = fields
-
-        for field in ofields:
-            width = max(len(field), data_lengths[field])+1
-            fmt = '%-' + ('%ds ' % width)
-            fmtstr.append(fmt)
-            title.append(fmt % field)
-            lines.append(('-' * width) + ' ')
-        fmtstr.append('')
-        lines.append('\n')
-        title.append('\n')
-        t = []
-        fmtstr = ''.join(fmtstr)
-
-        for rec in self:
-            values = [rec.get(key) for key in fields]
-            t.append(''.join(fmtstr) % tuple(values))
-        return ''.join(title) + ''.join(lines) + '\n'.join(t) + ('\n%s records' % len(self))
+        return title + str(ItemList(rows, labels=labels)) + footer
 
     def __init__(self, *a, **k):
         list.__init__(self, *a, **k)
@@ -518,6 +507,10 @@ class ItemList(list):
                 data_type = first_non_null[0]
                 if data_type in [int, long, float, decimal.Decimal]:
                     return '{:{width},}'
+                elif data_type in [datetime.date]:
+                    return '{}'
+                elif label in ['_id', 'userid']:
+                    return '{:10}'
             return '{:<{width}}'
 
         if len(self) == 0:
@@ -552,7 +545,10 @@ class ItemList(list):
 
         # calulate formatted values
         formatted_values = [labels] + [
-            [formats[col].format(row[col], width=0) for col in columns] for row in rows
+            [
+                formats[col].format(row[col], width=0)
+                for col in columns
+            ] for row in rows
         ]
 
         # calculate column widths
@@ -572,16 +568,23 @@ class ItemList(list):
                 ]
 
         dashes = ['-' * data_widths[col] for col in columns]
-        aligned_values = [formatted_labels] + [dashes] + [
-            [formats[col].format(row[col], width=data_widths[col]) for col in columns] for row in rows
+        aligned_rows = [formatted_labels] + [dashes] + [
+            [
+                formats[col].format(row[col], width=data_widths[col])
+                for col in columns
+            ] for row in rows
         ]
 
-        return '\n'.join(' '.join(row) for row in aligned_values)
+        lines = [' '.join(row).rstrip() for row in aligned_rows]
+
+        return '\n'.join(lines)
 
 
 class OrderedSet(collections.MutableSet):
     """
     A Record with default values
+
+    trimmed_rows = [row.strip() for row in aligned_rows]
 
         >>> s = OrderedSet('abracadaba')
         >>> t = OrderedSet('simsalabim')

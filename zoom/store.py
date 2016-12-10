@@ -152,12 +152,11 @@ class EntityStore(object):
         >>> s = stuff.find(age=34)
         >>> print s
         dict
-            id  age  name   
-        ------- ---- ------ 
-             2  34   Sally  
-             3  34   Sam    
-        2 records
-
+        _id name  age
+        --- ----- ---
+          2 Sally  34
+          3 Sam    34
+        2 dict records
 
         >>> db = setup_test()
         >>> class Person(Entity): pass
@@ -715,4 +714,3 @@ def store(klass=dict):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-

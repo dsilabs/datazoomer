@@ -64,20 +64,22 @@ def summarize(table, dimensions, metrics=None):
     >>> id = put(Person(name='Alex', age=25, kids=3, salary=Decimal('50000')))
     >>> print people
     person
-        id  kids  age  name   salary    
-    ------- ----- ---- ------ --------- 
-         1  1     25   Sam    40000.00  
-         2  4     55   Sally  80000.00  
-         3  2     25   Bob    70000.00  
-         4  2     25   Jane   50000.00  
-         5  3     25   Alex   50000.00  
-    5 records
+    _id name  age kids salary
+    --- ----- --- ---- ---------
+      1 Sam    25    1 40,000.00
+      2 Sally  55    4 80,000.00
+      3 Bob    25    2 70,000.00
+      4 Jane   25    2 50,000.00
+      5 Alex   25    3 50,000.00
+    5 person records
+
     >>> print db(summarize('person', ['age']))
       age   n 
      ----- ---
       *     5 
       25    4 
       55    1 
+
     >>> print db(summarize('person', ['age','kids']))
       age   kids   n 
      ----- ------ ---
@@ -92,6 +94,7 @@ def summarize(table, dimensions, metrics=None):
       25    2      2 
       25    3      1 
       55    4      1 
+
     >>> print db(summarize('person', ['age','kids'], ['salary']))
       age   kids   n      salary 
      ----- ------ --- -----------
@@ -182,4 +185,3 @@ def sql_apply(table, dimensions, metrics, fns=None, where='where 1=1'):
     #cols = ','.join(map(str, range(1, len(dimensions)+1)))
     cols = ','.join(str(i+1) for i in range(len(dimensions)))
     return cmd.format(**locals())
-

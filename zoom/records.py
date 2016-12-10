@@ -181,35 +181,35 @@ class RecordStore(object):
         >>> account = accounts.get(1)
         >>> print accounts
         account
-        account_id  name  added       
-        ----------- ----- ----------- 
-        1           Joe   1992-05-05  
-        2           Sam   2001-01-01  
-        3           Sal   2001-01-01  
-        3 records
+        account_id name added
+        ---------- ---- ----------
+                 1 Joe  1992-05-05
+                 2 Sam  2001-01-01
+                 3 Sal  2001-01-01
+        3 account records
 
         >>> print accounts.first(name='Sam')
         Account
-          name ................: 'Sam'
           account_id ..........: 2L
+          name ................: 'Sam'
           added ...............: datetime.date(2001, 1, 1)
 
         >>> print accounts.find(added=datetime.date(2001, 1, 1))
         account
-        account_id  name  added       
-        ----------- ----- ----------- 
-        2           Sam   2001-01-01  
-        3           Sal   2001-01-01  
-        2 records
+        account_id name added
+        ---------- ---- ----------
+                 2 Sam  2001-01-01
+                 3 Sal  2001-01-01
+        2 account records
 
         >>> accounts.delete(2L)
         >>> print accounts
         account
-        account_id  name  added       
-        ----------- ----- ----------- 
-        1           Joe   1992-05-05  
-        3           Sal   2001-01-01  
-        2 records
+        account_id name added
+        ---------- ---- ----------
+                 1 Joe  1992-05-05
+                 3 Sal  2001-01-01
+        2 account records
 
         """
 
@@ -319,11 +319,11 @@ class RecordStore(object):
             2L
             >>> print people
             person
-                id  age  name  
-            ------- ---- ----- 
-                 1  15   Sam   
-                 2  21   Jim   
-            2 records
+            _id name age
+            --- ---- ---
+              1 Sam   15
+              2 Jim   21
+            2 person records
 
 
         """
@@ -733,12 +733,13 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Bob', age=25))
             >>> print people
             person
-                id  age  name   
-            ------- ---- ------ 
-                 1  25   Sam    
-                 2  55   Sally  
-                 3  25   Bob    
-            3 records
+            _id name  age
+            --- ----- ---
+              1 Sam    25
+              2 Sally  55
+              3 Bob    25
+            3 person records
+
             >>> people.zap()
             >>> print people
             Empty list
@@ -769,4 +770,3 @@ class RecordStore(object):
 
         """
         return repr(self.all())
-
