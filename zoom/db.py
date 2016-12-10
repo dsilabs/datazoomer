@@ -5,6 +5,7 @@
 import timeit
 
 from zoom.exceptions import DatabaseException
+from zoom.utils import ItemList
 
 
 ARRAY_SIZE = 1000
@@ -39,23 +40,8 @@ class Result(object):
 
     def __str__(self):
         """nice for humans"""
-        labels = [' %s '%i[0] for i in self.cursor.description]
-        values = [[' %s ' % i for i in r] for r in self]
-        allnum = [
-            all(str(v[i][1:-1]).translate(None, '.').isdigit() for v in values)
-            for i in range(len(labels))
-        ]
-        widths = [
-            max(len(v[i]) for v in [labels] + values)
-            for i in range(len(labels))
-        ]
-        fmt = ' ' + ' '.join([
-            (allnum[i] and '%%%ds' or '%%-%ds') % w
-            for i, w in enumerate(widths)
-        ])
-        lines = ['-' * (w) for w in widths]
-        result = '\n'.join(fmt%tuple(i) for i in [labels] + [lines] + values)
-        return result
+        labels = map(lambda a: '{0}'.format(*a), self.cursor.description)
+        return str(ItemList(self, labels=labels))
 
     def __repr__(self):
         """useful and unabiguous"""
@@ -109,9 +95,9 @@ class Database(object):
         [(1L, 'Joe', 32, None, None, None)]
 
         >>> print db('select * from person')
-          id   name   age   kids   birthdate   salary 
-         ---- ------ ----- ------ ----------- --------
-           1   Joe     32   None   None        None   
+        id name age kids birthdate salary
+        -- ---- --- ---- --------- ------
+         1 Joe   32 None None      None
 
         >>> from decimal import Decimal
         >>> amt = Decimal('1234.56')
@@ -318,4 +304,3 @@ def database(
         db.autocommit(1)
 
         return db
-
