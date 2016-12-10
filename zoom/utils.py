@@ -1,31 +1,21 @@
-# Copyright (c) 2005-2011 Dynamic Solutions Inc. (support@dynamic-solutions.com)
-#
-# This file is part of DataZoomer.
-#
-# DataZoomer is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#
-# DataZoomer is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+    zoom.utils
 
-"""Utilities that rely only on standard python libraries"""
+    Utilities that rely only on standard python libraries.
+"""
 
 import os
 import string
 import collections
 import ConfigParser
+import decimal
+
 from sys import version_info
 
-norm = string.maketrans('','')
+norm = string.maketrans('', '')
 special = string.translate(norm, norm, string.letters + string.digits + ' ')
 PY2 = version_info[0] == 2
+
 
 def trim(text):
     """
@@ -56,9 +46,11 @@ def trim(text):
     else:
         return text.strip()
 
+
 def name_for(text):
     """Calculates a valid HTML field name given an arbitrary string."""
-    return text.replace('*','').replace(' ','_').strip().upper()
+    return text.replace('*', '').replace(' ', '_').strip().upper()
+
 
 def id_for(*args):
     """
@@ -83,15 +75,16 @@ def id_for(*args):
 
     return '~'.join([id_(arg) for arg in args])
 
-def tag_for(tag_text,content='',*args,**keywords):
+
+def tag_for(tag_text, content='', *args, **keywords):
     """
     Builds an HTML tag.
 
         deprecated : use html.tag instead
-    
+
         >>> tag_for('a',href='http://www.google.com')
         '<A HREF="http://www.google.com" />'
-    
+
     """
     tag_type = tag_text.upper()
     singles = ''.join([' %s' % arg.upper() for arg in args])
@@ -99,7 +92,8 @@ def tag_for(tag_text,content='',*args,**keywords):
     if content or tag_type.lower() in ['textarea']:
         return '<%s%s%s>%s</%s>' % (tag_type,singles,attribute_text,content,tag_type)
     else:
-        return '<%s%s%s />' % (tag_type,singles,attribute_text)
+        return '<%s%s%s />' % (tag_type, singles, attribute_text)
+
 
 def layout_field(label,content,edit=True):
     """
@@ -236,6 +230,12 @@ class Record(Storage):
         >>> getattr(f,'full')
         'Joe Smith'
 
+        >>> print Foo(_id=1, fname='Jane', lname='Smith')
+        Foo
+          fname ...............: 'Jane'
+          lname ...............: 'Smith'
+          full ................: 'Jane Smith'
+
         >>> o = Record(a=2)
         >>> o.a
         2
@@ -255,14 +255,20 @@ class Record(Storage):
     """
 
     def attributes(self):
-        all_keys = self.keys() + [k for k,v in self.__class__.__dict__.items() if hasattr(v,'__get__')]
-        special_keys = 'id', 'key', 'name', 'title', 'description', 'first_name', 'middle_name', 'last_name', 'fname', 'lname'
+        def properties(self):
+            items = self.__class__.__dict__.items()
+            return [k for k, v in items if hasattr(v, '__get__')]
+        all_keys = self.keys() + properties(self)
+        special_keys = (
+            '_id', 'id', 'key', 'name', 'title', 'description',
+            'first_name', 'middle_name', 'last_name', 'fname', 'lname'
+        )
         result = []
         for key in special_keys:
             if key in all_keys:
                 result.append(key)
         for key in sorted(all_keys):
-            if not key in special_keys:
+            if key not in special_keys:
                 result.append(key)
         return result
 
@@ -302,7 +308,12 @@ class Record(Storage):
                     v = value()
                 else:
                     v = value
-                t.append('  %s %s: %s'  % (key,'.'*(20-len(key[:20])), repr(v)))
+                t.append('  {} {}: {!r}'.format(
+                        key,
+                        '.'*(20-len(key[:20])),
+                        v
+                    )
+                )
             return '\n'.join([name] + t)
 
         else:
@@ -371,9 +382,14 @@ class RecordList(list):
             3 records
 
         """
-        if len(self)==0:
+        def by_value_size(a, b):
+            d = data_lengths
+            return not d[a] and -999 or not d[b] and -999 or d[a]-d[b]
+
+        if len(self) == 0:
             return 'Empty list'
-        title=['%s\n' % kind(self[0])]
+
+        title = ['%s\n' % kind(self[0])]
 
         data_lengths = {}
         for rec in self:
@@ -384,10 +400,9 @@ class RecordList(list):
                     data_lengths[field] = m
 
         fields = data_lengths.keys()
-        d = data_lengths
-        fields.sort(lambda a,b:not d[a] and -999 or not d[b] and -999 or d[a]-d[b])
+        fields.sort(by_value_size)
 
-        lines  = []
+        lines = []
         fmtstr = []
 
         if '_id' in fields:
@@ -401,7 +416,7 @@ class RecordList(list):
             ofields = fields
 
         for field in ofields:
-            width = max(len(field),d[field])+1
+            width = max(len(field), data_lengths[field])+1
             fmt = '%-' + ('%ds ' % width)
             fmtstr.append(fmt)
             title.append(fmt % field)
@@ -443,27 +458,26 @@ class ItemList(list):
     >>> items
     [['Joe', 12, 125]]
     >>> print items
-    Column 0  Column 1  Column 2  
-    --------- --------- --------- 
-    Joe       12        125      
+    Column 0 Column 1 Column 2
+    -------- -------- --------
+    Joe            12      125
 
     >>> items.insert(0, ['Name', 'Score', 'Points'])
     >>> print items
-    Name  Score  Points  
-    ----- ------ ------- 
-    Joe   12     125    
+    Name Score Points
+    ---- ----- ------
+    Joe     12    125
 
     >>> data = [
     ...     ['Joe', 12, 125],
-    ...     ['Sally', 13, 135],
+    ...     ['Sally', 13, 1354],
     ... ]
     >>> items = ItemList(data)
     >>> print items
-    Column 0  Column 1  Column 2  
-    --------- --------- --------- 
-    Joe       12        125      
-    Sally     13        135      
-
+    Column 0 Column 1 Column 2
+    -------- -------- --------
+    Joe            12      125
+    Sally          13    1,354
 
     >>> data = [
     ...     ['Joe', 12, 125],
@@ -471,10 +485,10 @@ class ItemList(list):
     ... ]
     >>> items = ItemList(data, labels=['Name', 'Score', 'Points'])
     >>> print items
-    Name   Score  Points  
-    ------ ------ ------- 
-    Joe    12     125    
-    Sally  13     135    
+    Name  Score Points
+    ----- ----- ------
+    Joe      12    125
+    Sally    13    135
 
 
     """
@@ -484,7 +498,7 @@ class ItemList(list):
 
     def __str__(self):
         def is_numeric(value):
-            return type(value) in [int, float, Decimal]
+            return type(value) in [int, float, decimal.Decimal]
 
         def is_text(value):
             return type(value) in [str, unicode]
@@ -492,17 +506,31 @@ class ItemList(list):
         def name_column(number):
             return 'Column {}'.format(number)
 
+        def is_homogeneous(values):
+            return any([
+                len(values) <= 1,
+                all(type(values[0]) == type(i) for i in values[1:]),
+            ])
+
+        def get_format(label, values):
+            first_non_null = map(type, filter(lambda a: a is not None, values))[:1]
+            if first_non_null:
+                data_type = first_non_null[0]
+                if data_type in [int, long, float, decimal.Decimal]:
+                    return '{:{width},}'
+            return '{:<{width}}'
+
         if len(self) == 0:
             return ''
 
         num_columns = len(self[0])
+        columns = range(num_columns)
 
         # calculate labels
         if self.labels:
             labels = self.labels
             offset = 0
         else:
-            # if first row is not all text it doesn't contain labels so generate them
             if not all(is_text(label) for label in self[0]):
                 labels = [name_column(i) for i in range(num_columns)]
                 offset = 0
@@ -510,40 +538,45 @@ class ItemList(list):
                 labels = self[0]
                 offset = 1
 
-        # calculate column lengths
-        data_lengths = {}
-        for rec in self[offset:]:
-            for i, col in enumerate(rec):
-                n = data_lengths.get(i, 0)
-                m = len('%s' % rec[i])
+        # rows containing data
+        rows = self[offset:]
+
+        # calculate formats
+        formats = []
+        for col in columns:
+            values = [row[col] for row in rows]
+            if is_homogeneous(values):
+                formats.append(get_format(labels[col], values))
+            else:
+                formats.append('{}')
+
+        # calulate formatted values
+        formatted_values = [labels] + [
+            [formats[col].format(row[col], width=0) for col in columns] for row in rows
+        ]
+
+        # calculate column widths
+        data_widths = {}
+        for row in formatted_values:
+            for col in columns:
+                n = data_widths.get(col, 0)
+                m = len(row[col])
                 if n < m:
-                    data_lengths[i] = m
+                    data_widths[col] = m
 
-        fields = data_lengths.keys()
-        d = data_lengths
-        fields.sort(lambda a, b: not d[a] and -999 or not d[b] and -999 or d[a] - d[b])
+        # print data_widths
+        label_format = '{:<{width}}'
+        formatted_labels = [
+                label_format.format(l, width=data_widths[i])
+                for i, l in enumerate(labels)
+                ]
 
-        title = []
-        lines = []
-        fmtstr = []
+        dashes = ['-' * data_widths[col] for col in columns]
+        aligned_values = [formatted_labels] + [dashes] + [
+            [formats[col].format(row[col], width=data_widths[col]) for col in columns] for row in rows
+        ]
 
-        for i, label in enumerate(labels):
-            width = max(len(label), d[i]) + 1
-            fmt = '%-' + ('%ds'% width)
-            fmtstr.append(fmt)
-            title.append(fmt % label)
-            lines.append(('-' * width) + '')
-        title.append('\n')
-        lines.append('\n')
-        fmtstr = ' '.join(fmtstr)
-
-        t = []
-
-        for rec in self[offset:]:
-            t.append(fmtstr % tuple(rec))
-
-        return ' '.join(title)  + ' '.join(lines) + '\n'.join(t)
-
+        return '\n'.join(' '.join(row) for row in aligned_values)
 
 
 class OrderedSet(collections.MutableSet):
@@ -653,7 +686,7 @@ class Config(object):
         try:
             return self.config.get(section, option)
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            if default != None:
+            if default is not None:
                 return default
             raise
 
