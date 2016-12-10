@@ -1,4 +1,6 @@
 """
+    test_records.py
+
     Test the records module
 """
 
@@ -10,8 +12,13 @@ from decimal import Decimal
 
 from datetime import date, time, datetime
 
-class Person(Record): pass
-class TestPerson(Record): pass
+
+class Person(Record):
+    pass
+
+
+class TestPerson(Record):
+    pass
 
 
 class TestRecordStore(unittest.TestCase):
@@ -89,7 +96,6 @@ class TestRecordStore(unittest.TestCase):
         joe = self.people.get(self.joe_id)
         self.assertEqual(
             dict(joe),
-            #dict(_id=self.joe_id, name='Joe', age=50)
             {
                 self.id_name: self.joe_id,
                 'name': 'Joe',
@@ -104,11 +110,12 @@ class TestRecordStore(unittest.TestCase):
         self.assertEqual(None, self.people.get(joe_id + 1))
 
     def test_get_multiple(self):
+        def sort_order(item):
+            return keys.index(item[self.id_name])
         keys = [self.sam_id, self.joe_id]
         r = self.people.get(keys)
         sam = self.people.get(self.sam_id)
         joe = self.people.get(self.joe_id)
-        sort_order = lambda a: keys.index(a[self.id_name])
         self.assertEqual(sorted(r, key=sort_order), [sam, joe])
 
     def test_get_put_get(self):
@@ -155,7 +162,7 @@ class TestRecordStore(unittest.TestCase):
 
     def test_kind(self):
         self.assertEqual(self.people.kind, 'person')
-        self.assertEqual(RecordStore(self.db,TestPerson).kind, 'test_person')
+        self.assertEqual(RecordStore(self.db, TestPerson).kind, 'test_person')
 
     def test_len(self):
         self.assertEqual(3, len(self.people))
@@ -215,5 +222,3 @@ class TestNamedKeyedRecordStore(TestRecordStore):
 
     def get_record_store(self):
         return RecordStore(self.db, Person, name=self.name, key=self.key)
-
-
