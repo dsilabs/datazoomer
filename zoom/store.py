@@ -72,8 +72,8 @@ def entify(rs, klass):
     """
     entities = {}
 
-    if hasattr(rs, 'data'): # maintain backward compatibility with
-        rs = rs.data        # legacy database module
+    if hasattr(rs, 'data'):  # maintain backward compatibility with
+        rs = rs.data         # legacy database module
 
     for _, _, row_id, attribute, datatype, value in rs:
 
@@ -102,7 +102,7 @@ def entify(rs, klass):
             y = int(value[:4])
             m = int(value[5:7])
             d = int(value[8:10])
-            value = datetime.date(y,m,d)
+            value = datetime.date(y, m, d)
 
         elif datatype == "datetime.datetime":
             y = int(value[:4])
@@ -111,7 +111,7 @@ def entify(rs, klass):
             hr = int(value[11:13])
             mn = int(value[14:16])
             sc = int(value[17:19])
-            value = datetime.datetime(y,m,d,hr,mn,sc)
+            value = datetime.datetime(y, m, d, hr, mn, sc)
 
         elif datatype == 'bool':
             value = (value == '1' or value == 'True')
@@ -274,8 +274,16 @@ class EntityStore(object):
         """
         def fixval(d):
             if type(d) == datetime.datetime:
-                # avoids mysqldb reliance on strftime that lacks support for dates before 1900
-                return "%02d-%02d-%02d %02d:%02d:%02d" % (d.year,d.month,d.day,d.hour,d.minute,d.second)
+                # avoids mysqldb reliance on strftime that lacks support
+                # for dates before 1900
+                return "%02d-%02d-%02d %02d:%02d:%02d" % (
+                    d.year,
+                    d.month,
+                    d.day,
+                    d.hour,
+                    d.minute,
+                    d.second
+                    )
             if type(d) == decimal.Decimal:
                 return str(d)
             if isinstance(d, (list, tuple)):
@@ -292,16 +300,21 @@ class EntityStore(object):
                 return t
 
         db = self.db
-    
-        keys        = [k for k in entity.keys() if k <> '_id']
-        values      = [entity[k] for k in keys]
-        datatypes   = [get_type_str(v) for v in values]
-        values      = [fixval(i) for i in values] # same fix as above
-        valid_types = ['str','unicode','long','int','float','decimal.Decimal','datetime.date','datetime.datetime','bool','NoneType','list','tuple']
+
+        keys = [k for k in entity.keys() if k != '_id']
+        values = [entity[k] for k in keys]
+        datatypes = [get_type_str(v) for v in values]
+        values = [fixval(i) for i in values]  # same fix as above
+        valid_types = [
+            'str', 'unicode', 'long', 'int', 'float', 'decimal.Decimal',
+            'datetime.date', 'datetime.datetime', 'bool', 'NoneType',
+            'list', 'tuple'
+            ]
 
         for n, atype in enumerate(datatypes):
             if atype not in valid_types:
-                raise zoom.exceptions.TypeException,'unsupported type <type %s> in value %r' % (atype, keys[n])
+                msg = 'unsupported type <type %s> in value %r'
+                raise zoom.exceptions.TypeException, msg % (atype, keys[n])
 
         if '_id' in entity:
             id = entity['_id']
@@ -313,11 +326,14 @@ class EntityStore(object):
         n = len(keys)
         lkeys = [k.lower() for k in keys]
         param_list = zip([self.kind]*n, [id]*n, lkeys, datatypes, values)
-        cmd = 'insert into attributes (kind, row_id, attribute, datatype, value) values (%s,%s,%s,%s,%s)'
+        cmd = (
+            'insert into attributes ('
+            '    kind, row_id, attribute, datatype, value'
+            ') values (%s,%s,%s,%s,%s)'
+            )
         db.cursor().executemany(cmd, param_list)
 
         return id
-
 
     def get(self, keys):
         """
@@ -334,7 +350,8 @@ class EntityStore(object):
             >>> db.close()
 
         """
-        if keys == None: return None
+        if keys is None:
+            return None
 
         if not isinstance(keys, (list, tuple)):
             keys = (keys,)
@@ -349,7 +366,9 @@ class EntityStore(object):
             else:
                 return None
 
-        cmd = 'select * from attributes where kind=%s and row_id in (%s)' % ('%s',','.join(['%s']*len(keys)))
+        cmd = 'select * from attributes where kind=%s and row_id in (%s)' % (
+            '%s', ','.join(['%s']*len(keys))
+            )
         rs = self.db(cmd, self.kind, *keys)
 
         result = entify(rs, self.klass)
@@ -358,7 +377,6 @@ class EntityStore(object):
             return result
         if result:
             return result[0]
-
 
     def get_attributes(self):
         """
@@ -377,12 +395,16 @@ class EntityStore(object):
             >>> db.close()
 
         """
-        # order by id desc so that newly introduced attributes appear at the end of the keys list
-        cmd = 'select distinct attribute from attributes where kind=%s order by id desc'
+        # order by id desc so that newly introduced attributes appear at
+        # the end of the keys list
+        cmd = (
+            'select distinct attribute '
+            'from attributes '
+            'where kind=%s order by id desc'
+        )
         rs = self.db(cmd, self.kind)
         values = [rec[0] for rec in rs]
         return values
-
 
     def delete(self, key):
         """
@@ -417,7 +439,6 @@ class EntityStore(object):
         cmd = 'delete from entities where id=%s'
         self.db(cmd, key)
 
-
     def exists(self, keys=None):
         """
         tests for existence of an entity
@@ -445,16 +466,19 @@ class EntityStore(object):
         if not isinstance(keys, (list, tuple)):
             keys = (keys,)
         slots = (','.join(['%s']*len(keys)))
-        cmd = 'select distinct row_id from attributes where row_id in (%s)' % slots
+        cmd = (
+            'select distinct row_id '
+            'from attributes '
+            'where row_id in (%s)'
+            ) % slots
         rs = self.db(cmd, *keys)
 
         found_keys = [rec[0] for rec in rs]
-        if len(keys)>1:
+        if len(keys) > 1:
             result = [(key in found_keys) for key in keys]
         else:
             result = keys[0] in found_keys
         return result
-
 
     def all(self):
         """
@@ -478,7 +502,7 @@ class EntityStore(object):
     def zap(self):
         """
         deletes all entities of the given kind
-        
+
             >>> db = setup_test()
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
@@ -528,7 +552,7 @@ class EntityStore(object):
         all_keys = []
         for field_name in kv.keys():
             value = kv[field_name]
-            if value != None:
+            if value is not None:
                 if not isinstance(value, (list, tuple)):
                     wc = 'value=%s'
                     v = (value,)
@@ -687,18 +711,23 @@ class EntityStore(object):
             start, stop, step = key.indices(n)
             return [self[ii] for ii in xrange(start, stop, step)]
         elif isinstance(key, int):
-            if key<0:
+            if key < 0:
                 key += n
             elif key >= n:
-                raise IndexError, 'Index ({}) out of range'.format(key)
-            cmd = 'select distinct row_id from attributes where kind="%s" limit %s,1' % (self.kind, key)
+                raise IndexError('Index ({}) out of range'.format(key))
+            cmd = (
+                'select distinct row_id '
+                'from attributes '
+                'where kind="%s" '
+                'limit %s,1'
+                ) % (self.kind, key)
             rs = self.db(cmd)
             if rs:
                 return self.get(list(rs)[0][0])
             else:
                 return 'no records'
         else:
-            raise TypeError, 'Invalid argument type'
+            raise TypeError('Invalid argument type')
 
     def __repr__(self):
         return repr(self.all())
@@ -708,9 +737,6 @@ class EntityStore(object):
 
 Store = EntityStore
 
+
 def store(klass=dict):
     return EntityStore(zoom.tools.db, klass)
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
