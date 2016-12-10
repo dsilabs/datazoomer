@@ -1,9 +1,7 @@
 """
+    test_store.py
+
     Test the store module
-    
-    Copyright (c) 2005-2012 Dynamic Solutions Inc. (support@dynamic-solutions.com)
-    
-    This file is part of DataZoomer.
 """
 
 from zoom.store import Entity, EntityStore
@@ -16,8 +14,14 @@ from decimal import Decimal
 
 from datetime import date, time, datetime
 
-class Person(Entity): pass
-class TestPerson(Entity): pass
+
+class Person(Entity):
+    pass
+
+
+class TestPerson(Entity):
+    pass
+
 
 class TestDb(unittest.TestCase):
 
@@ -55,11 +59,12 @@ class TestDb(unittest.TestCase):
         self.assertEqual(None, self.people.get(joe_id + 1))
 
     def test_get_multiple(self):
+        def sort_order(item):
+            return keys.index(item['_id'])
         keys = [self.sam_id, self.joe_id]
         r = self.people.get(keys)
         sam = self.people.get(self.sam_id)
         joe = self.people.get(self.joe_id)
-        sort_order = lambda a: keys.index(a['_id'])
         self.assertEqual(sorted(r, key=sort_order), [sam, joe])
 
     def test_get_put_get(self):
@@ -102,7 +107,7 @@ class TestDb(unittest.TestCase):
 
     def test_kind(self):
         self.assertEqual(self.people.kind, 'person')
-        self.assertEqual(EntityStore(self.db,TestPerson).kind, 'test_person')
+        self.assertEqual(EntityStore(self.db, TestPerson).kind, 'test_person')
 
     def test_len(self):
         self.assertEqual(3, len(self.people))
@@ -111,4 +116,3 @@ class TestDb(unittest.TestCase):
         self.assertEqual(3, len(self.people))
         self.people.zap()
         self.assertEqual(0, len(self.people))
-
