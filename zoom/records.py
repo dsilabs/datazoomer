@@ -74,7 +74,7 @@ class Result(object):
         return get_result_iterator(self.rows, self.cls)
 
     def __len__(self):
-        return self.rows.rowcount
+        return self.rows.cursor.rowcount
 
     def __repr__(self):
         return repr(list(self))
@@ -203,6 +203,7 @@ class RecordStore(object):
         2 account records
 
         >>> accounts.delete(2L)
+        [2L]
         >>> print accounts
         account
         account_id name added
@@ -212,7 +213,6 @@ class RecordStore(object):
         2 account records
 
         """
-
 
     def __init__(self, db, record_class=dict, name=None, key='id'):
         # pylint: disable=invalid-name
@@ -257,7 +257,6 @@ class RecordStore(object):
             <Person {'name': 'James', 'age': 15}>
         """
 
-
         keys = [k for k in record.keys() if k != '_id']
         values = [record[k] for k in keys]
         datatypes = [type(i) for i in values]
@@ -271,7 +270,7 @@ class RecordStore(object):
             datetime.date,
             datetime.datetime,
             bool,
-            type(None), #NoneType,
+            type(None),
             decimal.Decimal,
         ]
 
@@ -301,7 +300,6 @@ class RecordStore(object):
 
         return _id
 
-
     def get(self, keys):
         # pylint: disable=trailing-whitespace
         """
@@ -325,12 +323,20 @@ class RecordStore(object):
               2 Jim   21
             2 person records
 
+            >>> people.put(Person(name='Alice',age=29))
+            3L
+            >>> print people.get([1, 3])
+            person
+            _id name  age
+            --- ----- ---
+              1 Sam    15
+              3 Alice  29
+            2 person records
 
         """
-
         # pylint: disable=star-args
 
-        if keys == None:
+        if keys is None:
             return None
 
         if not isinstance(keys, (list, tuple)):
@@ -339,13 +345,11 @@ class RecordStore(object):
             as_list = 0
         else:
             keys = [long(key) for key in keys]
-            cmd = (
-                'select * from '
-                + self.kind
-                + ' where '
-                + self.key
-                + ' in (%s)'
-            ) % (','.join(['%s'] * len(keys)))
+            cmd = 'select * from {} where {} in ({})'.format(
+                self.kind,
+                self.key,
+                ','.join(['%s'] * len(keys))
+            )
             as_list = 1
 
         if not keys:
@@ -361,7 +365,6 @@ class RecordStore(object):
 
         for rec in Result(rows, self.record_class):
             return rec
-
 
     def get_attributes(self):
         """
@@ -383,8 +386,15 @@ class RecordStore(object):
         rows = self.db(cmd)
         return [rec[0] for rec in rows if rec[0] != 'id']
 
+    def _delete(self, ids):
+        if ids:
+            spots = ','.join('%s' for _ in ids)
+            cmd = 'delete from {} where {} in ({})'.format(
+                self.kind, self.key, spots)
+            self.db(cmd, *ids)
+            return ids
 
-    def delete(self, key):
+    def delete(self, *args, **kwargs):
         """
         delete a record
 
@@ -403,17 +413,37 @@ class RecordStore(object):
             >>> joe
             <Person {'name': 'Joe', 'age': 25}>
             >>> people.delete(id)
+            [3L]
             >>> joe = people.get(id)
             >>> joe
             >>> bool(joe)
             False
 
-        """
-        if hasattr(key, 'get'):
-            key = key.get(self.id_name)
-        cmd = 'delete from %s where %s=%s' % (self.kind, self.key, '%s')
-        self.db(cmd, key)
+            >>> bool(people.find(name='Sally'))
+            True
+            >>> people.delete(name='Sallie')
+            >>> bool(people.find(name='Sally'))
+            True
+            >>> people.delete()
+            >>> people.delete(name='Sally')
+            [1L]
+            >>> bool(people.find(name='Sally'))
+            False
 
+            >>> db.close()
+        """
+        ids = []
+        for key in args:
+            if hasattr(key, 'get'):
+                key = key.get(self.id_name)
+            ids.append(key)
+        if kwargs:
+            ids.extend(self._find(**kwargs))
+        return self._delete(ids)
+        # if hasattr(key, 'get'):
+        #     key = key.get(self.id_name)
+        # cmd = 'delete from %s where %s=%s' % (self.kind, self.key, '%s')
+        # self.db(cmd, key)
 
     def exists(self, keys=None):
         """
@@ -455,7 +485,6 @@ class RecordStore(object):
         else:
             result = keys[0] in found_keys
         return result
-
 
     def all(self):
         """
@@ -528,7 +557,7 @@ class RecordStore(object):
         Find keys that meet search critieria
         """
         items = kv.items()
-        clause = ' and '.join('%s=%s'%(k, '%s') for k, v in items)
+        clause = ' and '.join('%s=%s' % (k, '%s') for k, v in items)
         cmd = ' '.join([
             'select distinct',
             self.key,
@@ -558,6 +587,8 @@ class RecordStore(object):
             True
             >>> people.find(name='Sam')
             [<Person {'name': 'Sam', 'age': 25}>]
+            >>> len(people.find(name='Sam'))
+            1
 
         """
         items = kv.items()

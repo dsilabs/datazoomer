@@ -23,7 +23,7 @@ class TestPerson(Entity):
     pass
 
 
-class TestDb(unittest.TestCase):
+class TestStore(unittest.TestCase):
 
     def setUp(self):
         params = dict(

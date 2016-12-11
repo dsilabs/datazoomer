@@ -1,4 +1,6 @@
 """
+    zoom.store
+
     key value store
 """
 
@@ -343,12 +345,34 @@ class EntityStore(object):
             >>> class Person(Entity): pass
             >>> class People(EntityStore): pass
             >>> people = People(db, Person)
-            >>> id = people.put(Person(**{'name': 'Sam', 'age':15, 'salary': decimal.Decimal('100.00')}))
+            >>> id = people.put(Person(**{'name': 'Sam', 'age':15,
+            ...     'salary': decimal.Decimal('100.00')}))
             >>> sam = people.get(id)
             >>> sam
             <Person {'name': 'Sam', 'age': 15, 'salary': Decimal('100.00')}>
-            >>> db.close()
+            >>> people.put(Person(name='Jim', age=21,
+            ...    salary=decimal.Decimal('50')))
+            2L
+            >>> people.put(Person(name='Alice', age=29))
+            3L
+            >>> print people
+            person
+            _id name  age salary
+            --- ----- --- ------
+              1 Sam    15 100.00
+              2 Jim    21 50
+              3 Alice  29 None
+            3 person records
 
+            >>> print people.get([1L, '3'])
+            person
+            _id name  age salary
+            --- ----- --- ------
+              1 Sam    15 100.00
+              3 Alice  29 None
+            2 person records
+
+            >>> db.close()
         """
         if keys is None:
             return None
@@ -406,9 +430,18 @@ class EntityStore(object):
         values = [rec[0] for rec in rs]
         return values
 
-    def delete(self, key):
+    def _delete(self, ids):
+        if ids:
+            spots = ','.join('%s' for _ in ids)
+            cmd = 'delete from attributes where row_id in ({})'.format(spots)
+            self.db(cmd, *ids)
+            cmd = 'delete from entities where id in ({})'.format(spots)
+            self.db(cmd, *ids)
+            return ids
+
+    def delete(self, *args, **kwargs):
         """
-        delete an entity
+        delete entities
 
             >>> db = setup_test()
             >>> class Person(Entity): pass
@@ -425,19 +458,34 @@ class EntityStore(object):
             >>> joe
             <Person {'name': 'Joe', 'age': 25}>
             >>> people.delete(id)
+            [3L]
             >>> joe = people.get(id)
             >>> joe
             >>> bool(joe)
             False
+
+            >>> bool(people.find(name='Sally'))
+            True
+            >>> people.delete(name='Sallie')
+            >>> bool(people.find(name='Sally'))
+            True
+            >>> people.delete()
+            >>> people.delete(name='Sally')
+            [1L]
+            >>> bool(people.find(name='Sally'))
+            False
+
             >>> db.close()
 
         """
-        if hasattr(key, 'get'):
-            key = key['_id']
-        cmd = 'delete from attributes where row_id=%s'
-        self.db(cmd, key)
-        cmd = 'delete from entities where id=%s'
-        self.db(cmd, key)
+        ids = []
+        for key in args:
+            if hasattr(key, 'get'):
+                key = key['_id']
+            ids.append(key)
+        if kwargs:
+            ids.extend(self._find(**kwargs))
+        return self._delete(ids)
 
     def exists(self, keys=None):
         """
@@ -583,6 +631,8 @@ class EntityStore(object):
             >>> id = people.put(Person(name='Bob', age=25))
             >>> people.find(age=25)
             [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+            >>> len(people.find(name='Sam'))
+            1
             >>> db.close()
 
         """
