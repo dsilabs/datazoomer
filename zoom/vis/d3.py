@@ -6,7 +6,7 @@ from zoom import system
 from zoom.jsonz import dumps
 from zoom.tools import load
 
-d3_libs = ["/static/dz/d3/d3.min.js", "/static/dz/d3.charts.js"]
+d3_libs = ["/static/dz/d3/d3.v3.min.js", "/static/dz/d3/d3.charts.js"]
 d3_styles = []
 
 def chain_methods(options):
@@ -97,4 +97,3 @@ class Force(object):
         system.libs |= d3_libs
         system.styles |= self.styles
         return '<div id="visual" class="iefallback"></div>'
-
