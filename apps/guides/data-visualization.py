@@ -44,6 +44,10 @@ css = """
 """
 
 toc = """
+C3 Charts
+----
+* [Line]({path}/c3-line)
+
 JQPlot Charts
 ----
 * [Line]({path}/jqplot-line)
@@ -71,11 +75,13 @@ Sparklines
 
 tpl = load_content('visualization-layout')
 
+
 def get_code(method):
     source = getsource(method)
     lines = [l[4:] for l in source.splitlines()[1:-1]]
     selection = '\n'.join(lines)
     return markdown(selection)
+
 
 class MyView(View):
 
@@ -86,7 +92,7 @@ class MyView(View):
             return title
         thumbnails = []
         for name, method in getmembers(self, predicate=ismethod):
-            if not name.startswith('_') and not name in ['index','show']:
+            if not name.startswith('_') and not name in ['index', 'show']:
                 link = link_to(get_title(method), name)
                 thumbnails.append(method()['visualization'])
         content = ul(div(t, Class='thumbnail') for t in thumbnails)
@@ -102,17 +108,9 @@ class MyView(View):
                 Class='row',
             ), css=css)
 
-
     def __call__(self, vis=None):
         system.app.menu.append('Data Visualization')
         if vis:
-            #if vis.startswith('jqplot'):
-            #    #from zoom.vis.jqplot import css
-            #    pass
-            #if vis.startswith('leaflet'):
-                #from zoom.vis.leaflet import head, css as lcss
-            #    #head = ''
-            #    #css = ''
             method = getattr(self, vis.replace('-','_'))
             result = method()
             result['side_panel'] = markdown(toc)
@@ -124,6 +122,30 @@ class MyView(View):
         else:
             return self.index()
 
+    def c3_line(self):
+        """c3 Line
+
+        Example showing how to generate a line chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import line
+
+        page_title = 'C3 Line Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = line(data, legend=legend, title='Page Hits by Month')
+
+        return locals()
 
     def jqplot_line(self):
         """jqPlot Line
@@ -163,7 +185,7 @@ class MyView(View):
 
         legend = 'Page1', 'Page2'
         months = 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'
-        data   = [(m, randint(-2500,5000), randint(1,10000)) for m in months]
+        data = [(m, randint(-2500,5000), randint(1,10000)) for m in months]
 
         visualization = bar(
             data,
@@ -173,7 +195,6 @@ class MyView(View):
         )
 
         return locals()
-
 
     def jqplot_hbar(self):
         """jqPlot Horizontal Bar Chart
@@ -188,14 +209,14 @@ class MyView(View):
 
         legend = 'Page1', 'Page2'
         months = 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'
-        data   = [(m, randint(1,10000), randint(1,10000)) for m in months]
+        data = [(m, randint(1, 10000), randint(1, 10000)) for m in months]
 
         visualization = hbar(
-                data, 
-                title='Page Hits by Month', 
-                seriesColors=['red','#cc88aa'],
-                legend=legend,
-                )
+            data,
+            title='Page Hits by Month',
+            seriesColors=['red', '#cc88aa'],
+            legend=legend,
+        )
 
         return locals()
 
@@ -212,17 +233,16 @@ class MyView(View):
         page_title = 'JQPlot Pie Chart'
 
         sources = 'Facebook', 'Twitter', 'LinkedIn', 'Other'
-        data   = [(s, randint(1,10000)) for s in sources]
+        data = [(s, randint(1, 10000)) for s in sources]
 
         visualization = pie(
-                data, 
+                data,
                 chart_id='my_pie_chart',
-                title='Visits by Source', 
+                title='Visits by Source',
                 legend=sources,
                 )
 
         return locals()
-
 
     def jqplot_gauge(self):
         """jqPlot Gauge Chart
@@ -235,25 +255,25 @@ class MyView(View):
 
         page_title = 'JQPlot Guage'
 
-        data = float(randint(1,100))/20
+        data = float(randint(1, 100))/20
 
         visualization = gauge(
             data,
             title='Average Load Time',
             min=1,
             max=10,
-            intervals = [5,8,10],
-            label = 'average load time in seconds',
-            interval_colors = ['#66cc66', '#E7E658', '#cc6666'],
+            intervals=[5, 8, 10],
+            label='average load time in seconds',
+            interval_colors=['#66cc66', '#E7E658', '#cc6666'],
         )
 
         return locals()
 
-
     def jqplot_ts(self):
         """jqPlot TimeSeries Chart
 
-        Example showing how to generate a time series chart using jqplot module.
+        Example showing how to generate a time series chart using jqplot
+        module.
         """
 
         from random import randint
@@ -264,15 +284,23 @@ class MyView(View):
         xaxis_label = 'Date'
         time_format = '%b %#d, %#I %p'
 
-        start_date = datetime.datetime(2014,01,01)
+        start_date = datetime.datetime(2014, 1, 1)
         delta = datetime.timedelta(days=1)
-        data   = [(start_date + n * delta, randint(1,100), randint(1,100)) for n in range(60)]
+        data = [(start_date + n * delta, randint(1, 100), randint(1, 100))
+                for n in range(60)]
 
         legend = 'North', 'South'
 
         options = dict(axes=dict(xaxis=dict(label=xaxis_label)))
 
-        visualization = time_series(data, chart_id='ts1', legend=legend, time_format=time_format, title='Page Hits by Month', options=options)
+        visualization = time_series(
+            data,
+            chart_id='ts1',
+            legend=legend,
+            time_format=time_format,
+            title='Page Hits by Month',
+            options=options
+        )
 
         return locals()
 
@@ -291,10 +319,12 @@ class MyView(View):
         xaxis_label = 'Month'
 
         legend = 'North', 'South'
-        labels = 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
 
-        data   = [(m, randint(1,100), randint(1,100)) for m in labels]
-
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
         options = dict(axes=dict(xaxis=dict(label=xaxis_label, tickInterval=2)))
 
         theme = 'chocolate', load('assets/chocolate-line.js')
@@ -303,7 +333,6 @@ class MyView(View):
                              theme=theme, options=options)
 
         return locals()
-
 
     def jqplot_image(self):
         """jqPlot Image
@@ -320,17 +349,18 @@ class MyView(View):
         xaxis_label = 'Month'
 
         legend = 'North', 'South'
-        labels = 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
 
-        data   = [(m, randint(1,100), randint(1,100)) for m in labels]
-
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
         options = dict(axes=dict(xaxis=dict(label=xaxis_label, tickInterval=2)))
 
         visualization = line(data, legend=legend, title='Page Hits',
                              with_image=True, options=options)
 
         return locals()
-
 
     def leaflet_simple(self):
         """Simple Leaflet Map
@@ -342,32 +372,32 @@ class MyView(View):
 
         page_title = 'Simple Map'
 
-        BC_LL = [55,-125]
+        BC_LL = [55, -125]
 
         visualization = Map(BC_LL, zoom=4).render()
 
         return locals()
 
-
     def leaflet_markers(self):
         """Leaflet Map with Markers
 
-        Example showing how to generate a map with markers using leaflet module.
+        Example showing how to generate a map with markers using leaflet
+        module.
         """
 
         from zoom.vis.leaflet import Map, Marker
 
         page_title = 'Simple Map'
 
-        VANCOUVER_MARKER = Marker([49.25, -123.1],'Vancouver')
-        EDMONTON_MARKER = Marker([53.53, -113.5],'Edmonton')
-        CALGARY_MARKER = Marker([51.5, -114],'Calgary')
-        REGINA_MARKER = Marker([50.5, -104.6],'Regina')
-        WINNIPEG_MARKER = Marker([49.9, -97.1],'Winnipeg')
-        TORONTO_MARKER = Marker([43.7, -79.4],'Toronto')
-        OTTAWA_MARKER = Marker([45.4, -75.7],'Ottawa')
+        VANCOUVER_MARKER = Marker([49.25, -123.1], 'Vancouver')
+        EDMONTON_MARKER = Marker([53.53, -113.5], 'Edmonton')
+        CALGARY_MARKER = Marker([51.5, -114], 'Calgary')
+        REGINA_MARKER = Marker([50.5, -104.6], 'Regina')
+        WINNIPEG_MARKER = Marker([49.9, -97.1], 'Winnipeg')
+        TORONTO_MARKER = Marker([43.7, -79.4], 'Toronto')
+        OTTAWA_MARKER = Marker([45.4, -75.7], 'Ottawa')
 
-        markers=[
+        markers = [
             VANCOUVER_MARKER,
             EDMONTON_MARKER,
             CALGARY_MARKER,
@@ -375,17 +405,15 @@ class MyView(View):
             WINNIPEG_MARKER,
             TORONTO_MARKER,
             OTTAWA_MARKER,
-            ]
+        ]
 
         visualization = Map(markers=markers).render()
-
         return locals()
-
 
     def sparkline(self):
         """Sparkline Chart
 
-        Example showing how to generate a line sparkline chart using 
+        Example showing how to generate a line sparkline chart using
         sparkline module.
         """
         from random import randint
@@ -393,17 +421,16 @@ class MyView(View):
 
         page_title = 'Sparkline Line Example'
 
-        data = [randint(1,50) for i in range(25)]
-        text = 'This {} is an example of a sparkline like graph for the data <br>{}'
-        visualization =  text.format(sparkline.line(data), data)
+        data = [randint(1, 50) for i in range(25)]
+        text = 'This {} is an example of a sparkline for the data <br>{}'
+        visualization = text.format(sparkline.line(data), data)
 
         return locals()
-
 
     def sparkbar(self):
         """Sparkbar Chart
 
-        Example showing how to generate a bar sparkline chart using 
+        Example showing how to generate a bar sparkline chart using
         sparkline module.
         """
 
@@ -412,9 +439,9 @@ class MyView(View):
 
         page_title = 'Sparkline Line Example'
 
-        data = [randint(1,50) for i in range(20)]
-        text = 'This {} is an example of a sparkline like graph for the data<br>{}'
-        visualization =  text.format(sparkline.bar(data), data)
+        data = [randint(1, 50) for i in range(20)]
+        text = 'This {} is an example of a sparkline for the data<br>{}'
+        visualization = text.format(sparkline.bar(data), data)
 
         return locals()
 
