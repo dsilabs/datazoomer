@@ -47,6 +47,7 @@ toc = """
 C3 Charts
 ----
 * [Line]({path}/c3-line)
+* [Bar]({path}/c3-bar)
 
 JQPlot Charts
 ----
@@ -144,6 +145,31 @@ class MyView(View):
         data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
 
         visualization = line(data, legend=legend, title='Page Hits by Month')
+
+        return locals()
+
+    def c3_bar(self):
+        """c3 Bar
+
+        Example showing how to generate a bar chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import bar
+
+        page_title = 'C3 Bar Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = bar(data, legend=legend, title='Page Hits by Month')
 
         return locals()
 
