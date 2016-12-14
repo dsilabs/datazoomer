@@ -26,7 +26,11 @@ css = """
 """
 
 
-def line(data, options=None, **kwargs):
+def get_chart_id(**kwargs):
+    return kwargs.pop('chart_id', 'chart_' + uuid.uuid4().hex)
+
+
+def line(data, legend=None, options=None, **kwargs):
     """produce a line chart"""
 
     # pylint: disable=star-args
@@ -36,10 +40,14 @@ def line(data, options=None, **kwargs):
 
     data = zip(*data)
 
-    default_options = {}
-    options = merge_options(kwargs, default_options)
+    default_options = {
+        'legend': {
+            'position': 'inset'
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
 
-    legend = options.get('legend', None)
+    #legend = options.get('legend', None)
     labels = data[0]
 
     rows = []
@@ -82,19 +90,11 @@ def line(data, options=None, **kwargs):
 def bar(data, options=None, **kwargs):
     """produce a line chart"""
 
-    # pylint: disable=star-args
-    # It's reasonable in this case.
-
-    chart_id = kwargs.pop('chart_id', 'chart_' + uuid.uuid4().hex)
+    chart_id = get_chart_id(**kwargs)
 
     data = zip(*data)
-
-    default_options = {}
-    options = merge_options(kwargs, default_options)
-
-    legend = options.get('legend', None)
+    legend = kwargs.pop('legend', None)
     labels = data[0]
-
     rows = []
     rows.append(['x'] + list(labels))
     if legend:
@@ -104,38 +104,50 @@ def bar(data, options=None, **kwargs):
         for n, label in enumerate(legend):
             rows.append([label] + list(data[n + 1]))
 
+    default_options = {
+        'data': {
+            'x': 'x',
+            'columns': rows,
+            'type': 'bar'
+        },
+        'legend': {
+            'position': 'inset'
+        },
+        'bar': {
+            'width': {
+                'ratio': 0.5
+            }
+        },
+        'axis': {
+            'x': {
+                'type': 'category'
+            }
+        },
+        'legend': {
+            'position': 'inset'
+        },
+        'bindto': '#' + chart_id
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+
     content = """
-        <div class="dz-c3-chart placeholder" id="%s"></div>
-    """ % chart_id
+        <div class="dz-c3-chart placeholder" id="{}"></div>
+    """.format(chart_id)
 
     js = """
     $(function(){
-        var chart = c3.generate({
-            bindto: '#%(chart_id)s',
-            title: {text: '%(title)s'},
-            data: {
-                x: 'x',
-                columns: %(data)s,
-                type: 'bar'
-            },
-            bar: {
-                width: {
-                    ration: 0.5
-                }
-            },
-            axis: {
-                x: {
-                    type: 'category'
-                }
-            },
-            legend: {
-                position: 'inset'
-            }
-        });
+        var chart = c3.generate(%(options)s);
     });
-    """ % dict(
-        chart_id=chart_id,
-        data=json.dumps(rows),
-        title=kwargs.get('title', ''),
-    )
+    """ % dict(options=json.dumps(options, indent=4))
+
     return component(content, js=js, libs=libs, styles=styles, css=css)
+
+
+def hbar(data, options=None, **kwargs):
+    default_options = {
+        'axis': {
+            'rotated': True,
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return bar(data, options, **kwargs)

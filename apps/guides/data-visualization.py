@@ -48,6 +48,7 @@ C3 Charts
 ----
 * [Line]({path}/c3-line)
 * [Bar]({path}/c3-bar)
+* [Horizontal Bar]({path}/c3-hbar)
 
 JQPlot Charts
 ----
@@ -170,6 +171,31 @@ class MyView(View):
         data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
 
         visualization = bar(data, legend=legend, title='Page Hits by Month')
+
+        return locals()
+
+    def c3_hbar(self):
+        """c3 Horizontal Bar
+
+        Example showing how to generate a horizontal bar chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import hbar
+
+        page_title = 'C3 Horizontal Bar Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = hbar(data, legend=legend, title='Page Hits by Month')
 
         return locals()
 
