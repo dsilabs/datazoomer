@@ -107,14 +107,16 @@ def chart(parameters):
         is a json object as specified in the jqplot docs.
         """
         chart_theme = parameters.pop('chart_theme', None)
+        chart_id = parameters['chart_id']
         if chart_theme:
             name, data = chart_theme
             code = """
             // apply theme
             {name} = {data};
-            {name} = plot1.themeEngine.newTheme('{name}', {name});
-            plot1.activateTheme('{name}');
-            """.format(name=name, data=data)
+            console.log($("#{chart_id}").data('jqplot'));
+            {name} = $("#{chart_id}").data('jqplot').themeEngine.newTheme('{name}', {name});
+            $("#{chart_id}").data('jqplot').activateTheme('{name}');
+            """.format(name=name, data=data, chart_id=chart_id)
         else:
             code = ""
         parameters['apply_theme'] = code
