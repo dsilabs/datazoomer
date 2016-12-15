@@ -49,6 +49,7 @@ C3 Charts
 * [Line]({path}/c3-line)
 * [Bar]({path}/c3-bar)
 * [Horizontal Bar]({path}/c3-hbar)
+* [Gauge]({path}/c3-gauge)
 
 JQPlot Charts
 ----
@@ -199,6 +200,31 @@ class MyView(View):
 
         return locals()
 
+    def c3_gauge(self):
+        """C3 Gauge Chart
+
+        Example showing how to generate a gauge chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import gauge
+
+        page_title = 'C3 Guage'
+
+        data = float(randint(1, 100))
+
+        visualization = gauge(
+            data,
+            title='Average Load Time',
+            min=1,
+            max=100,
+            intervals=[40, 60, 90, 100],
+            label='average CPU load',
+            interval_colors=['#60B044', '#F6C600', '#F97600', '#FF0000'],
+        )
+
+        return locals()
+
     def jqplot_line(self):
         """jqPlot Line
 
@@ -307,7 +333,7 @@ class MyView(View):
 
         page_title = 'JQPlot Guage'
 
-        data = float(randint(1, 100))/20
+        data = randint(1, 10)
 
         visualization = gauge(
             data,

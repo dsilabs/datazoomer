@@ -151,3 +151,56 @@ def hbar(data, options=None, **kwargs):
     }
     options = merge_options(merge_options(default_options, options), kwargs)
     return bar(data, options, **kwargs)
+
+
+def gauge(data,
+          label=None,
+          intervals=None,
+          interval_colors=None,
+          options=None,
+          **kwargs):
+    """produce a gauge chart"""
+
+    chart_id = get_chart_id(**kwargs)
+
+    min_value = kwargs.pop('min', 0)
+    max_value = kwargs.pop('max', 100)
+
+    default_options = {
+        'data': {
+            'columns': [['', data]],
+            'type': 'gauge',
+        },
+        'gauge': {
+            'units': label,
+            'min': min_value,
+            'max': max_value,
+            'label': {
+                'show': True,
+                'format': '<<formatter>>',
+            },
+        },
+        'color': {
+            'pattern': interval_colors,
+            'threshold': {
+                'values': intervals
+            }
+        },
+        'bindto': '#' + chart_id,
+    }
+    options = default_options
+
+    content = """
+        <div class="dz-c3-chart placeholder" id="{}"></div>
+    """.format(chart_id)
+
+
+    formatter = 'function(value, ratio) { return value; }'
+    options = json.dumps(options, indent=4).replace('"<<formatter>>"', formatter)
+    js = """
+    $(function(){
+        var chart = c3.generate(%(options)s);
+    });
+    """ % dict(options=options)
+
+    return component(content, js=js, libs=libs, styles=styles, css=css)
