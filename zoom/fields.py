@@ -1338,6 +1338,13 @@ class PulldownField(TextField):
         'FEB'
     """
     value = None
+    css_class = 'pulldown'
+    select_layout = '<select data-placeholder="{}" class="{}" name="{}" id="{}">\n'
+
+    def __init__(self, *a, **k):
+        TextField.__init__(self, *a, **k)
+        if not 'placeholder' in k:
+            self.placeholder = 'Select ' + self.label
 
     def evaluate(self):
         for option in self.options:
@@ -1370,7 +1377,7 @@ class PulldownField(TextField):
         result = []
         name = self.name
         found = False
-        result.append('<select class="pulldown" name="%s" id="%s">\n'%(name,name))
+        result.append(self.select_layout.format(self.placeholder, self.css_class, name, name))
         for option in self.options:
             if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
@@ -1386,6 +1393,11 @@ class PulldownField(TextField):
             result.insert(1, blank_option)
         result.append('</select>')
         return ''.join(result)
+
+
+class ChosenSelectField(PulldownField):
+    css_class = 'chosen'
+
 
 class MultiselectField(TextField):
     """
@@ -1560,6 +1572,7 @@ class ChosenMultiselectField(MultiselectField):
 
     """
     css_class = 'chosen'
+    select_layout = '<select data-placeholder="{}" multiple="multiple" class="{}" name="{}" id="{}">\n'
 
     def __init__(self, *a, **k):
         MultiselectField.__init__(self, *a, **k)
@@ -1575,8 +1588,7 @@ class ChosenMultiselectField(MultiselectField):
         current_labels = self._scan(current_values, lambda a: a[0])
         result = []
         name = self.name
-        tpl = '<select data-placeholder="{}" multiple="multiple" class="{}" name="{}" id="{}">\n'
-        result.append(tpl.format(self.placeholder, self.css_class, name, name))
+        result.append(self.select_layout.format(self.placeholder, self.css_class, name, name))
         for option in self.options:
             if has_iterator_protocol(option) and len(option)==2:
                 label, value = option
