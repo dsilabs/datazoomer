@@ -144,7 +144,13 @@ class CollectionView(View):
 
             c.fields.initialize(record)
             c.fields.update(data)
-            form = Form(c.fields, ButtonField('Save', cancel=record.url))
+            # attempt to go back to the listing if that is where we came from (if not from show method)
+            cancel_url = (
+                system.request.referrer and (len(route) - len(system.request.referrer.split('/')[3:])) > 1 and
+                c.url or
+                record.url
+            )
+            form = Form(c.fields, ButtonField('Save', cancel=cancel_url))
             return page(form.edit(), title=c.item_name)
         else:
             return page('%s missing' % key)
@@ -340,6 +346,9 @@ class CollectionRecord(DefaultRecord):
 class Collection(object):
 
     name_column = 'name'
+    view = CollectionView
+    controller = CollectionController
+    storage = EntityStore
 
     def __init__(self, item_name, fields, entity, url=None):
         self.item_name = item_name
@@ -348,7 +357,7 @@ class Collection(object):
         self.entity = entity
         self.labels = [f.label for f in fields.as_list()]
         self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
-        self.store = EntityStore(system.db, entity)
+        self.store = self.storage(system.db, entity)
         self.url = url or '/{}/{}'.format(system.app.name, id_for(self.name))
         self.filter = None # attach callable here to filter browse list
 
@@ -367,9 +376,12 @@ class Collection(object):
         return key.isdigit() and self.store.get(key) or self.store.first(key=key) or scan(self.store, key)
 
     def __call__(self, *a, **k):
-        # To use a Collection as an app
-        controller = CollectionController(self)
-        view = CollectionView(self)
+        """ calling the collection - my_collection_instance()
+
+            to use a collection as an app
+        """
+        controller = self.controller and self.controller(self) or CollectionController(self)
+        view = self.view and self.view(self) or CollectionView(self)
         return controller(*a, **k) or view(*a, **k)
 
     def __str__(self):

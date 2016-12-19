@@ -257,7 +257,8 @@ class RecordStore(object):
             <Person {'name': 'James', 'age': 15}>
         """
 
-        keys = [k for k in record.keys() if k != '_id']
+        table_attributes = self.get_attributes()
+        keys = [k for k in record.keys() if k != '_id' and k in table_attributes]
         values = [record[k] for k in keys]
         datatypes = [type(i) for i in values]
         values = [i for i in values]
