@@ -1339,7 +1339,7 @@ class PulldownField(TextField):
     """
     value = None
     css_class = 'pulldown'
-    select_layout = '<select data-placeholder="{}" class="{}" name="{}" id="{}">\n'
+    select_layout = '<select class="{classed}" name="{name}" id="{name}">\n'
 
     def __init__(self, *a, **k):
         TextField.__init__(self, *a, **k)
@@ -1377,7 +1377,7 @@ class PulldownField(TextField):
         result = []
         name = self.name
         found = False
-        result.append(self.select_layout.format(self.placeholder, self.css_class, name, name))
+        result.append(self.select_layout.format(**dict(place=self.placeholder, classed=self.css_class, name=name)))
         for option in self.options:
             if type(option) in [types.ListType, types.TupleType] and len(option)==2:
                 label, value = option
@@ -1397,6 +1397,7 @@ class PulldownField(TextField):
 
 class ChosenSelectField(PulldownField):
     css_class = 'chosen'
+    select_layout = '<select data-placeholder="{place}" class="{classed}" name="{name}" id="{name}">\n'
 
 
 class MultiselectField(TextField):
