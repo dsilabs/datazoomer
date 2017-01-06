@@ -21,11 +21,11 @@ class UserStore(RecordStore):
     """DataZoomer Users
 
     """
-    def __init__(self, db):
+    def __init__(self, db, entity=UserRecord):
         RecordStore.__init__(
             self,
             db,
-            UserRecord,
+            entity,
             name='dz_users',
             key='userid'
             )
