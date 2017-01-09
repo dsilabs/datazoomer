@@ -19,6 +19,8 @@ __all__ = [
     'StopProcessing',
     ]
 
+DELAY = 0.1
+
 now = datetime.datetime.now
 
 class EmptyException(Exception): pass
@@ -323,7 +325,7 @@ class Topic(object):
         return TopicIterator(self, self.newest)
 
 
-    def wait(self, delay=1, timeout=15):
+    def wait(self, delay=DELAY, timeout=15):
         """
         wait for a message to arrive and return it
 
@@ -348,7 +350,7 @@ class Topic(object):
                 raise WaitException
 
 
-    def listen(self, f, delay=1, meta=False):
+    def listen(self, f, delay=DELAY, meta=False):
         """
         observe but don't consume messages
 
@@ -422,7 +424,7 @@ class Topic(object):
         return self.join(self.send(*messages))
 
 
-    def handle(self, f, timeout=0, delay=1, one_pass=False):
+    def handle(self, f, timeout=0, delay=DELAY, one_pass=False):
         """respond to and consume messages
 
             >>> messages = setup_test()
@@ -566,4 +568,3 @@ class Queues(object):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
