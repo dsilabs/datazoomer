@@ -30,26 +30,17 @@ def get_chart_id(**kwargs):
     return kwargs.pop('chart_id', 'chart_' + uuid.uuid4().hex)
 
 
-def line(data, legend=None, options=None, **kwargs):
+def line(data, options=None, **kwargs):
     """produce a line chart"""
 
     # pylint: disable=star-args
     # It's reasonable in this case.
 
-    chart_id = kwargs.pop('chart_id', 'chart_' + uuid.uuid4().hex)
+    chart_id = get_chart_id(**kwargs)
 
     data = zip(*data)
-
-    default_options = {
-        'legend': {
-            'position': 'inset'
-        },
-    }
-    options = merge_options(merge_options(default_options, options), kwargs)
-
-    #legend = options.get('legend', None)
+    legend = kwargs.pop('legend', None)
     labels = data[0]
-
     rows = []
     rows.append(['x'] + list(labels))
     if legend:
@@ -59,36 +50,61 @@ def line(data, legend=None, options=None, **kwargs):
         for n, label in enumerate(legend):
             rows.append([label] + list(data[n + 1]))
 
+    default_options = {
+        'data': {
+            'x': 'x',
+            'columns': rows,
+            'type': 'line',
+        },
+        'legend': {
+            'position': 'inset',
+        },
+        'axis': {
+            'x': {
+                'type': 'category'
+            },
+        },
+        'bindto': '#' + chart_id
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+
     content = """
         <div class="dz-c3-chart placeholder" id="%s"></div>
     """ % chart_id
 
     js = """
     $(function(){
-        var chart = c3.generate({
-            bindto: '#%(chart_id)s',
-            title: {text: '%(title)s'},
-            data: {
-                x: 'x',
-                columns: %(data)s
-            },
-            axis: {
-                x: {
-                    type: 'category'
-                }
-            }
-        });
+        var chart = c3.generate(%(options)s);
     });
-    """ % dict(
-        chart_id=chart_id,
-        data=json.dumps(rows),
-        title=kwargs.get('title', ''),
-    )
+    """ % dict(options=json.dumps(options, indent=4))
     return component(content, js=js, libs=libs, styles=styles, css=css)
 
 
+def area(data, options=None, **kwargs):
+    """produce an area chart"""
+
+    default_options = {
+        'data': {
+            'type': 'area',
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+
+    return line(data, options, **kwargs)
+
+
+def stacked_area(data, options=None, **kwargs):
+    """produces a stacked area chart"""
+
+    default_options = {
+        'groups': [[]]
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return area(data, options, **kwargs)
+
+
 def bar(data, options=None, **kwargs):
-    """produce a line chart"""
+    """produce a bar chart"""
 
     chart_id = get_chart_id(**kwargs)
 
@@ -122,9 +138,6 @@ def bar(data, options=None, **kwargs):
             'x': {
                 'type': 'category'
             }
-        },
-        'legend': {
-            'position': 'inset'
         },
         'bindto': '#' + chart_id
     }
@@ -194,9 +207,9 @@ def gauge(data,
         <div class="dz-c3-chart placeholder" id="{}"></div>
     """.format(chart_id)
 
-
     formatter = 'function(value, ratio) { return value; }'
-    options = json.dumps(options, indent=4).replace('"<<formatter>>"', formatter)
+    options = json.dumps(options, indent=4).replace(
+        '"<<formatter>>"', formatter)
     js = """
     $(function(){
         var chart = c3.generate(%(options)s);
@@ -204,3 +217,52 @@ def gauge(data,
     """ % dict(options=options)
 
     return component(content, js=js, libs=libs, styles=styles, css=css)
+
+
+def donut(data,
+          label=None,
+          options=None,
+          value=None,
+          **kwargs):
+    """produce a donut chart"""
+
+    chart_id = get_chart_id(**kwargs)
+
+    default_options = {
+        'data': {
+            'columns': data,
+            'type': 'donut',
+        },
+        'bindto': '#' + chart_id,
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+
+    content = """
+        <div class="dz-c3-chart placeholder" id="{}"></div>
+    """.format(chart_id)
+
+    formatter = 'function(value, ratio) { return value; }'
+    options = json.dumps(options, indent=4).replace(
+        '"<<formatter>>"', formatter)
+    js = """
+    $(function(){
+        var chart = c3.generate(%(options)s);
+    });
+    """ % dict(options=options)
+
+    return component(content, js=js, libs=libs, styles=styles, css=css)
+
+
+def pie(data,
+        label=None,
+        options=None,
+        **kwargs):
+    """produce a pie chart"""
+
+    default_options = {
+        'data': {
+            'type': 'pie',
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return donut(data, label, options, **kwargs)
