@@ -7,7 +7,6 @@ import json
 
 from zoom.component import component
 from zoom.vis.utils import merge_options
-from zoom.mvc import DynamicView
 
 styles = [
     '/static/dz/c3/c3.css',
@@ -37,9 +36,10 @@ def line(data, options=None, **kwargs):
     # It's reasonable in this case.
 
     chart_id = get_chart_id(**kwargs)
+    legend = kwargs.pop('legend', None)
 
     data = zip(*data)
-    legend = kwargs.pop('legend', None)
+
     labels = data[0]
     rows = []
     rows.append(['x'] + list(labels))
@@ -54,7 +54,6 @@ def line(data, options=None, **kwargs):
         'data': {
             'x': 'x',
             'columns': rows,
-            'type': 'line',
         },
         'legend': {
             'position': 'inset',
@@ -80,6 +79,19 @@ def line(data, options=None, **kwargs):
     return component(content, js=js, libs=libs, styles=styles, css=css)
 
 
+def spline(data, options=None, **kwargs):
+    """produce a spline chart"""
+
+    default_options = {
+        'data': {
+            'type': 'spline',
+        },
+    }
+
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return line(data, options, **kwargs)
+
+
 def area(data, options=None, **kwargs):
     """produce an area chart"""
 
@@ -89,15 +101,43 @@ def area(data, options=None, **kwargs):
         },
     }
     options = merge_options(merge_options(default_options, options), kwargs)
-
     return line(data, options, **kwargs)
+
+
+def area_spline(data, options=None, **kwargs):
+    """produces spline area chart"""
+
+    default_options = {
+        'data': {
+            'type': 'area-spline',
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return area(data, options, **kwargs)
 
 
 def stacked_area(data, options=None, **kwargs):
     """produces a stacked area chart"""
+    stacks = kwargs.pop('stacks', [])
 
     default_options = {
-        'groups': [[]]
+        'data': {
+            'groups': stacks,
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return area(data, options, **kwargs)
+
+
+def stacked_area_spline(data, options=None, **kwargs):
+    """produces a stacked area chart"""
+    stacks = kwargs.pop('stacks', [])
+
+    default_options = {
+        'data': {
+            'type': 'area-spline',
+            'groups': stacks,
+        },
     }
     options = merge_options(merge_options(default_options, options), kwargs)
     return area(data, options, **kwargs)
@@ -106,24 +146,8 @@ def stacked_area(data, options=None, **kwargs):
 def bar(data, options=None, **kwargs):
     """produce a bar chart"""
 
-    chart_id = get_chart_id(**kwargs)
-
-    data = zip(*data)
-    legend = kwargs.pop('legend', None)
-    labels = data[0]
-    rows = []
-    rows.append(['x'] + list(labels))
-    if legend:
-        if len(legend) != len(data) - 1:
-            msg = '{} legend must match number of data columns'
-            raise Exception(msg.format(__file__))
-        for n, label in enumerate(legend):
-            rows.append([label] + list(data[n + 1]))
-
     default_options = {
         'data': {
-            'x': 'x',
-            'columns': rows,
             'type': 'bar'
         },
         'legend': {
@@ -134,26 +158,9 @@ def bar(data, options=None, **kwargs):
                 'ratio': 0.5
             }
         },
-        'axis': {
-            'x': {
-                'type': 'category'
-            }
-        },
-        'bindto': '#' + chart_id
     }
     options = merge_options(merge_options(default_options, options), kwargs)
-
-    content = """
-        <div class="dz-c3-chart placeholder" id="{}"></div>
-    """.format(chart_id)
-
-    js = """
-    $(function(){
-        var chart = c3.generate(%(options)s);
-    });
-    """ % dict(options=json.dumps(options, indent=4))
-
-    return component(content, js=js, libs=libs, styles=styles, css=css)
+    return line(data, options, **kwargs)
 
 
 def hbar(data, options=None, **kwargs):
@@ -164,6 +171,54 @@ def hbar(data, options=None, **kwargs):
     }
     options = merge_options(merge_options(default_options, options), kwargs)
     return bar(data, options, **kwargs)
+
+
+def stacked_bar(data, options=None, **kwargs):
+    """produce a stacked bar chart"""
+    stacks = kwargs.pop('stacks', [])
+
+    default_options = {
+        'data': {
+            'groups': stacks,
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return bar(data, options, **kwargs)
+
+
+def stacked_hbar(data, options=None, **kwargs):
+    default_options = {
+        'axis': {
+            'rotated': True,
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return stacked_bar(data, options, **kwargs)
+
+
+def step(data, options=None, **kwargs):
+    """produce a bar chart"""
+
+    default_options = {
+        'data': {
+            'type': 'area-step'
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return line(data, options, **kwargs)
+
+
+def stacked_step(data, options=None, **kwargs):
+    """produces a stacked area chart"""
+    stacks = kwargs.pop('stacks', [])
+
+    default_options = {
+        'data': {
+            'groups': stacks,
+        },
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return step(data, options, **kwargs)
 
 
 def gauge(data,
@@ -219,11 +274,7 @@ def gauge(data,
     return component(content, js=js, libs=libs, styles=styles, css=css)
 
 
-def donut(data,
-          label=None,
-          options=None,
-          value=None,
-          **kwargs):
+def donut(data, options=None, **kwargs):
     """produce a donut chart"""
 
     chart_id = get_chart_id(**kwargs)
@@ -233,6 +284,11 @@ def donut(data,
             'columns': data,
             'type': 'donut',
         },
+        'tooltip': {
+            'format': {
+                'value': '<<formatter>>',
+            },
+        },
         'bindto': '#' + chart_id,
     }
     options = merge_options(merge_options(default_options, options), kwargs)
@@ -240,8 +296,7 @@ def donut(data,
     content = """
         <div class="dz-c3-chart placeholder" id="{}"></div>
     """.format(chart_id)
-
-    formatter = 'function(value, ratio) { return value; }'
+    formatter = 'function(x){return x}'
     options = json.dumps(options, indent=4).replace(
         '"<<formatter>>"', formatter)
     js = """
@@ -253,10 +308,7 @@ def donut(data,
     return component(content, js=js, libs=libs, styles=styles, css=css)
 
 
-def pie(data,
-        label=None,
-        options=None,
-        **kwargs):
+def pie(data, options=None, **kwargs):
     """produce a pie chart"""
 
     default_options = {
@@ -265,4 +317,20 @@ def pie(data,
         },
     }
     options = merge_options(merge_options(default_options, options), kwargs)
-    return donut(data, label, options, **kwargs)
+    return donut(data, options, **kwargs)
+
+
+def scatter(data, options=None, **kwargs):
+    """produce a scatter plot"""
+    rotate_axis = kwargs.pop('rotate_axis', None)
+
+    default_options = {
+        'data': {
+            'type': 'scatter',
+        },
+        'axis': {
+            'rotated': rotate_axis
+        }
+    }
+    options = merge_options(merge_options(default_options, options), kwargs)
+    return line(data, options, **kwargs)

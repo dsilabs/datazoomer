@@ -47,13 +47,21 @@ toc = """
 C3 Charts
 ----
 * [Line]({path}/c3-line)
+* [Spline]({path}/c3-spline)
 * [Area]({path}/c3-area)
-* [Stacked Area]({path}/c3-stacked_area)
+* [Area-Spline]({path}/c3-area-spline)
+* [Stacked Area]({path}/c3-stacked-area)
+* [Stacked Area-Spline]({path}/c3-stacked-area-spline)
 * [Bar]({path}/c3-bar)
+* [Stacked Bar]({path}/c3-stacked-bar)
 * [Horizontal Bar]({path}/c3-hbar)
+* [Stacked Horizontal Bar]({path}/c3-stacked-hbar)
+* [Step]({path}/c3-step)
+* [Stacked Step]({path}/c3-stacked-step)
 * [Gauge]({path}/c3-gauge)
 * [Donut]({path}/c3-donut)
 * [Pie]({path}/c3-pie)
+* [Scatter Plot]({path}/c3-scatter)
 
 JQPlot Charts
 ----
@@ -154,6 +162,30 @@ class MyView(View):
 
         return locals()
 
+    def c3_spline(self):
+        """c3 Spline
+
+        Example showing how to generate a spline chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import spline
+
+        page_title = 'C3 Spline Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = spline(data, legend=legend, title='Page Hits by Month')
+
+        return locals()
 
     def c3_area(self):
         """c3 Area
@@ -180,16 +212,16 @@ class MyView(View):
 
         return locals()
 
-    def c3_stacked_area(self):
-        """c3 Area
+    def c3_area_spline(self):
+        """c3 Area-Spline
 
-        Example showing how to generate an area chart using c3 module.
+        Example showing how to generate an area-spline chart using c3 module.
         """
 
         from random import randint
-        from zoom.vis.c3 import stacked_area
+        from zoom.vis.c3 import area_spline
 
-        page_title = 'C3 Area Chart'
+        page_title = 'C3 Area-Spline Chart'
 
         xaxis_label = 'Month'
 
@@ -201,7 +233,66 @@ class MyView(View):
 
         data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
 
-        visualization = stacked_area(data, legend=legend, title='Page Hits by Month')
+        visualization = area_spline(
+            data, legend=legend, title='Page Hits by Month'
+        )
+
+        return locals()
+
+    def c3_stacked_area(self):
+        """c3 Stacked Area
+
+        Example showing how to generate a stacked area chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import stacked_area
+
+        page_title = 'C3 Stacked Area Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        stacks = [legend]
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = stacked_area(
+            data, legend=legend, stacks=stacks, title='Page Hits by Month'
+        )
+
+        return locals()
+
+    def c3_stacked_area_spline(self):
+        """c3 Stacked Area-Spline
+
+        Example showing how to generate a stacked area-spline chart using c3
+        module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import stacked_area_spline
+
+        page_title = 'C3 Stacked Area-Spline Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        stacks = [legend]
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = stacked_area_spline(
+            data, legend=legend, stacks=stacks, title='Page Hits by Month'
+        )
 
         return locals()
 
@@ -230,6 +321,40 @@ class MyView(View):
 
         return locals()
 
+    def c3_stacked_bar(self):
+        """c3 Stacked Bar
+
+        Example showing how to generate a stacked bar chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import stacked_bar
+
+        page_title = 'C3 Stacked Bar Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South', 'East', 'West'
+        stacks = ['North', 'West'], ['South', 'East']
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(
+            m,
+            randint(1, 100),
+            randint(1, 100),
+            randint(1, 100),
+            randint(1, 100)
+        ) for m in labels]
+
+        visualization = stacked_bar(
+            data, stacks=stacks, legend=legend, title='Page Hits by Month'
+        )
+
+        return locals()
+
     def c3_hbar(self):
         """c3 Horizontal Bar
 
@@ -252,6 +377,92 @@ class MyView(View):
         data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
 
         visualization = hbar(data, legend=legend, title='Page Hits by Month')
+
+        return locals()
+
+    def c3_stacked_hbar(self):
+        """c3 Stacked Horizontal Bar
+
+        Example showing how to generate a stacked horizontal bar chart using
+        c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import stacked_hbar
+
+        page_title = 'C3 Stacked Horizontal Bar Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South', 'East', 'West'
+        stacks = ['North', 'West'], ['South', 'East']
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(
+            m,
+            randint(1, 100),
+            randint(1, 100),
+            randint(1, 100),
+            randint(1, 100)
+        ) for m in labels]
+
+        visualization = stacked_hbar(
+            data, stacks=stacks, legend=legend, title='Page Hits by Month'
+        )
+
+        return locals()
+
+    def c3_step(self):
+        """C3 Step Chart
+        Example showing how to generate a step chart using c3 module"""
+
+        from random import randint
+        from zoom.vis.c3 import step
+
+        page_title = 'C3 Step Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = step(data, legend=legend, title='Page Hits by Month')
+
+        return locals()
+
+    def c3_stacked_step(self):
+        """c3 Stacked Step Bar
+
+        Example showing how to generate a stacked step chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import stacked_step
+
+        page_title = 'C3 Stacked Step Chart'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South'
+        stacks = [legend]
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        data = [(m, randint(1, 100), randint(1, 100)) for m in labels]
+
+        visualization = stacked_step(
+            data, stacks=stacks, legend=legend, title='Page Hits by Month'
+        )
 
         return locals()
 
@@ -316,6 +527,45 @@ class MyView(View):
 
         return locals()
 
+    def c3_scatter(self):
+        """c3 Stacked Horizontal Bar
+
+        Example showing how to generate a combination chart using c3 module.
+        """
+
+        from random import randint
+        from zoom.vis.c3 import scatter
+
+        page_title = 'C3 Scatter Plot'
+
+        xaxis_label = 'Month'
+
+        legend = 'North', 'South', 'East', 'West'
+
+        labels = (
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        )
+
+        rotate_axis = True
+
+        data = [(
+            m,
+            randint(1, 100),
+            randint(1, 100),
+            randint(1, 100),
+            randint(1, 100),
+        ) for m in labels]
+
+        visualization = scatter(
+            data,
+            rotate_axis=rotate_axis,
+            legend=legend,
+            title='Page Hits by Month'
+        )
+
+        return locals()
+
     def jqplot_line(self):
         """jqPlot Line
 
@@ -370,7 +620,8 @@ class MyView(View):
     def jqplot_hbar(self):
         """jqPlot Horizontal Bar Chart
 
-        Example showing how to generate a horizontal bar chart using jqplot module.
+        Example showing how to generate a horizontal bar chart using jqplot
+        module.
         """
 
         from random import randint
