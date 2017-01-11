@@ -322,7 +322,7 @@ def pie(data, options=None, **kwargs):
 
 def scatter(data, options=None, **kwargs):
     """produce a scatter plot"""
-    rotate_axis = kwargs.pop('rotate_axis', None)
+    rotate_axis = kwargs.pop('rotate_axis', False)
 
     default_options = {
         'data': {
