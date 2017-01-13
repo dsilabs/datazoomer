@@ -46,6 +46,7 @@ class NoApp(object):
     description = ''
     title = name
     theme = ''
+    menu = []
 
     def run(self):
         """nada"""
