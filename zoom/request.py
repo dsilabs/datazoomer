@@ -112,6 +112,7 @@ class Request(object):
         self.method = None
         self.instance = None
         self.setup(env, instance)
+        self.path = ''
 
     def setup(self, env, instance=None):
         """setup the Request attributes"""
