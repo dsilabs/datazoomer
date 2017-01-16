@@ -49,7 +49,7 @@ def get_selectors(app):
 
     return ' '.join('select-%s' % c for c in classes)
 
-class App(Entity): 
+class App(Entity):
 
     descr = property(lambda a: a.description or a.name + ' application')
     icon_image = property(lambda a: '<img src="/static/dz/icons/%s">' % a.icon)
@@ -76,7 +76,7 @@ class App(Entity):
         if rec:
             id = rec[0].GROUPID
             db('delete from dz_groups where groupid=%s', id)
-            db('delete from dz_subgroups where subgroupid=%s', id)
+            db('delete from dz_subgroups where groupid=%s or subgroupid=%s', id, id)
             db('delete from dz_members where groupid=%s', id)
             db('delete from dz_groups where groupid=%s', id)
 
@@ -127,7 +127,7 @@ def audit_log(group):
     d = db('select * from audit_log where subject2=%s order by timestamp desc limit 10',group)
     items = [(r.user,r.activity,r.subject1,r.timestamp,how_long_ago(r.timestamp)) for r in d]
     return items
-        
+
 trash_tpl = """
 <div class="trash">
 <a href="%(link)s">
