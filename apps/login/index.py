@@ -36,7 +36,7 @@ class HiddenReferrerField(Hidden):
     def edit(self):
         return """
         <div class="form-group">
-            <input class="form-control" placeholder="Redirect after login" id="REFERRER" name="referrer" type="hidden" value="%s">
+            <input class="form-control" placeholder="Redirect after login" id="REFERRER" name="REFERRER" type="hidden" value="%s">
         </div>
         """ % data.get('referrer','')
 
@@ -95,7 +95,7 @@ class LoginController(Controller):
                         logger.activity('session', msg)
                         logger.info('user %s successfully logged in' % username)
 
-                        referrer = data.get('referrer')
+                        referrer = values.get('REFERRER')
                         if referrer:
                             return redirect_to(referrer)
                         return redirect_to('/'+user.default_app)
