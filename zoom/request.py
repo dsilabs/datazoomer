@@ -111,8 +111,8 @@ class Request(object):
         self.subject = None
         self.method = None
         self.instance = None
-        self.setup(env, instance)
         self.path = ''
+        self.setup(env, instance)
 
     def setup(self, env, instance=None):
         """setup the Request attributes"""
