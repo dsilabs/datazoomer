@@ -9,8 +9,6 @@ class JSONResponse(TextResponse):
 
 
 css = tools.load('style.css')
-scatter_wrapper = tools.load_content('scatter_wrapper')
-scatter_description = tools.load_content('scatter_description')
 
 calendar_wrapper = tools.load_content('calendar_wrapper')
 
