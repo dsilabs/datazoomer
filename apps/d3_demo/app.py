@@ -1,11 +1,15 @@
-from zoom import App, system
+"""
+    d3 demo app
+"""
+
+from zoom import App
+
 app = App()
 
-system.app.menu = [
-        ('scatter', 'Scatter Plot', 'scatter'),
+app.menu = [
+        ('scatter', 'Scatter', 'scatter'),
         ('calendar', 'Calendar', 'calendar'),
         ('brewer', 'ColorBrewer Palettes', 'brewer'),
-        ('cdn', 'via CDN', 'cdn'),
+        # ('cdn', 'via CDN', 'cdn'),
         ('tests', 'Various Visual Tests', 'tests'),
     ]
-

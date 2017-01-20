@@ -1,0 +1,260 @@
+a:not(:hover) {
+    text-decoration: none;
+}
+
+svg {
+    font: 10px sans-serif;
+}
+
+.active {
+    display: inline;
+}
+
+circle.active {
+    fill-opacity: 1;
+}
+
+select option.active {
+    background-color: #ededed;
+}
+
+.linkable {
+    cursor: pointer;
+    cursor: hand;
+}
+
+.dz-d3-vis {
+    margin-left: 40px;
+    height: 506px;
+    color: #333;
+}
+
+.dz-d3-vis .title {
+    font-size: 3.2em;
+    stroke-width: 0;
+    fill: #868686;
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+
+text.title>tspan.svg_glyphicon {
+    font-family: "Glyphicons Halflings";
+    font-size: .3em;
+    fill: #868686;
+    /*content: " \ue210";*/
+}
+
+#description, #y_axis_description, #x_axis_description {
+    position: absolute;
+    background-color: #eff7ff;
+    display: none;
+    border-radius: 5px;
+    opacity: .9;
+    overflow: hidden;
+    border: 0px solid transparent;
+    margin: 0;
+}
+
+#description h1, #y_axis_description h1, #x_axis_description h1 {
+    padding-left: .5em;
+}
+
+#description p, #y_axis_description p, #x_axis_description p {
+    border: 0px solid transparent;
+    padding: 0 1.5em;
+}
+
+#description pre {
+    margin: 2em;
+}
+
+text {
+    font: 10px sans-serif;
+}
+
+.dot {
+    stroke: rgba(0, 0, 0, .05);
+    fill-opacity: 0.7;
+}
+
+tspan.svg_glyphicon {
+    font-family: "Glyphicons Halflings";
+    font-size: 1.3em;
+    fill: #23C7EF;
+    stroke: #82A8B1;
+    stroke-width: 0;
+    /*content: "\e135";*/
+}
+
+.axis:hover {
+    cursor: pointer;
+    cursor: hand;
+}
+
+.axis text {
+    fill: #9c9c9c;
+}
+
+.xiqr .axis line, .yiqr .axis line {
+    stroke-width: 2px;
+    stroke: #666666;
+}
+
+.xiqr .axis g.tick:nth-of-type(2) line, .yiqr .axis g.tick:nth-of-type(2) line, .xiqr .axis g.tick:nth-of-type(4) line, .yiqr.axis g.tick:nth-of-type(4) line {
+    stroke-width: 2.2px;
+    stroke: #333;
+}
+
+.xiqr.axis text, .yiqr.axis text {
+    display: none;
+}
+
+g.summary line.summary, g.summary text.summary {
+    fill: none;
+    stroke: #e6e6e6;
+    shape-rendering: crispEdges;
+    stroke-dasharray: 5, 5;
+}
+
+g.summary text.summary {
+    fill: #dddddd;
+    stroke-width: 0;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #9c9c9c;
+    shape-rendering: crispEdges;
+}
+
+.x.label, .y.label {
+    font: 1.1em Verdana, Geneva, sans-serif;
+    cursor: pointer;
+    cursor: hand;
+}
+
+.label {
+    fill: #777;
+}
+
+.year.label {
+    font: 500 196px "Helvetica Neue";
+    fill: #ddd;
+}
+
+.year.label.active {
+    fill: #aaa;
+}
+
+.overlay {
+    fill: none;
+    pointer-events: all;
+    cursor: ew-resize;
+}
+
+.jq-dropdown-open {
+    fill: #3e3e3e;
+}
+
+div.jq-dropdown {
+    margin: .4em 0 0 .4em;
+}
+
+div.jq-dropdown ul.jq-dropdown-menu li {
+    padding: .2em;
+    margin: .25em;
+    border-radius: 2px;
+}
+
+div.jq-dropdown ul.jq-dropdown-menu li:hover, div.jq-dropdown ul.jq-dropdown-menu li.active {
+    background-color: #ededed;
+    cursor: pointer;
+    cursor: hand;
+}
+
+
+.d3-tip {
+    line-height: 1;
+    padding: 12px;
+    background: rgb(0, 0, 0);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    -webkit-transition: display 1s;
+    /* For Safari 3.1 to 6.0 */
+    transition: opacity .5s;
+}
+
+/* Creates a small triangle extender for the tooltip */
+
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+
+/* Style northward tooltips differently */
+
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+
+
+/* color legend */
+
+svg.legend {
+    position: relative;
+    left: 75px;
+    top: 50px;
+}
+
+.caption {
+    font-weight: bold;
+}
+
+.color.legend {
+    cursor: default;
+}
+
+.color.legend path {
+    display: none;
+}
+
+.color.legend line {
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+
+/* circle legend */
+
+g.circle.legend circle {
+    stroke: #bbb;
+    stroke-dasharray: 3, 1;
+    fill: #fff;
+}
+
+g.circle.legend circle:hover {
+    fill: #eee;
+}
+
+g.circle.legend line {
+    stroke: #666;
+    shape-rendering: crispEdges;
+}
+
+
+/* chosen */
+
+#metric_control {
+    clear: both;
+}

@@ -29,18 +29,19 @@ def seq_times(obs=XRANGE):
     t.sort()
     return t
 
-data = {
-    'title': 'd3.js Scatter Demo',
-    'description': tools.load_content('scatter_description'),
-    'labels': {
-        'income': "income per capita, inflation-adjusted (dollars)",
-        'lifeExpectancy': "life expectancy (years)",
-        'population': "population (total)",
-        'region': "geographic region",
-        'name': "country"
-    },
-    'data': json.loads(tools.load('nations.json')),
-}
+def get_scatter_data():
+    return {
+        'title': 'd3.js Scatter Demo',
+        'description': tools.load_content('scatter_description'),
+        'labels': {
+            'income': "income per capita, inflation-adjusted (dollars)",
+            'lifeExpectancy': "life expectancy (years)",
+            'population': "population (total)",
+            'region': "geographic region",
+            'name': "country"
+        },
+        'data': json.loads(tools.load('nations.json')),
+    }
 
 system_data = {
     'title': '{} {}'.format(system.config.get('site','name','Site'), 'System Log'),
