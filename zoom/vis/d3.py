@@ -146,10 +146,15 @@ class Force(object):
         self.edges = edges
 
     def __str__(self):
-        code = join(system.lib_path, '..', 'setup', 'www', 'static', 'dz', 'd3',
-                'assets', 'force.js')
+        return self.render()
+
+    def render(self):
+        code = join(system.lib_path, '..', 'setup', 'www', 'static',
+                    'dz', 'd3', 'assets', 'force.js')
         links = [dict(source=source, target=target) for source, target in self.edges]
-        system.js |= ['\nvar links = %s;\n' % dumps(links) + load(code)]
-        system.libs |= d3_libs
-        system.styles |= self.styles
-        return '<div id="visual" class="iefallback"></div>'
+        return component(
+            '<div id="visual" class="iefallback"></div>',
+            js='var links = %s;' % dumps(links) + load(code),
+            styles=self.styles,
+            libs=d3_libs,
+        )
