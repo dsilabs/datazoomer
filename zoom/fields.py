@@ -2275,17 +2275,32 @@ class ImagesField(SimpleField):
     default = uuid.uuid4().hex
     wrap = ''
     url = ''
+    libs = ['/static/dz/dropzone/dropzone.js']
+    styles = ['/static/dz/dropzone/dropzone.css']
 
     def display_value(self):
         t = '<div url="{url}" field_name="{name}" field_value="{value}" class="images_field dropzone"></div>'
-        return t.format(url=self.url, name=self.name, value=self.value or self.default)
+        return component(
+            t.format(url=self.url, name=self.name, value=self.value or self.default),
+            libs=self.libs,
+            styles=self.styles,
+        )
 
     def widget(self):
         t = """
         <div url="{url}" field_name="{name}" field_value="{value}" class="images_field dropzone"></div>
         <input type="hidden" name="{name}" value="{value}" id="{name}">
         """
-        return t.format(url=self.url, name=self.name, value=self.value or self.default)
+        return component(
+            t.format(
+                url=self.url,
+                name=self.name,
+                value=self.value or self.default
+            ),
+            libs=self.libs,
+            styles=self.styles,
+        )
+
 
 class Form(Fields):
     """
