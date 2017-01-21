@@ -2,6 +2,8 @@
     d3 demo application index
 """
 
+import random
+import zoom
 from zoom import redirect_to, page
 
 from model import get_scatter_data, data_list_generator, get_calendar_data
@@ -34,5 +36,16 @@ class MyView(View):
         metadata = data_list_generator(obs, metrics, dims)
         return JSONResponse(json.dumps(metadata))
 
+    def force(self):
+        alphabet = [chr(ord('A') + i) for i in range(26)]
+        edges = [
+            (
+                random.choice(alphabet),
+                random.choice(alphabet),
+            )
+            for _ in range(random.randint(20, 40))
+        ]
+        content = zoom.vis.d3.Force(edges)
+        return page(content, title='Force Diagram')
 
 view = MyView()
