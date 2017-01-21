@@ -27,7 +27,7 @@ class MyView(View):
         return page(
             tools.load_content('tests'),
             title='Visual tests for the smaller components',
-            css=tools.load('style.css'),
+            css=tools.load('tests.css'),
         )
 
     def generate(self, obs=1000, metrics=3, dims=2):
