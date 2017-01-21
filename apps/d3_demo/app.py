@@ -7,10 +7,9 @@ from zoom import App
 app = App()
 
 app.menu = [
-        ('scatter', 'Scatter', 'scatter'),
-        ('calendar', 'Calendar', 'calendar'),
-        ('brewer', 'ColorBrewer Palettes', 'brewer'),
+        'Scatter',
+        'Calendar',
         'Force',
-        # ('cdn', 'via CDN', 'cdn'),
+        ('brewer', 'ColorBrewer Palettes', 'brewer'),
         ('tests', 'Various Visual Tests', 'tests'),
     ]
