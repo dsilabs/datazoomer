@@ -981,8 +981,26 @@ class CheckboxesField(Field):
     Checkboxes field.
 
         >>> cb = CheckboxesField('Select',values=['One','Two','Three'], hint='test hint')
-        >>> cb.widget()
-        '<ul class="checkbox_field"><li><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="SELECT" VALUE="One" ID="SELECT" /><div>One</div></li><li><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="SELECT" VALUE="Two" ID="SELECT" /><div>Two</div></li><li><INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="SELECT" VALUE="Three" ID="SELECT" /><div>Three</div></li></ul>'
+        >>> t = (
+        ...     '<ul class="checkbox_field">'
+        ...         '<li>'
+        ...             '<INPUT  CLASS="checkbox_field" TYPE="checkbox" '
+        ...             'NAME="SELECT" VALUE="One" ID="SELECT" />'
+        ...             '<div>One</div>'
+        ...         '</li>'
+        ...         '<li>'
+        ...             '<INPUT  CLASS="checkbox_field" TYPE="checkbox" '
+        ...             'NAME="SELECT" VALUE="Two" ID="SELECT" />'
+        ...             '<div>Two</div>'
+        ...         '</li>'
+        ...         '<li><INPUT  CLASS="checkbox_field" TYPE="checkbox" '
+        ...             'NAME="SELECT" VALUE="Three" ID="SELECT" />'
+        ...             '<div>Three</div>'
+        ...         '</li>'
+        ...     '</ul>'
+        ... )
+        >>> cb.widget() == t
+        True
     """
 
     def widget(self):
