@@ -1,0 +1,41 @@
+
+.visual {
+    text-align: left;
+    background: #e7e7e7;
+    border: solid #c3c3c3 1px;
+    border-radius: 5px;
+}
+
+.scheme .type {
+    margin: 0.5em;
+    border-radius: 5px;
+    background: #cdcdcd;
+}
+
+.palette {
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: bottom;
+    margin: 4px 0 4px 6px;
+    padding: 4px;
+    background: #fff;
+    border: solid 1px #aaa;
+}
+
+.swatch {
+    display: block;
+    width: 28px;
+    height: 18px;
+}
+
+.paletteselection {
+    background: #9E9E9E;
+}
+
+.highlight {
+    background: #9E9E9E;
+}
+
+.non .highlight {
+    opacity: 0.2;
+}
