@@ -36,6 +36,7 @@ form1 = Form(
         CheckboxField('Publish', hint='test hint'),
         RadioField('Radio', values=['One','Two','Three'], hint='test hint'),
         PulldownField('Pulldown', options=['One','Two','Three'], hint='test hint'),
+        ChosenSelectField('Chosen Select', options=['One','Two','Three'], hint='test hint'),
         MultiselectField('Multiselect', options=['One','Two','Three'], hint='test hint'),
         ChosenMultiselectField('Sizes', options=['One','Two','Three', 'Four'],
                                hint='test hint', placeholder='Choose as you wish'),
@@ -174,5 +175,3 @@ class MyController(Controller):
 
 view = MyView()
 controller = MyController()
-
-

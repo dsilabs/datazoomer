@@ -1340,6 +1340,8 @@ class PulldownField(TextField):
     value = None
     css_class = 'pulldown'
     select_layout = '<select class="{classed}" name="{name}" id="{name}">\n'
+    libs = []
+    styles = []
 
     def __init__(self, *a, **k):
         TextField.__init__(self, *a, **k)
@@ -1392,11 +1394,13 @@ class PulldownField(TextField):
             blank_option = '<option value=""></option>'
             result.insert(1, blank_option)
         result.append('</select>')
-        return ''.join(result)
+        return component(''.join(result), libs=self.libs, styles=self.styles)
 
 
 class ChosenSelectField(PulldownField):
     css_class = 'chosen'
+    libs = ['/static/dz/chosen/chosen.jquery.js']
+    styles = ['/static/dz/chosen/chosen.css']
     select_layout = '<select data-placeholder="{place}" class="{classed}" name="{name}" id="{name}">\n'
 
 
@@ -1581,6 +1585,8 @@ class ChosenMultiselectField(MultiselectField):
             self.placeholder = 'Select ' + self.label
 
     def widget(self):
+        libs = ['/static/dz/chosen/chosen.jquery.js']
+        styles = ['/static/dz/chosen/chosen.css']
         if self.value == None:
             current_values = self.default
         else:
@@ -1601,7 +1607,7 @@ class ChosenMultiselectField(MultiselectField):
             else:
                 result.append('<option %svalue="%s">%s</option>' % (style,value,label))
         result.append('</select>')
-        return ''.join(result)
+        return component(''.join(result), libs=libs, styles=styles)
 
 
 class RecordListField(ChosenMultiselectField):
@@ -2328,5 +2334,3 @@ if __name__ == '__main__':
 
     import doctest
     doctest.testmod()
-
-
