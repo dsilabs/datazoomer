@@ -4,7 +4,7 @@
 
 import zoom
 import zoom.tools
-from zoom.vis.d3 import scatter
+import zoom.vis.d3
 
 
 class MyView(zoom.View):
@@ -24,7 +24,7 @@ class MyView(zoom.View):
             key="function(d) { return d.name; }",
         )
 
-        chart = scatter(data, options=options)
+        chart = zoom.vis.d3.scatter(data, options=options)
 
         return zoom.page(layout.format(chart=chart), title='Scatter Plot')
 

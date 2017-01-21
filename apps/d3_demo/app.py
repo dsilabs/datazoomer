@@ -1,5 +1,5 @@
 """
-    d3 demo app
+    d3 demo application
 """
 
 from zoom import App

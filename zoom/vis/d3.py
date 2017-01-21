@@ -6,6 +6,7 @@ from zoom import system
 from zoom.jsonz import dumps
 from zoom.tools import load
 from zoom.component import component
+from zoom.vis.utils import merge_options
 
 d3_libs = [
     '/static/dz/d3/d3.v3.min.js',
@@ -74,7 +75,7 @@ def scatter(data, options=None, **kwargs):
     return str(Scatter(data, options, **kwargs))
 
 
-class calendar(object):
+class Calendar(object):
     """d3.js calendar plot"""
     _declare_ = """
     <script>
@@ -97,20 +98,43 @@ class calendar(object):
     ref = property(lambda self: self.name, doc="the reference to the object")
     libs = ["/static/dz/d3/lib/tip/d3.tip.js", "/static/dz/d3/lib/colorbrewer/colorbrewer.js"]
 
-    def __init__(self, view_for_data, selector="chart"):
-        self.view = view_for_data
-        self.selector = selector.startswith('#') and selector or '#{}'.format(selector)
-        self.options = {}
+    def __init__(self, data, options=None, **kwargs):
+        self.view = data
+        self.selector = as_selector(kwargs.pop('selector', 'chart'))
+        self.options = options or {}
+        self.kwargs = kwargs
+
     def __str__(self):
+        return self.render()
+
+    def render(self):
+        default_options = {
+            'palette': '"Greens"',
+            'color': """
+                    d3.scale.quantize().range(
+                        d3.range(9).map(
+                            function(d) { return "q" + d + "-9"; }
+                        )
+                    )
+            """,
+        }
+        options = merge_options(merge_options(default_options, self.options), self.kwargs)
+
         libs = d3_libs + self.libs
         system.libs = system.libs | libs
         system.styles = system.styles | ['/static/dz/d3/lib/colorbrewer/colorbrewer.css']
         ref = self.ref
         view = self.view
         selector = self.selector
-        methods = chain_methods(self.options)
+        methods = chain_methods(options)
         system.tail = system.tail | [self._declare_ % (locals())]
-        return ''
+        return component(
+            '<div id="chart"></div>',
+            css=load_asset('calendar_plot.css'),
+        )
+
+def calendar(data, options=None, **kwargs):
+    return str(Calendar(data, options, **kwargs))
 
 
 class Force(object):
