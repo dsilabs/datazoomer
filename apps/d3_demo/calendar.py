@@ -1,12 +1,23 @@
-from views import *
+"""
+    d3 calendar chart example
+"""
+
+import zoom
+import zoom.tools
+import zoom.vis.d3
 
 
-class MyView(View):
+class MyView(zoom.View):
     def index(self):
-        content = calendar_wrapper
-        chart = calendar(view_for_data = url_for_page('calendar_data'), selector='chart')
-        chart.options = dict(palette="'Greens'", color='d3.scale.quantize().range(d3.range(9).map(function(d) { return "q" + d + "-9"; }))')
-        page_contents = "{}{}".format(content, chart)
-        return page(page_contents, title='Calendar of Events', css=css + "#chart { min-height: 1100px; }")
+
+        wrapper = zoom.tools.load_content('calendar_wrapper')
+
+        data = zoom.url_for_page('calendar_data')
+
+        chart = zoom.vis.d3.calendar(data, palette='"RdYlGn"')
+
+        content = wrapper.format(chart=chart)
+
+        return zoom.page(content, title='Calendar of Events')
 
 view = MyView()

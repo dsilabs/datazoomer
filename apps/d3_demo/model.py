@@ -43,6 +43,8 @@ def get_scatter_data():
         'data': json.loads(tools.load('nations.json')),
     }
 
+
+
 system_data = {
     'title': '{} {}'.format(system.config.get('site','name','Site'), 'System Log'),
     'description': "A visual view of the system log",
@@ -69,4 +71,27 @@ def data_list_generator(obs=1000, metrics=3, dims=2):
         'labels': labels,
         'data': data
     }
+    return metadata
+
+calendar_eg = """<p>Example usage:</p>
+  <pre>
+
+    cal = d3.charts.calendar()
+            .margin({top: 20, right: 40, bottom: 20, left: 70})
+            .height(256)
+            .key(function(d) {return d.key;})
+            .x(function(d) {return d.hits;})
+            .label(d3.format(",.2g"))
+            .color(d3.scale.quantize().range(d3.range(9).map(function(d) { return "q" + d + "-9"; })))
+            .palette("Greens");
+
+    d3.select("#chart")
+          .datum(data)
+          .call(cal);
+  </pre>
+"""
+
+def get_calendar_data(obs, metrics, dims):
+    metadata = data_list_generator(obs=obs, metrics=metrics, dims=dims)
+    metadata['description'] = "{}{}".format(metadata['description'], calendar_eg)
     return metadata
