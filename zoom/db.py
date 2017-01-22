@@ -183,9 +183,9 @@ class Database(object):
         """execute the SQL command"""
         start = timeit.default_timer()
         params = len(args) == 1 and \
-                hasattr(args[0], 'items') and \
-                args[0] or \
-                args
+            hasattr(args[0], 'items') and \
+            args[0] or \
+            args
         try:
             method(command, params)
         except Exception as error:
@@ -234,6 +234,7 @@ class Database(object):
                 '\n'.join(self.log))
         return ''
 
+
 def database(
     engine='mysql',
     host='database',
@@ -278,6 +279,7 @@ def database(
         from pymysql.converters import conversions
         from pymysql.constants import FIELD_TYPE
         from pymysql.cursors import Cursor
+
         class LegacyCursor(Cursor):
             """MySQLdb combatible cursor"""
             def __getattribute__(self, name):
