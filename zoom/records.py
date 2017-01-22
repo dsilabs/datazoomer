@@ -1,20 +1,17 @@
 """
-    record store
+    zoom.records
 
-    EXPERIMENTAL!
+    record store
 """
 
 import datetime
 import decimal
 
-# pylint: disable=unused-import
+import zoom.exceptions
 from zoom.utils import Record, RecordList, kind
-from zoom.exceptions import TypeException
+
 
 def setup_test():
-    """set up test database"""
-    # pylint: disable=invalid-name
-
     def create_test_tables(db):
         """create test tables"""
         db("""
@@ -60,7 +57,7 @@ def get_result_iterator(rows, cls):
     the items being iterated so they come back as dicts"""
     names = [d[0] == 'id' and '_id' or d[0] for d in rows.cursor.description]
     for rec in rows:
-        yield cls((k, v) for k, v in zip(names, rec) if v != None)
+        yield cls((k, v) for k, v in zip(names, rec) if v is not None)
 
 
 class Result(object):
@@ -84,8 +81,7 @@ class Result(object):
 
 
 class RecordStore(object):
-    """
-    stores records
+    """stores records
 
         >>> db = setup_test()
         >>> class Person(Record): pass
@@ -279,7 +275,8 @@ class RecordStore(object):
 
         for atype in datatypes:
             if atype not in valid_types:
-                raise TypeException('unsupported type <type %s>' % atype)
+                msg = 'unsupported type <type %s>' % atype
+                raise zoom.exceptions.TypeException(msg)
 
         if self.id_name in record:
             _id = record[self.id_name]
@@ -441,10 +438,6 @@ class RecordStore(object):
         if kwargs:
             ids.extend(self._find(**kwargs))
         return self._delete(ids)
-        # if hasattr(key, 'get'):
-        #     key = key.get(self.id_name)
-        # cmd = 'delete from %s where %s=%s' % (self.kind, self.key, '%s')
-        # self.db(cmd, key)
 
     def exists(self, keys=None):
         """
@@ -531,7 +524,7 @@ class RecordStore(object):
             []
 
         """
-        cmd = 'delete from '+self.kind
+        cmd = 'delete from ' + self.kind
         self.db(cmd)
 
     def __len__(self):
@@ -550,7 +543,7 @@ class RecordStore(object):
             2
 
         """
-        cmd = 'select count(*) cnt from '+self.kind
+        cmd = 'select count(*) cnt from ' + self.kind
         return int(self.db(cmd).cursor.fetchone()[0])
 
     def _find(self, **kv):
@@ -581,11 +574,16 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Sally', age=55))
             >>> id = people.put(Person(name='Bob', age=25))
-            >>> repr(people.find(age=25)) == (
-            ...     "[<Person {'name': 'Sam', 'age': 25}>, "
-            ...     "<Person {'name': 'Bob', 'age': 25}>]"
-            ... )
-            True
+
+            >>> print people.find(age=25)
+            person
+            _id name age
+            --- ---- ---
+              1 Sam   25
+              3 Bob   25
+            2 person records
+
+
             >>> people.find(name='Sam')
             [<Person {'name': 'Sam', 'age': 25}>]
             >>> len(people.find(name='Sam'))
@@ -640,7 +638,7 @@ class RecordStore(object):
 
     def search(self, text):
         """
-        finds records that match search text
+        search for records that match text
 
             >>> db = setup_test()
             >>> class Person(Record): pass
@@ -649,13 +647,16 @@ class RecordStore(object):
             >>> id = people.put(Person(name='Sam Adam Jones', age=25))
             >>> id = people.put(Person(name='Sally Mary Smith', age=55))
             >>> id = people.put(Person(name='Bob Marvin Smith', age=25))
+
             >>> repr(list(people.search('smi'))) == (
             ...     "[<Person {'name': 'Sally Mary Smith', 'age': 55}>, "
             ...     "<Person {'name': 'Bob Marvin Smith', 'age': 25}>]"
             ... )
             True
+
             >>> list(people.search('bo smi'))
             [<Person {'name': 'Bob Marvin Smith', 'age': 25}>]
+
             >>> list(people.search('smi 55'))
             [<Person {'name': 'Sally Mary Smith', 'age': 55}>]
 
@@ -718,7 +719,6 @@ class RecordStore(object):
             >>> sum(person.age for person in people)
             105
 
-
         """
         cmd = 'select * from '+self.kind
         rows = self.db(cmd)
@@ -752,9 +752,8 @@ class RecordStore(object):
         return self.all()[index]
 
     def __str__(self):
-        # pylint: disable=trailing-whitespace
         """
-        format for people
+        format for humans
 
             >>> db = setup_test()
             >>> class Person(Record): pass
