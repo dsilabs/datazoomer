@@ -13,37 +13,38 @@ import zoom.exceptions
 import zoom.jsonz
 
 
-def create_storage(db):
-    db(
-        """
-        create table if not exists entities (
-            id int not null auto_increment,
-            kind      varchar(100),
-            PRIMARY KEY (id)
-            )
-        """
-    )
-    db(
-        """
-        create table if not exists attributes (
-            id int not null auto_increment,
-            kind      varchar(100),
-            row_id    int not null,
-            attribute varchar(100),
-            datatype  varchar(30),
-            value     text,
-            PRIMARY KEY (id)
-            )
-        """
-    )
-
-
-def delete_storage(db):
-    db('drop table if exists attributes')
-    db('drop table if exists entities')
-
-
 def setup_test():
+    def create_test_tables(db):
+        db(
+            """
+            create table if not exists entities (
+                id int not null auto_increment,
+                kind      varchar(100),
+                PRIMARY KEY (id)
+                )
+            """
+        )
+        db(
+            """
+            create table if not exists attributes (
+                id int not null auto_increment,
+                kind      varchar(100),
+                row_id    int not null,
+                attribute varchar(100),
+                datatype  varchar(30),
+                value     text,
+                PRIMARY KEY (id),
+                KEY `row_id_key` (`row_id`),
+                KEY `kind_key` (`kind`),
+                KEY `kv` (`kind`, `attribute`, `value`(100))
+                )
+            """
+        )
+
+    def delete_test_tables(db):
+        db('drop table if exists attributes')
+        db('drop table if exists entities')
+
     from db import database
 
     db = database(
@@ -53,19 +54,13 @@ def setup_test():
         user='testuser',
         passwd='password'
     )
-    delete_storage(db)
-    create_storage(db)
+    delete_test_tables(db)
+    create_test_tables(db)
     return db
 
 
-class Entity(zoom.utils.Record):
-    """any thing that works like a dict will do"""
-    pass
-
-
-class EntityList(zoom.utils.RecordList):
-    """a list of Entities"""
-    pass
+Entity = zoom.utils.Record
+EntityList = zoom.utils.RecordList
 
 
 def entify(rs, klass):
@@ -137,8 +132,7 @@ def entify(rs, klass):
 
 
 class EntityStore(object):
-    """
-    stores entities
+    """stores entities
 
         >>> db = setup_test()
 
@@ -588,7 +582,8 @@ class EntityStore(object):
             >>> db.close()
 
         """
-        cmd = 'select count(*) n from (select distinct row_id from attributes where kind=%s) a'
+        cmd = ('select count(*) n from '
+               '(select distinct row_id from attributes where kind=%s) a')
         r = self.db(cmd, self.kind)
         return int(list(r)[0][0])
 
@@ -629,10 +624,18 @@ class EntityStore(object):
             >>> id = people.put(Person(name='Sam', age=25))
             >>> id = people.put(Person(name='Sally', age=55))
             >>> id = people.put(Person(name='Bob', age=25))
-            >>> people.find(age=25)
-            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+
+            >>> print people.find(age=25)
+            person
+            _id name age
+            --- ---- ---
+              1 Sam   25
+              3 Bob   25
+            2 person records
+
             >>> len(people.find(name='Sam'))
             1
+
             >>> db.close()
 
         """
@@ -655,10 +658,8 @@ class EntityStore(object):
             >>> db.close()
 
         """
-        r = self._find(**kv)
-        if r:
-            return self.get(r[0])
-        return None
+        for item in self.find(**kv):
+            return item
 
     def last(self, **kv):
         """
@@ -677,9 +678,9 @@ class EntityStore(object):
             >>> db.close()
 
         """
-        r = self._find(**kv)
-        if r:
-            return self.get(r[-1])
+        rows = self._find(**kv)
+        if rows:
+            return self.get(rows[-1])
         return None
 
     def search(self, text):
@@ -697,8 +698,13 @@ class EntityStore(object):
             >>> list(people.search('bob'))
             [<Person {'name': 'Bob', 'age': 25}>]
 
-            >>> list(people.search(25))
-            [<Person {'name': 'Sam', 'age': 25}>, <Person {'name': 'Bob', 'age': 25}>]
+            >>> for r in list(people.search(25)): print r
+            Person
+              name ................: 'Sam'
+              age .................: 25
+            Person
+              name ................: 'Bob'
+              age .................: 25
 
             >>> list(people.search('Bill'))
             []
@@ -711,6 +717,30 @@ class EntityStore(object):
                 yield rec
 
     def __iter__(self):
+        """
+        interates through records
+
+            >>> db = setup_test()
+            >>> class Person(Entity): pass
+            >>> class People(EntityStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam', age=25))
+            >>> id = people.put(Person(name='Sally', age=55))
+            >>> id = people.put(Person(name='Bob', age=25))
+            >>> for rec in people: print rec
+            Person
+              name ................: 'Sam'
+              age .................: 25
+            Person
+              name ................: 'Sally'
+              age .................: 55
+            Person
+              name ................: 'Bob'
+              age .................: 25
+            >>> sum(person.age for person in people)
+            105
+
+        """
         return self.all()
 
     def __getitem__(self, key):
@@ -779,11 +809,57 @@ class EntityStore(object):
         else:
             raise TypeError('Invalid argument type')
 
+    def __str__(self):
+        """
+        format for humans
+
+            >>> db = setup_test()
+            >>> class Person(Entity): pass
+            >>> class People(EntityStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam', age=25))
+            >>> id = people.put(Person(name='Sally', age=55))
+            >>> id = people.put(Person(name='Bob', age=25))
+            >>> print people
+            person
+            _id name  age
+            --- ----- ---
+              1 Sam    25
+              2 Sally  55
+              3 Bob    25
+            3 person records
+
+            >>> people.zap()
+            >>> print people
+            Empty list
+
+        """
+        return str(self.all())
+
     def __repr__(self):
+        """
+        unabiguous representation
+
+            >>> db = setup_test()
+            >>> class Person(Entity): pass
+            >>> class People(EntityStore): pass
+            >>> people = People(db, Person)
+            >>> id = people.put(Person(name='Sam', age=25))
+            >>> id = people.put(Person(name='Sally', age=55))
+            >>> id = people.put(Person(name='Bob', age=25))
+            >>> repr(people) == (
+            ...     "[<Person {'name': 'Sam', 'age': 25}>, "
+            ...     "<Person {'name': 'Sally', 'age': 55}>, "
+            ...     "<Person {'name': 'Bob', 'age': 25}>]"
+            ... )
+            True
+            >>> people.zap()
+            >>> people
+            []
+
+        """
         return repr(self.all())
 
-    def __str__(self):
-        return str(self.all())
 
 Store = EntityStore
 
