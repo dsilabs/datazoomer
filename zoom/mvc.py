@@ -67,7 +67,7 @@ def remove_buttons(data):
 def authorize(*roles):
     def wrapper(func):
         def authorize_and_call(*args, **kwargs):
-            if user.is_admin:
+            if user.is_administrator:
                 return func(*args, **kwargs)
             for role in roles:
                 if role in user.groups:

@@ -157,6 +157,7 @@ class User(object):
         self.username = None
         self.is_developer = False
         self.is_administrator = False
+        self.is_admin = False  # deperecated
         self.theme = None
         self.profile = False
         if login_id:
