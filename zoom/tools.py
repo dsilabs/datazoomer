@@ -159,7 +159,8 @@ def load(filename):
     """
         Load a file from the application directory into memory.
     """
-    pathname = os.path.join(system.app.dir, filename)
+    join = os.path.join
+    pathname = system.app and join(system.app.dir, filename) or filename
     if not os.path.exists(pathname):
         return ''
     else:
@@ -434,22 +435,3 @@ if __name__=='__main__':
             self.assertEqual(how_long(datetime(2010,10,1),datetime(2010,10,16)),'2 weeks')
 
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
