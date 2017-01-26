@@ -16,9 +16,8 @@ import unittest
 from decimal import Decimal
 from datetime import date, datetime
 
-import MySQLdb
-
-from zoom.db import Database
+from zoom.utils import trim
+from zoom.db import database
 
 
 class TestDb(unittest.TestCase):
@@ -28,8 +27,8 @@ class TestDb(unittest.TestCase):
     # It's reasonable in this case.
 
     def setUp(self):
-        self.db = Database(
-            MySQLdb.Connect,
+        self.db = database(
+            'mysql',
             host='database',
             user='testuser',
             passwd='password',
@@ -39,20 +38,75 @@ class TestDb(unittest.TestCase):
     def tearDown(self):
         self.db.close()
 
-    def test_RecordSet(self):
+    def test_Result_iteration(self):
         db = self.db
         db("""drop table if exists dzdb_test_table""")
         db("""create table dzdb_test_table (ID CHAR(10), AMOUNT
            NUMERIC(10,2),DTADD DATE,NOTES TEXT)""")
-        db("""insert into dzdb_test_table values ("1234",50,"2005-01-14","Hello
-           there")""")
-        db("""insert into dzdb_test_table values ("5678",60,"2035-01-24","New
-           notes")""")
-        recordset = db('select * from dzdb_test_table')
-        print recordset
-        for rec in recordset:
-            self.assertEquals(rec, ("1234", 50, "2005-01-14", "Hello there"))
+        db("""insert into dzdb_test_table values
+           ("1234",50,"2005-01-14","Hello there")""")
+        db("""insert into dzdb_test_table values
+           ("5678",60,"2035-01-24","New notes")""")
+        result = db('select * from dzdb_test_table')
+        for rec in result:
+            self.assertEqual(
+                rec,
+                (
+                    "1234",
+                    Decimal('50.00'),
+                    date(2005, 1, 14),
+                    "Hello there"
+                )
+            )
             break
+        # for rec in result:
+        #     self.assertEqual(rec, ("1234", 50, "2005-01-14", "Hello there"))
+        #     break
+
+    def test_Result_of_queries(self):
+        db = self.db
+        db("""drop table if exists dzdb_test_table""")
+        db("""create table dzdb_test_table
+           (ID CHAR(10), AMOUNT NUMERIC(10,2), DTADD DATE, NOTES TEXT)""")
+        db("""insert into dzdb_test_table values
+           ("1234",50,"2005-01-14","Hello there")""")
+        db("""insert into dzdb_test_table values
+           ("5678",60,"2015-01-24","New notes")""")
+        db("""insert into dzdb_test_table values
+           ("9010",50,"2005-01-14","Hi again")""")
+        db("""insert into dzdb_test_table values
+           ("2345",60,"2035-01-24","More notes")""")
+
+        result = db('select * from dzdb_test_table')
+        self.assertEqual(str(result), trim("""
+        ID   AMOUNT DTADD      NOTES
+        ---- ------ ---------- -----------
+        1234  50.00 2005-01-14 Hello there
+        5678  60.00 2015-01-24 New notes
+        9010  50.00 2005-01-14 Hi again
+        2345  60.00 2035-01-24 More notes
+        """)[1:-1])
+        
+        result = db('select * from dzdb_test_table where amount = 60')
+        for rec in result:
+            self.assertEqual(
+                rec,
+                (
+                    "5678",
+                    Decimal('60.00'),
+                    date(2015, 1, 24),
+                    "New notes"
+                )
+            )
+            break
+        
+        result = db('select * from dzdb_test_table where dtadd > "2005-02-01"')
+        self.assertEqual(str(result), trim("""
+        ID   AMOUNT DTADD      NOTES
+        ---- ------ ---------- ----------
+        5678  60.00 2015-01-24 New notes
+        2345  60.00 2035-01-24 More notes
+        """)[1:-1])
 
     def test_db_create_drop_table(self):
         table_names = lambda a: [x[0] for x in a('show tables')]
@@ -152,4 +206,3 @@ class TestDb(unittest.TestCase):
         for row in t:
             self.assertEqual(row[-1], Decimal("24.10"))
         db('drop table dzdb_test_table')
-
