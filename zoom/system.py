@@ -47,6 +47,7 @@ class NoApp(object):
     title = name
     theme = ''
     menu = []
+    url = ''
 
     def run(self):
         """nada"""
@@ -411,7 +412,7 @@ class System(object):
                 return text.replace('<', '&lt;').replace('>', '&gt;')
             for item in items:
                 if name in ['request']:
-                    print (
+                    print(
                         name+':',
                         make_visible('%s' % item),
                         '\n%s' % item.__dict__
