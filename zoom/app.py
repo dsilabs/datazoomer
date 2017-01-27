@@ -45,7 +45,6 @@ class App(object):
 
     def process(self, *route, **data):
         """process request info"""
-        # pylint: disable=star-args
 
         def load_page(module, filler):
             """load a view page from the current directory"""
@@ -98,7 +97,6 @@ class App(object):
         )
 
     def __call__(self, request):
-        # pylint: disable=star-args
         route = request.route
         data = request.data
         return self.process(*route, **data)
