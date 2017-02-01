@@ -291,7 +291,7 @@ class Database(object):
         return [rec[0] for rec in self.query('show tables')]
 
     def create_columns(self, description):  # May have to override this method for other database types
-        ptype = self.__ptype 
+        ptype = self.__ptype
 
         columns  = Columns()
         pos = 0
@@ -632,11 +632,12 @@ class Record(object):
     def __nonzero__(self):
         return 1
 
-def database(engine='mysql', host='localhost', name='zoomdata', user='root', password=''):
+def database(engine='mysql', host='localhost', name='zoomdata', user='root', password='', port=''):
     """Create and return a connected database"""
     if engine == 'mysql':
         import MySQLdb
-        db = Database(MySQLdb.Connect, host=host, user=user, passwd=password, db=name)
+        port = port and int(port) or 3306
+        db = Database(MySQLdb.Connect, host=host, user=user, passwd=password, db=name, port=port)
         db.autocommit(1)
         return db
 
