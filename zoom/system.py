@@ -202,6 +202,7 @@ class System(object):
         # connect to the database and stores
         db_engine = config.get('database', 'engine', 'mysql')
         db_host = config.get('database', 'dbhost', 'database')
+        db_port = config.get('database', 'dbport', '')
         db_name = config.get('database', 'dbname', 'zoomdev')
         db_user = config.get('database', 'dbuser', 'testuser')
         db_pass = config.get('database', 'dbpass', 'password')
@@ -213,6 +214,7 @@ class System(object):
             db_name,
             db_user,
             db_pass,
+            db_port,
             )
 
         # database module
@@ -224,6 +226,8 @@ class System(object):
             )
         if db_pass:
             db_params['passwd'] = db_pass
+        if db_port:
+            db_params['port'] = int(db_port)
         # pylint: disable=invalid-name, star-args
         self.db = new_db(**db_params)
 
