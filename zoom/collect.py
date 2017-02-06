@@ -12,11 +12,11 @@ from .browse import browse
 from .page import page
 from .user import user
 from .mvc import View, Controller
-from .tools import now, redirect_to, markdown
+from .tools import now, redirect_to
 from .utils import DefaultRecord, id_for
 from .fields import Form, ButtonField, Hidden, Button, MarkdownText
 from .helpers import link_to, error, url_for, url_for_page
-from .store import Entity, EntityStore, store
+from .store import EntityStore, store
 from .response import PNGResponse
 from .log import logger
 from .exceptions import PageMissingException
@@ -25,26 +25,38 @@ from .models import Attachment
 from .response import JPGResponse, GIFResponse
 
 dumps = json.dumps
-duplicate_key_msg = "There is an existing record with that name or key already in the database"
+duplicate_key_msg = "Record already exists"
 
 
 def delete_form(name, key):
+    """produce a delete form"""
     return Form(
-            MarkdownText('Are you sure you want to delete **%s**?' % name),
-            Hidden(name='CONFIRM', value='NO'),
-            Button('Yes, I''m sure.  Please delete.', name='DELETE_BUTTON', cancel='/'+'/'.join(route[:-1]))
-            ).edit()
+        MarkdownText('Are you sure you want to delete **%s**?' % name),
+        Hidden(name='CONFIRM', value='NO'),
+        Button(
+            'Yes, I''m sure.  Please delete.',
+            name='DELETE_BUTTON',
+            cancel='/'+'/'.join(route[:-1])
+        )
+    ).edit()
 
-def locate(c, key):
+
+def locate(collection, key):
+    """locate a record"""
     def scan(store, key):
         for rec in store:
             if rec.key == key:
                 return rec
-    return key.isdigit() and c.store.get(key) or \
-            c.store.first(key=key) or \
-            scan(c.store,key)
+    return (
+        key.isdigit() and
+        collection.store.get(key) or
+        collection.store.first(key=key) or
+        scan(collection.store, key)
+    )
+
 
 def image_response(name, data):
+    """provide an image response based on the file extension"""
     _, ext = os.path.splitext(name.lower())
     if ext == '.png':
         return PNGResponse(data)
@@ -52,6 +64,7 @@ def image_response(name, data):
         return JPGResponse(data)
     elif ext == '.gif':
         return GIFResponse(data)
+
 
 class CollectionView(View):
 
@@ -61,26 +74,29 @@ class CollectionView(View):
     def index(self, q='', *a, **k):
 
         def matches(item, search_text):
+            terms = search_text and search_text.split()
             f.update(item)
             v = repr(f.display_value()).lower()
-            return search_text and not any(t.lower() not in v for t in search_text.split())
+            return terms and not any(t.lower() not in v for t in terms)
 
         if route[-1:] == ['index']:
-            return redirect_to('/'+'/'.join(route[:-1]),**k)
+            return redirect_to('/'+'/'.join(route[:-1]), **k)
 
         c = self.collection
         f = self.collection.fields
         actions = user.can('create', c) and ['New'] or []
 
         if q:
-            logger.activity(system.app.name, '%s searched %s with %r' % (user.link, c.name.lower(), q))
+            msg = '%s searched %s with %r' % (user.link, c.name.lower(), q)
+            logger.activity(system.app.name, msg)
 
         authorized = (i for i in c.store if user.can('read', i))
         matching = (i for i in authorized if not q or matches(i, q))
-        filtered = (not q and hasattr(c, 'filter') and c.filter and filter(c.filter, matching)) or matching
+        filtered = (not q and hasattr(c, 'filter') and
+                    c.filter and filter(c.filter, matching)) or matching
         items = sorted(filtered, key=c.order)
 
-        if env.get('HTTP_ACCEPT','') == 'application/json':
+        if env.get('HTTP_ACCEPT', '') == 'application/json':
             return dumps([item for item in items])
         else:
             if len(items) != 1:
@@ -100,6 +116,7 @@ class CollectionView(View):
         return redirect_to('/' + '/'.join(route[:-1]))
 
     def show(self, locator):
+        """show a record"""
         def action_for(r, name):
             return name, '/'.join([r.url, id_for(name)])
 
@@ -119,10 +136,19 @@ class CollectionView(View):
             c.fields.initialize(c.entity(record))
 
             if 'updated' in record and 'updated_by' in record:
-                memo = '<div class="meta" style="float:right"> record updated %(updated)s by %(updated_by)s</div><div style="clear:both"></div>' % record
+                memo = (
+                    '<div class="meta" style="float:right">'
+                    ' record updated %(updated)s by %(updated_by)s'
+                    '</div>'
+                    '<div style="clear:both"></div>'
+                ) % record
             else:
                 memo = ''
-            return page(c.fields.show() + memo, title=c.item_name, actions=actions)
+            return page(
+                c.fields.show() + memo,
+                title=c.item_name,
+                actions=actions
+            )
         else:
             raise PageMissingException
 
@@ -166,7 +192,10 @@ class CollectionView(View):
             if record:
                 user.authorize('read', record)
                 user.authorize('delete', record)
-                return page(delete_form(record[c.name_column], key), title='Delete %s' % c.item_name)
+                return page(
+                    delete_form(record[c.name_column], key),
+                    title='Delete %s' % c.item_name
+                )
 
     def image(self, key, name):
         record = self.collection.locate(key)
@@ -186,13 +215,12 @@ class CollectionView(View):
             ) for a in attachments.find(field_value=value)]
         return json.dumps(t)
 
-    def get_image(self, *a, **k):
+    def get_image(self, *a, **k):  # pylint: disable=W0613
         """return one of the images from an ImagesField value"""
-        item_id = k.get('item_id',None)
+        item_id = k.get('item_id', None)
         path = os.path.join(system.site.data_path, 'buckets')
         bucket = Bucket(path)
         return image_response('house.png', bucket.get(item_id))
-
 
 
 class CollectionController(Controller):
@@ -200,7 +228,7 @@ class CollectionController(Controller):
     def __init__(self, collection):
         self.collection = collection
 
-    def create_button(self, *a, **data):
+    def create_button(self, *a, **data):  # pylint: disable=W0613
         c = self.collection
 
         user.authorize('create', c)
@@ -208,7 +236,7 @@ class CollectionController(Controller):
         if c.fields.validate(data):
             record = c.entity()
             record.update(c.fields)
-            record.pop('key',None)
+            record.pop('key', None)
             try:
                 key = record.key
             except AttributeError:
@@ -223,9 +251,13 @@ class CollectionController(Controller):
                 record.created_by = user.username
                 record.updated_by = user.username
                 try:
-                    record.key = record.key # property to attribute for storage
+                    # convert property to data attribute
+                    # so it gets stored as data
+                    record.key = record.key
                 except AttributeError:
-                    pass # can happen when key depends on database auto-increment value
+                    # can happen when key depends on database
+                    # auto-increment value.
+                    pass
                 c.store.put(record)
                 logger.activity(system.app.name, '%s added %s %s' %
                                 (user.link, c.item_name.lower(),
@@ -233,6 +265,7 @@ class CollectionController(Controller):
                 return redirect_to(c.url)
 
     def save_button(self, key, *a, **data):
+        
         c = self.collection
 
         user.authorize('update', c)
@@ -242,13 +275,17 @@ class CollectionController(Controller):
             if record:
                 user.authorize('update', record)
                 record.update(c.fields)
-                record.pop('key',None)
-                if record.key <> key and locate(c, record.key):
+                record.pop('key', None)
+                if record.key != key and locate(c, record.key):
                     error(duplicate_key_msg)
                 else:
                     record.updated = now
                     record.updated_by = user.username
-                    record.key = record.key # property to attribute for storage
+
+                    # convert property to data attribute
+                    # so it gets stored as data
+                    record.key = record.key
+
                     c.store.put(record)
                     logger.activity(system.app.name, '%s edited %s %s' %
                                     (user.link, c.item_name.lower(),
@@ -275,7 +312,8 @@ class CollectionController(Controller):
         if record:
             del record[name]
             self.collection.store.put(record)
-            return redirect_to(url_for(record.url,'edit'))
+            return redirect_to(url_for(record.url, 'edit'))
+
 
     def add_image(self, *a, **k):
         """upload and associate a dropzone image with a record"""
@@ -283,9 +321,9 @@ class CollectionController(Controller):
         from StringIO import StringIO
         from utils import Record
         dummy = Record(
-                filename ='dummy.png',
-                file = StringIO('test'),
-                )
+                filename='dummy.png',
+                file=StringIO('test'),
+            )
 
         # put the uploaded image data in a bucket
         path = os.path.join(system.site.data_path, 'buckets')
@@ -300,12 +338,12 @@ class CollectionController(Controller):
         field_name = k.get('field_name', 'unknown')
         field_value = k.get('field_value', 'unknown')
         attachment = Attachment(
-            record_kind = c.store.kind,
-            field_name = field_name,
-            field_value = field_value,
-            attachment_id = item_id,
-            attachment_size = len(data),
-            attachment_name = name,
+            record_kind=c.store.kind,
+            field_name=field_name,
+            field_value=field_value,
+            attachment_id=item_id,
+            attachment_size=len(data),
+            attachment_name=name,
             )
         attachments = store(Attachment)
         attachments.put(attachment)
@@ -334,7 +372,6 @@ class CollectionController(Controller):
             return 'empty'
 
 
-
 class CollectionRecord(DefaultRecord):
     key = property(lambda self: id_for(self.name))
     url = property(lambda self: url_for_page(route[1], self.key)) # not ideal, but works
@@ -342,6 +379,7 @@ class CollectionRecord(DefaultRecord):
 
     def allows(self, user, action):
         return True
+
 
 class Collection(object):
 
@@ -351,15 +389,25 @@ class Collection(object):
     storage = EntityStore
 
     def __init__(self, item_name, fields, entity, url=None):
+
+        def calc_url():
+            return url_for_page(id_for(self.name))
+
+        def calc_columns(fields):
+            return [
+                (n == 0 and 'link' or f.name.lower())
+                for n, f in enumerate(fields.as_list())
+            ]
+
         self.item_name = item_name
         self.name = item_name + 's'
         self.fields = fields
         self.entity = entity
         self.labels = [f.label for f in fields.as_list()]
-        self.columns = [(n==0 and 'link' or f.name.lower()) for n,f in enumerate(fields.as_list())]
+        self.columns = calc_columns(fields)
         self.store = self.storage(system.db, entity)
-        self.url = url or '/{}/{}'.format(system.app.name, id_for(self.name))
-        self.filter = None # attach callable here to filter browse list
+        self.url = url or calc_url()
+        self.filter = None  # attach callable here to filter browse list
 
     def can_edit(self, user=user):
         # legacy - use user.can('action', object) instead
@@ -403,6 +451,3 @@ class Collection(object):
             raise Exception('action missing: {}'.format(action))
 
         return actions.get(action)(user)
-
-
-
