@@ -152,6 +152,8 @@ class System(object):
         self.app = None
         self.settings = None
         self.root = None
+        self.app = NoApp()
+        self.uri = ''
 
     def __getattr__(self, name):
 
@@ -179,6 +181,7 @@ class System(object):
               server=request.server,
               timer=SystemTimer(timeit.default_timer())):
         """set up the system"""
+        # pylint: disable=R0914
 
         if instance_path is None:
             instance_path = Instance('system').path
@@ -228,7 +231,7 @@ class System(object):
             db_params['passwd'] = db_pass
         if db_port:
             db_params['port'] = int(db_port)
-        # pylint: disable=invalid-name, star-args
+        # pylint: disable=invalid-name
         self.db = new_db(**db_params)
 
         self.db_debug = config.get('database', 'debug', '0') not in NEGATIVE
@@ -309,8 +312,8 @@ class System(object):
         self.themes_path = existing(config.get(
             'theme',
             'path',
-            os.path.join(self.root, 'themes'))
-        )
+            os.path.join(self.root, 'themes')
+        ))
         self.theme = (
             self.themes_path and
             self.settings.get('theme_name') or
@@ -354,7 +357,6 @@ class System(object):
 
     def set_theme(self, theme_name):
         """set the current theme"""
-        # pylint: disable=bad-builtin
 
         config = self.config
 
