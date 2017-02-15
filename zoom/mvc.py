@@ -25,8 +25,13 @@ def as_attr(text):
 
 def evaluate(o, i, *a, **k):
     name = as_attr(i)
-    if hasattr(o, name):
+
+    try:
         attr = getattr(o, name)
+    except AttributeError:
+        attr = None
+
+    if attr:
         method = callable(attr) and attr
         if method:
             try:
@@ -363,7 +368,6 @@ class Dispatcher(object):
 
     def __call__(self, *a, **k):
 
-        method_name = len(a) and as_attr(a[0]) or 'index'
+        method_name = len(a) and a[0] or 'index'
 
-        if hasattr(self, method_name):
-            return evaluate(self, method_name, *a[1:], **k)
+        return evaluate(self, method_name, *a[1:], **k)
