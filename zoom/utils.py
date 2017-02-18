@@ -516,7 +516,7 @@ class ItemList(list):
         if len(self) == 0:
             return ''
 
-        num_columns = len(self[0])
+        num_columns = len(list(self[0]))
         columns = range(num_columns)
 
         # calculate labels
@@ -532,7 +532,7 @@ class ItemList(list):
                 offset = 1
 
         # rows containing data
-        rows = self[offset:]
+        rows = [list(row) for row in self[offset:]]
 
         # calculate formats
         formats = []
