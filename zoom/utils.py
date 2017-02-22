@@ -292,6 +292,14 @@ class Record(Storage):
     def allows(self, user, action):
         return True
 
+    def get(self, name, *default):
+        try:
+            return self.__getitem__(name)
+        except KeyError, k:
+            if default:
+                return default[0]
+            raise k
+
     def __getitem__(self, name):
         try:
             value = dict.__getitem__(self, name)
@@ -415,7 +423,7 @@ class RecordList(list):
         title = '%s\n' % kind(self[0])
 
         keys = labels = get_attributes(self[0])
-        rows = [[record.get(key) for key in keys] for record in self]
+        rows = [[record.get(key, None) for key in keys] for record in self]
 
         footer = '\n{} {} records'.format(len(self), kind(self[0]))
 
