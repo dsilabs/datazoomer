@@ -186,7 +186,7 @@ def get_attributes(obj):
         return text.endswith('_id')
 
     all_keys = obj.keys() + properties(obj)
-    id_keys = [key for key in all_keys if looks_like_an_id(key)]
+    id_keys = sorted(key for key in all_keys if looks_like_an_id(key))
     special_keys = id_keys + [
         'id', 'userid', 'groupid', 'key',
         'name', 'title', 'description',
@@ -516,7 +516,9 @@ class ItemList(list):
                 if data_type in [int, long, float, decimal.Decimal]:
                     return '{:{width},}'
                 elif data_type in [datetime.date]:
-                    return '{}'
+                    return '{:%Y-%m-%d}'
+                elif data_type in [datetime.datetime]:
+                    return '{:%Y-%m-%d %H:%M:%S}'
                 elif label in ['_id', 'userid']:
                     return '{:10}'
             return '{:<{width}}'
