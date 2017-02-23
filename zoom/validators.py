@@ -27,11 +27,38 @@ class Validator(object):
         self.msg = msg
         self.test = test
 
+    def clean(self, value):
+        return value
+
     def valid(self, value): 
         return self.test(value)
 
     def __call__(self, value):
         return self.valid(value)
+
+
+class Cleaner(object):
+    """A content cleaner.
+
+    >>> Cleaner(str.lower).clean('Test')
+    'test'
+
+    >>> import decimal
+    >>> Cleaner(decimal.Decimal).clean('10')
+    Decimal('10')
+    """
+
+    def __init__(self, transformer):
+        self.transform = transformer
+
+    def clean(self, value):
+        return self.transform(value)
+
+    def valid(self, value):
+        return True
+
+    def __call__(self, value):
+        return self.clean(value)
 
 
 class RegexValidator(Validator):
