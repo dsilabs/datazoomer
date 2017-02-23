@@ -110,12 +110,14 @@ class System(object):
         self.database = None
         self.developers = None
         self.administrators = None
-        self.css = None
-        self.head = None
-        self.tail = None
-        self.js = None
-        self.libs = None
-        self.styles = None
+
+        self.css = OrderedSet()
+        self.head = OrderedSet()
+        self.tail = OrderedSet()
+        self.js = OrderedSet()
+        self.libs = OrderedSet()
+        self.styles = OrderedSet()
+
         self.manager_group = None
         self.track_visits = False
         self.background = False
