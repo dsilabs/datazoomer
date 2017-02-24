@@ -74,8 +74,10 @@ def line(data, options=None, **kwargs):
     js = """
     $(function(){
         var chart = c3.generate(%(options)s);
+        // make the object accessible later
+        $("#%(selector)s").data('c3-chart', chart);
     });
-    """ % dict(options=json.dumps(options, indent=4))
+    """ % dict(selector=chart_id, options=json.dumps(options, indent=4))
     return component(content, js=js, libs=libs, styles=styles, css=css)
 
 
