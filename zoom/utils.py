@@ -14,7 +14,9 @@ import datetime
 from sys import version_info
 
 norm = string.maketrans('', '')
+
 special = string.translate(norm, norm, string.letters + string.digits + ' ')
+special2 = string.translate(norm, norm, string.letters + string.digits + ' -')
 PY2 = version_info[0] == 2
 
 
@@ -73,6 +75,32 @@ def id_for(*args):
     """
     def id_(text):
         return str(text).strip().translate(norm, special).lower().replace(' ','-')
+
+    return '~'.join([id_(arg) for arg in args])
+
+
+def id_for_with_dashes(*args):
+    """
+    Calculates a valid HTML tag id given an arbitrary string.
+
+        >>> id_for_with_dashes('Test 123')
+        'test-123'
+        >>> id_for_with_dashes('New Record')
+        'new-record'
+        >>> id_for_with_dashes('New "special" Record')
+        'new-special-record'
+        >>> id_for_with_dashes("hi", "test")
+        'hi~test'
+        >>> id_for_with_dashes("hi test")
+        'hi-test'
+        >>> id_for_with_dashes("hi-test")
+        'hi-test'
+        >>> id_for_with_dashes(1234)
+        '1234'
+
+    """
+    def id_(text):
+        return str(text).strip().translate(norm, special2).lower().replace(' ','-')
 
     return '~'.join([id_(arg) for arg in args])
 
