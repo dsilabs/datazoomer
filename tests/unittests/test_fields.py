@@ -37,7 +37,7 @@ class TextTests(object):
         f.initialize({'field1': self.basic_text})
         show_value = self.show_template.format(self=self, text=self.basic_text)
         t = (
-            '<div class="field">'
+            '<div class="field form-group row">'
             '<div class="field_label">Field1</div>'
             '<div class="field_show">'
             '{show_value}'
@@ -63,7 +63,7 @@ class TextTests(object):
         widget = self.widget_template.format(self=self, text=htmlquote(self.encoded_text))
         edit = self.edit_template.format(widget=widget)
         t = (
-            '<div class="field">'
+            '<div class="field form-group row">'
                 '<div class="field_label">Field1</div>'
                 '<div class="field_edit">'
                     '{edit}'
@@ -89,7 +89,7 @@ class TextTests(object):
         v = strsafe(self.encoded_text)
         show_value = self.show_template.format(self=self, text=v)
         t = (
-            '<div class="field">'
+            '<div class="field form-group row">'
             '<div class="field_label">Field1</div>'
             '<div class="field_show">'
             '{show_value}'
@@ -143,14 +143,8 @@ class TestTextField(unittest.TestCase, TextTests):
         TextTests.setUp(self, TextField)
         self.show_template = '{text}'
         self.edit_template = """
-        <table class="transparent">
-            <tr>
-                <td nowrap>{widget}</td>
-                <td>
-                    <div class="hint"></div>
-                </td>
-            </tr>
-        </table>
+        <span class="form-group">{widget}</span>
+        <span class="hint"></span>
         """
         self.widget_template = (
             '<INPUT NAME="FIELD1" VALUE="{text}" '
@@ -165,19 +159,13 @@ class TestEmailField(unittest.TestCase, TextTests):
         TextTests.setUp(self, EmailField)
         self.show_template = '<{text}>'
         self.edit_template = """
-        <table class="transparent">
-            <tr>
-                <td nowrap>{widget}</td>
-                <td>
-                    <div class="hint"></div>
-                </td>
-            </tr>
-        </table>
+        <span class="form-group">{widget}</span>
+        <span class="hint"></span>
         """
         self.widget_template = (
             '<INPUT NAME="FIELD1" VALUE="{text}" '
             'CLASS="{self.css_class}" MAXLENGTH="40" '
-            'TYPE="text" ID="FIELD1" SIZE="40" />'
+            'TYPE="email" ID="FIELD1" SIZE="40" />'
         )
 
 
@@ -187,19 +175,13 @@ class TestPhoneField(unittest.TestCase, TextTests):
         TextTests.setUp(self, PhoneField)
         self.show_template = '{text}'
         self.edit_template = """
-        <table class="transparent">
-            <tr>
-                <td nowrap>{widget}</td>
-                <td>
-                    <div class="hint"></div>
-                </td>
-            </tr>
-        </table>
+        <span class="form-group">{widget}</span>
+        <span class="hint"></span>
         """
         self.widget_template = (
             '<INPUT NAME="FIELD1" VALUE="{text}" '
             'CLASS="{self.css_class}" MAXLENGTH="40" '
-            'TYPE="text" ID="FIELD1" SIZE="20" />'
+            'TYPE="tel" ID="FIELD1" SIZE="20" />'
         )
 
 
