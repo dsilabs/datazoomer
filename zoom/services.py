@@ -125,6 +125,9 @@ def get_db():
     config = locate_config('services.ini')
     return connect_db(config=config)
 
+def services_file_missing(*a, **k):
+    raise Exception('error: unable to locate services.ini config file')
+
 def use(dbname):
     global _db
     return _db.use(dbname)
@@ -142,6 +145,8 @@ def store(kind, db=None):
 _config = locate_config('services.ini')
 if _config:
     _db = connect_db(config=_config)
+else:
+    _db = services_file_missing
 
 # State
 # ==================================================================================
@@ -282,7 +287,7 @@ class Service(object):
         args = parser.parse_args()
 
         if args.debug:
-            console_hanlder.setLevel(logging.DEBUG)
+            console_handler.setLevel(logging.DEBUG)
 
         if args.quiet:
             console_handler.setLevel(logging.ERROR)
@@ -555,5 +560,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         sys.stdout.write('\r')
         logger.warning('stopped')
-
-
