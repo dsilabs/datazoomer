@@ -74,7 +74,6 @@ class Field(object):
     visible = True
     validators = []
     style = ''
-    wrap = ' nowrap'
 
     def __init__(self, label='', *validators, **keywords):
         self.__dict__ = keywords
@@ -94,7 +93,6 @@ class Field(object):
         content = HINT_TPL % dict(
                 widget=self.widget(),
                 hints=self.render_msg() + self.render_hint(),
-                wrap=self.wrap,
                 )
         return layout_field(self.label, content)
 
@@ -2281,7 +2279,6 @@ class ImagesField(SimpleField):
     _type = 'images'
     value = None
     default = uuid.uuid4().hex
-    wrap = ''
     url = ''
     libs = ['/static/dz/dropzone/dropzone.js']
     styles = ['/static/dz/dropzone/dropzone.css']

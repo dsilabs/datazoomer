@@ -103,14 +103,14 @@
     .field_show .images_field {
         border: 0;
     }
-    .content .field_edit td {
+    .content .field_edit {
         border : 0;
     }
-    .content .field_edit td div.range-slider {
-        width: 400px;
+    div.field_edit > .range-slider {
+        width: 50%;
         margin: 0 10px;
     }
-    .field_edit .images_field td {
+    .field_edit .images_field {
         border: 0;
     }
     div.dropzone .dz-preview .dz-image {
@@ -142,8 +142,6 @@
         display: inline;
         line-height: 2em;
     }
-
-    /* range slider */
 
     /* removing extra form-group margin */
     div.form-group {
