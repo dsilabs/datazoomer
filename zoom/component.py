@@ -116,11 +116,15 @@ class Component(object):
         >>> page
         <Component: {'html': ['test', 'text']}>
 
+        >>> class  MyComponent(Component): pass
+        >>> page2 = Component('hi')
+        >>> page2 += MyComponent('world')
+        >>> page2
+        <Component: {'html': ['hi', 'world']}>
         """
-        kind = type(other)
-        if kind == str:
+        if isinstance(other, basestring):
             self.parts['html'].append(other)
-        elif kind == dict:
+        elif isinstance(other, dict):
             for key, value in other.items():
                 part = self.parts.setdefault(key, OrderedSet())
                 if key == 'html':
@@ -133,7 +137,7 @@ class Component(object):
                         part |= value
                     else:
                         part |= [value]
-        elif kind == Component:
+        elif isinstance(other, Component):
             for key, value in other.parts.items():
                 part = self.parts.setdefault(key, OrderedSet())
                 if key == 'html':
