@@ -106,7 +106,7 @@
     .content .field_edit {
         border : 0;
     }
-    div.field_edit > .range-slider {
+    .field_edit div.range-slider {
         width: 50%;
         margin: 0 10px;
     }
