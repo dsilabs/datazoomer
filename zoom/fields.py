@@ -33,18 +33,12 @@ from zoom.component import component
 
 HINT_TPL = \
         """
-        <table class="transparent">
-            <tr>
-                <td%(wrap)s>%(widget)s</td>
-                <td>
-                    <div class="hint">%(hints)s</div>
-                </td>
-            </tr>
-        </table>
+        <span class="form-group">%(widget)s</span>
+        <span class="hint">%(hints)s</span>
         """
 
 FIELD_TPL = \
-'<div class="field"><div class="field_label">%(label)s</div><div class="field_%(mode)s">%(content)s</div></div>'
+'<div class="field form-group row"><div class="field_label">%(label)s</div><div class="field_%(mode)s">%(content)s</div></div>'
 
 
 def div(content, **attributes):
@@ -55,10 +49,10 @@ def layout_field(label, content, edit=True):
         Layout a field (usually as part of a form).
 
         >>> layout_field('Name','<input type=text value="John Doe">',True)
-        '<div class="field"><div class="field_label">Name</div><div class="field_edit"><input type=text value="John Doe"></div></div>'
+        '<div class="field form-group row"><div class="field_label">Name</div><div class="field_edit"><input type=text value="John Doe"></div></div>'
 
         >>> layout_field('Name','John Doe',False)
-        '<div class="field"><div class="field_label">Name</div><div class="field_show">John Doe</div></div>'
+        '<div class="field form-group row"><div class="field_label">Name</div><div class="field_show">John Doe</div></div>'
 
     """
     mode = bool(edit) and 'edit' or 'show'
@@ -114,7 +108,6 @@ class Field(object):
     visible = True
     validators = []
     style = ''
-    wrap = ' nowrap'
 
     def __init__(self, label='', *validators, **keywords):
         self.__dict__ = keywords
@@ -134,7 +127,6 @@ class Field(object):
         content = HINT_TPL % dict(
                 widget=self.widget(),
                 hints=self.render_msg() + self.render_hint(),
-                wrap=self.wrap,
                 )
         return layout_field(self.label, content)
 
@@ -371,16 +363,16 @@ class TextField(SimpleField):
     Text Field
 
         >>> TextField('Name',value="John Doe").show()
-        u'<div class="field"><div class="field_label">Name</div><div class="field_show">John Doe</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Name</div><div class="field_show">John Doe</div></div>'
 
         >>> TextField('Name',value='John Doe').widget()
         '<INPUT NAME="NAME" VALUE="John Doe" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
 
         >>> TextField('Name',value="Dan").show()
-        u'<div class="field"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
 
         >>> TextField('Name',default="Dan").show()
-        '<div class="field"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
+        '<div class="field form-group row"><div class="field_label">Name</div><div class="field_show">Dan</div></div>'
 
         >>> TextField('Name',hint="required").widget()
         '<INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" />'
@@ -462,9 +454,9 @@ class EmailField(TextField):
     Email field.
 
         >>> EmailField('Email').widget()
-        '<INPUT NAME="EMAIL" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="EMAIL" SIZE="40" />'
+        '<INPUT NAME="EMAIL" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="email" ID="EMAIL" SIZE="40" />'
     """
-
+    _type='email'
     def __init__(self, label, *validators, **keywords):
         TextField.__init__(self, label, valid_email, *validators, **keywords)
 
@@ -541,7 +533,7 @@ class URLField(TextField):
         u'<a target="_window" href="https://www.dsilabs.ca">www.dsilabs.ca</a>'
 
     """
-
+    _type='url'
     size = 60
     maxlength = 120
     trim = False
@@ -592,7 +584,7 @@ class NumberField(TextField):
     Number Field
 
         >>> NumberField('Size',value=2).show()
-        u'<div class="field"><div class="field_label">Size</div><div class="field_show">2</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Size</div><div class="field_show">2</div></div>'
 
         >>> NumberField('Size').widget()
         '<INPUT NAME="SIZE" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="SIZE" SIZE="10" />'
@@ -674,7 +666,7 @@ class IntegerField(TextField):
     Integer Field
 
         >>> IntegerField('Count',value=2).show()
-        u'<div class="field"><div class="field_label">Count</div><div class="field_show">2</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Count</div><div class="field_show">2</div></div>'
 
         >>> IntegerField('Count').widget()
         '<INPUT NAME="COUNT" VALUE="" CLASS="number_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
@@ -719,7 +711,7 @@ class FloatField(NumberField):
     Float Field
 
         >>> FloatField('Count',value=2.1).show()
-        u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
 
         >>> FloatField('Count').widget()
         '<INPUT NAME="COUNT" VALUE="" CLASS="float_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
@@ -760,7 +752,7 @@ class DecimalField(NumberField):
     Decimal Field
 
         >>> DecimalField('Count',value="2.1").show()
-        u'<div class="field"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Count</div><div class="field_show">2.1</div></div>'
 
         >>> DecimalField('Count', value=Decimal('10.24')).widget()
         '<INPUT NAME="COUNT" VALUE="10.24" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="COUNT" SIZE="10" />'
@@ -825,7 +817,7 @@ class MoneyField(DecimalField):
         >>> f.display_value()
         u'\\xa31,000.00'
         >>> f.show()
-        u'<div class="field"><div class="field_label">Amount</div><div class="field_show">\\xa31,000.00</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Amount</div><div class="field_show">\\xa31,000.00</div></div>'
         >>> f.widget()
         '<div class="input-group"><span class="input-group-addon">\\xc2\\xa3</span><INPUT NAME="AMOUNT" VALUE="1000" CLASS="decimal_field" MAXLENGTH="10" TYPE="text" ID="AMOUNT" SIZE="10" /></div>'
         >>> f.units = 'per month'
@@ -897,7 +889,7 @@ class MoneyField(DecimalField):
             v = websafe(locale.currency(self.value, grouping=True))
         else:
             v = self.symbol + ('{:20,.2f}'.format(self.value)).strip()
-        if self.units and self.value <> None:
+        if self.units and self.value != None:
             v += ' '+self.units
         return websafe(v)
 
@@ -1095,10 +1087,10 @@ class CheckboxField(TextField):
     Checkbox Field
 
         >>> CheckboxField('Done').show()
-        '<div class="field"><div class="field_label">Done</div><div class="field_show">no</div></div>'
+        '<div class="field form-group row"><div class="field_label">Done</div><div class="field_show">no</div></div>'
 
         >>> CheckboxField('Done', value=True).show()
-        '<div class="field"><div class="field_label">Done</div><div class="field_show">yes</div></div>'
+        '<div class="field form-group row"><div class="field_label">Done</div><div class="field_show">yes</div></div>'
 
         >>> CheckboxField('Done').widget()
         '<INPUT  CLASS="checkbox_field" TYPE="checkbox" NAME="DONE" ID="DONE" />'
@@ -1243,13 +1235,13 @@ class RadioField(TextField):
     Radio Field
 
         >>> RadioField('Choice',value='One',values=['One','Two']).show()
-        u'<div class="field"><div class="field_label">Choice</div><div class="field_show">One</div></div>'
+        u'<div class="field form-group row"><div class="field_label">Choice</div><div class="field_show">One</div></div>'
 
         >>> RadioField('Choice',value='One',values=['One','Two']).edit()
-        '<div class="field"><div class="field_label">Choice</div><div class="field_edit"><span class="radio"><input type="radio" name="CHOICE" value="One" checked="Y" class="radio" />One</span><span class="radio"><input type="radio" name="CHOICE" value="Two" class="radio" />Two</span><br></div></div>'
+        '<div class="field form-group row"><div class="field_label">Choice</div><div class="field_edit"><span class="radio"><input type="radio" name="CHOICE" value="One" checked="Y" class="radio" />One</span><span class="radio"><input type="radio" name="CHOICE" value="Two" class="radio" />Two</span><br></div></div>'
 
         >>> RadioField('Choice',value='One',values=[('One','1'),('Two','2')]).edit()
-        '<div class="field"><div class="field_label">Choice</div><div class="field_edit"><span class="radio"><input type="radio" name="CHOICE" value="1" class="radio" />One</span><span class="radio"><input type="radio" name="CHOICE" value="2" class="radio" />Two</span><br></div></div>'
+        '<div class="field form-group row"><div class="field_label">Choice</div><div class="field_edit"><span class="radio"><input type="radio" name="CHOICE" value="1" class="radio" />One</span><span class="radio"><input type="radio" name="CHOICE" value="2" class="radio" />Two</span><br></div></div>'
     """
     values = []
     def edit(self):
@@ -1750,10 +1742,10 @@ class ButtonField(Button):
         ''
 
         >>> ButtonField('Save').edit()
-        '<div class="field"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT STYLE="" NAME="SAVE_BUTTON" VALUE="Save" CLASS="button" TYPE="submit" ID="SAVE_BUTTON" /></div></div>'
+        '<div class="field form-group row"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT STYLE="" NAME="SAVE_BUTTON" VALUE="Save" CLASS="button" TYPE="submit" ID="SAVE_BUTTON" /></div></div>'
 
         >>> ButtonField('Save', cancel='/app/cancel').edit()
-        '<div class="field"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT STYLE="" NAME="SAVE_BUTTON" VALUE="Save" CLASS="button" TYPE="submit" ID="SAVE_BUTTON" />&nbsp;<A HREF="/app/cancel">cancel</A></div></div>'
+        '<div class="field form-group row"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT STYLE="" NAME="SAVE_BUTTON" VALUE="Save" CLASS="button" TYPE="submit" ID="SAVE_BUTTON" />&nbsp;<A HREF="/app/cancel">cancel</A></div></div>'
     """
 
     def edit(self):
@@ -1773,10 +1765,10 @@ class Buttons(Field):
         ''
 
         >>> Buttons(['Save','Publish']).edit()
-        '<div class="field"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT ID="SAVE_BUTTON" TYPE="submit" CLASS="button" VALUE="Save" NAME="SAVE_BUTTON" />&nbsp;<INPUT ID="PUBLISH_BUTTON" TYPE="submit" CLASS="button" VALUE="Publish" NAME="PUBLISH_BUTTON" /></div></div>'
+        '<div class="field form-group row"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT ID="SAVE_BUTTON" TYPE="submit" CLASS="button" VALUE="Save" NAME="SAVE_BUTTON" />&nbsp;<INPUT ID="PUBLISH_BUTTON" TYPE="submit" CLASS="button" VALUE="Publish" NAME="PUBLISH_BUTTON" /></div></div>'
 
         >>> Buttons(['Save'],cancel='/app/id').edit()
-        '<div class="field"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT ID="SAVE_BUTTON" TYPE="submit" CLASS="button" VALUE="Save" NAME="SAVE_BUTTON" />&nbsp;<A HREF="/app/id">cancel</A></div></div>'
+        '<div class="field form-group row"><div class="field_label">&nbsp;</div><div class="field_edit"><INPUT ID="SAVE_BUTTON" TYPE="submit" CLASS="button" VALUE="Save" NAME="SAVE_BUTTON" />&nbsp;<A HREF="/app/id">cancel</A></div></div>'
     """
 
     def __init__(self,captions=['Save'],**keywords):
@@ -1804,10 +1796,12 @@ class PhoneField(TextField):
     Phone field
 
         >>> PhoneField('Phone').widget()
-        '<INPUT NAME="PHONE" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="PHONE" SIZE="20" />'
+        '<INPUT NAME="PHONE" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="tel" ID="PHONE" SIZE="20" />'
 
 
     """
+    # No validation on this type, it is included for improved mobile keyboard
+    _type='tel'
     size=20
     validators = [valid_phone]
 
@@ -1817,7 +1811,7 @@ class MemoField(Field):
     Paragraph of text.
 
         >>> MemoField('Notes').edit()
-        '<div class="field"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA ROWS="6" NAME="NOTES" COLS="60" ID="NOTES" CLASS="memo_field" SIZE="10"></TEXTAREA></div></div>'
+        '<div class="field form-group row"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA ROWS="6" NAME="NOTES" COLS="60" ID="NOTES" CLASS="memo_field" SIZE="10"></TEXTAREA></div></div>'
     """
     value=''
     height=6
@@ -1841,18 +1835,12 @@ class MemoField(Field):
     def edit(self):
         widget = self.widget()
         if self.hint or self.msg:
-            table_start  = '<table class="transparent" width=100%><tr><td width=10%>'
-            table_middle = '</td><td>'
-            table_end    = '</td></tr></table>'
             return layout_field(
                 self.label,
                 ''.join([
-                    table_start,
                     widget,
-                    table_middle,
                     self.render_msg(),
                     self.render_hint(),
-                    table_end
                 ])
             )
         else:
@@ -1878,7 +1866,7 @@ class EditField(Field):
     Large textedit.
 
         >>> EditField('Notes').edit()
-        '<div class="field"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA HEIGHT="6" CLASS="edit_field" SIZE="10" NAME="NOTES" ID="NOTES"></TEXTAREA></div></div>'
+        '<div class="field form-group row"><div class="field_label">Notes</div><div class="field_edit"><TEXTAREA HEIGHT="6" CLASS="edit_field" SIZE="10" NAME="NOTES" ID="NOTES"></TEXTAREA></div></div>'
 
     """
     value=''
@@ -1999,7 +1987,7 @@ class Fields(object):
 
         >>> fields = Fields(TextField('Name'), PhoneField('Phone'))
         >>> fields.edit()
-        '<div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div><div class="field"><div class="field_label">Phone</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="PHONE" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="PHONE" SIZE="20" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div>'
+        '<div class="field form-group row"><div class="field_label">Name</div><div class="field_edit">\\n        <span class="form-group"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></span>\\n        <span class="hint"></span>\\n        </div></div><div class="field form-group row"><div class="field_label">Phone</div><div class="field_edit">\\n        <span class="form-group"><INPUT NAME="PHONE" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="tel" ID="PHONE" SIZE="20" /></span>\\n        <span class="hint"></span>\\n        </div></div>'
 
         >>> fields = Fields(TextField('Name', value='Amy'), PhoneField('Phone', value='2234567890'))
         >>> fields.as_dict()
@@ -2186,7 +2174,7 @@ class Section(Fields):
     A collection of field objects with an associated label.
 
         >>> Section('Personal',[TextField('Name',value='Joe')]).show()
-        u'<H2>Personal</H2>\\n<div class="field"><div class="field_label">Name</div><div class="field_show">Joe</div></div>'
+        u'<H2>Personal</H2>\\n<div class="field form-group row"><div class="field_label">Name</div><div class="field_show">Joe</div></div>'
     """
 
     def __init__(self, label, fields, hint=''):
@@ -2215,7 +2203,7 @@ class Fieldset(Fields):
     A collection of field objects with an associated label.
 
         >>> Section('Personal',[TextField('Name',value='Joe')]).show()
-        u'<H2>Personal</H2>\\n<div class="field"><div class="field_label">Name</div><div class="field_show">Joe</div></div>'
+        u'<H2>Personal</H2>\\n<div class="field form-group row"><div class="field_label">Name</div><div class="field_show">Joe</div></div>'
     """
 
     def __init__(self,label,fields,hint=''):
@@ -2356,7 +2344,7 @@ class ImagesField(SimpleField):
     >>> i.validate(**{'PHOTOS': 'fromdatabase'})
     True
     >>> v2 = i.evaluate()
-    >>> v1 <> v2
+    >>> v1 != v2
     True
     >>> v2
     {'PHOTOS': 'fromdatabase'}
@@ -2364,7 +2352,6 @@ class ImagesField(SimpleField):
     _type = 'images'
     value = None
     default = uuid.uuid4().hex
-    wrap = ''
     url = ''
     libs = ['/static/dz/dropzone/dropzone.js']
     styles = ['/static/dz/dropzone/dropzone.css']
@@ -2399,7 +2386,7 @@ class Form(Fields):
 
         >>> form = Form(TextField("Name"))
         >>> form.edit()
-        '<form class="clearfix" action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field"><div class="field_label">Name</div><div class="field_edit">\\n        <table class="transparent">\\n            <tr>\\n                <td nowrap><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></td>\\n                <td>\\n                    <div class="hint"></div>\\n                </td>\\n            </tr>\\n        </table>\\n        </div></div></form>'
+        '<form class="clearfix" action="" id="dz&#x5f;form" name="dz&#x5f;form" method="POST" enctype="application&#x2f;x&#x2d;www&#x2d;form&#x2d;urlencoded"><div class="field form-group row"><div class="field_label">Name</div><div class="field_edit">\\n        <span class="form-group"><INPUT NAME="NAME" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="NAME" SIZE="40" /></span>\\n        <span class="hint"></span>\\n        </div></div></form>'
 
     """
 
