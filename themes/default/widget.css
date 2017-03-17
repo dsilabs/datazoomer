@@ -100,18 +100,12 @@
         border-radius: 4px;
         padding: 10px;
     }
-    .field_show .images_field {
-        border: 0;
-    }
     .content .field_edit {
         border : 0;
     }
     .field_edit div.range-slider {
         width: 50%;
         margin: 0 10px;
-    }
-    .field_edit .images_field {
-        border: 0;
     }
     div.dropzone .dz-preview .dz-image {
         border-radius: 10px;
