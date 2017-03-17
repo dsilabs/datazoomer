@@ -58,6 +58,40 @@ def layout_field(label, content, edit=True):
     mode = bool(edit) and 'edit' or 'show'
     return FIELD_TPL % locals()
 
+
+def args_to_dict(values=None, **kwargs):
+    """convert args to a dict
+
+    Allows developers to pass field values to fields either
+    as a dict or as a set of keyword arguments, whichever
+    makes the most sense for their code.
+
+    This is currently only used for clean() but could potentially
+    be used in a number of other places in this modudle where the
+    same pattern shows up.  Erring on the side of caution for now.
+
+    >>> args_to_dict()
+    {}
+
+    >>> args_to_dict({})
+    {}
+
+    >>> args_to_dict({'name': 'Pat'})
+    {'name': 'Pat'}
+
+    >>> args_to_dict(**{'name': 'Pat', 'age': 10})
+    {'age': 10, 'name': 'Pat'}
+
+    >>> try:
+    ...    args_to_dict({'name': 'Pat'}, 'bad value', age=10)
+    ... except TypeError, e:
+    ...    expected = 'args_to_dict() takes at most 1' in str(e)
+    >>> expected
+    True
+
+    """
+    return values or kwargs
+
 class Field(object):
     js_init = ''
     js = ''
@@ -261,9 +295,40 @@ class Field(object):
 
             >>> name_field.validate(name='Fred')
             True
+            >>> name_field.value
+            'Fred'
         """
         self.update(*a, **k)
         return self.valid()
+
+    def clean(self, *args, **kwargs):
+        """
+        Update (sometimes ammended values) and validate a field.
+
+            >>> upper = Cleaner(str.upper)
+            >>> name_field = TextField('Name', upper, required)
+            >>> name_field.clean(city='Vancouver')
+            False
+
+            >>> name_field.validate(name='Vancouver')
+            True
+            >>> name_field.value
+            'Vancouver'
+
+            >>> name_field.clean(name='Vancouver')
+            True
+            >>> name_field.value
+            'VANCOUVER'
+        """
+        self.update(**args_to_dict(*args, **kwargs))
+        value = self.value
+        for validator in self.validators:
+            value = validator.clean(value)
+            if not validator.valid(value):
+                self.msg = validator.msg
+                return False
+        self.assign(value)
+        return True
 
     def requires_multipart_form(self):
         return False
@@ -2014,6 +2079,7 @@ class Fields(object):
             >>> fields.update(phone='987654321')
             >>> fields.as_dict()
             {'PHONE': PHONE: 987654321, 'NAME': NAME: Amy}
+
         """
         if a:
             values = a[0]
@@ -2089,6 +2155,13 @@ class Fields(object):
     def validate(self, *a, **k):
         self.update(*a, **k)
         return self.valid()
+
+    def clean(self, *args, **kwargs):
+        errors = 0
+        for field in self.fields:
+            if not field.clean(*args, **kwargs):
+                errors += 1
+        return not errors
 
     def requires_multipart_form(self):
         for field in self.fields:

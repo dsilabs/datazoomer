@@ -145,7 +145,11 @@
 
     /* removing extra form-group margin */
     div.form-group {
-    margin-bottom: 0;
+        margin-bottom: 0;
+    }
+    span.form-group {
+        display: inline-table;
+        margin-bottom: 0;
     }
     
     /* textarea */

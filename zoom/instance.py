@@ -20,7 +20,10 @@ class Instance(object):
 
     def __init__(self, name, path='.'):
         self.name = name
-        self.config = Config(locate_config('dz.conf', path))
+        config_path = locate_config('dz.conf', path)
+        if not config_path:
+            raise Exception('dz.conf missing')
+        self.config = Config(config_path)
 
     @property
     def sites_path(self):
@@ -65,4 +68,3 @@ class Instance(object):
                         site.name)
                     )
                     job()
-
