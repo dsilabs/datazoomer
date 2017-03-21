@@ -6,7 +6,7 @@ import random
 import zoom
 from zoom import redirect_to, page
 
-from model import get_scatter_data, data_list_generator, get_calendar_data
+from model import get_scatter_data, data_list_generator, get_calendar_data, get_treemap_data
 from views import *
 
 
@@ -23,6 +23,10 @@ class MyView(View):
 
     def calendar_data(self, obs=1000, metrics=3, dims=2):
         data = get_calendar_data(obs, metrics, dims)
+        return JSONResponse(json.dumps(data))
+
+    def treemap_data(self, obs=1000):
+        data = get_treemap_data(obs)
         return JSONResponse(json.dumps(data))
 
     def tests(self):
