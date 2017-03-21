@@ -37,6 +37,7 @@ DEFAULT_SETTINGS = dict(
     tags='',
     keywords='',
     in_development=False,
+    app_menu_size=5,
 )
 
 
@@ -97,6 +98,7 @@ class Application(object):
         self.tags = list_it(get('tags', ''))
         self.keywords = get('keywords', '')
         self.in_development = get('in_development')
+        self.app_menu_size = get('app_menu_size')
 
         self.helpers = {}
 
