@@ -13,6 +13,8 @@ import goals
 from urllib import quote
 from string import ascii_letters, digits
 
+APP_MENU_LENGTH = 5
+
 def elapsed(fmt='%f'):
     """Returns time it took to generate current page."""
     return fmt % system.elapsed_time
@@ -109,11 +111,24 @@ def system_menu_items():
     """Returns the system menu."""
     def title_of(app):
         return manager.apps[app].title
-    return html.li([link_to(title_of(app),'/'+app) for app in manager.get_system_app_names() if manager.apps[app].visible])
+
+    _dropdown = html.li([link_to(title_of(app),'/'+app) for app in manager.get_system_app_names() if manager.apps[app].visible])
+    return """
+        <div class="navbar-collapse collapse">
+            <div class="dropdown user-info navbar-right">
+                <span class="dropdown-toggle" style="cursor:pointer;" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                %s
+                <span class="caret"></span>
+                      </span>
+                      <ul class="dropdown-menu">
+                        %s
+                      </ul>
+                    </div>
+        """ %(user.username.title(), _dropdown)
 
 def system_menu():
     """Returns the system menu."""
-    return '<ul>%s</ul>' % system_menu_items()
+    return '<li>%s</li>' % system_menu_items()
 
 def main_menu_items():
     """Returns the main menu."""
@@ -194,6 +209,9 @@ def _app_menu_items(uri, route, items):
             ))
     return links
 
+def app_title():
+    return system.app.title
+
 def _app_menu(uri, route, items):
     """construct app menu
 
@@ -237,10 +255,25 @@ def _app_menu(uri, route, items):
     True
 
     """
+    app_menu_length = APP_MENU_LENGTH
     links = _app_menu_items(uri, route, items)
-    if links:
+    links = _app_menu_items(uri, route, items)
+    app_dropdown_list = ''.join(['<li>'] + links + ['</li>'])
+    if len(links) <= app_menu_length:
         return ''.join(['<ul>'] + links + ['</ul>'])
-    return ''
+    elif len(links) > app_menu_length:
+        return """
+            <div class="dropdown">
+                <button class="dropdown-toggle" type="button" id="app-menu-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <h4>%s <span class="caret"></span></h4>
+                </button>
+                <ul class="dropdown-menu">
+                    %s
+                </ul>
+            </div>
+            """ %(system.app.name.title(), app_dropdown_list)
+    else:
+        return ''
 
 def app_menu_items():
     """Returns the app menu items."""
@@ -251,9 +284,6 @@ def app_menu():
     """Returns the app menu."""
     items = getattr(system.app, 'menu', [])
     return _app_menu(system.uri, route, items)
-
-def app_title():
-    return system.app.title
 
 def app_classed():
     """ Return the application title in a form for an HTML class attribute"""
