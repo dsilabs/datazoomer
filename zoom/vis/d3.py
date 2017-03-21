@@ -11,7 +11,7 @@ from zoom.vis.utils import merge_options
 d3_libs = [
     '/static/dz/d3/d3.v3.min.js',
     '/static/dz/d3/d3.charts.js'
-    ]
+]
 d3_styles = []
 
 
@@ -29,6 +29,55 @@ def load_asset(name):
     with open(join(path, name)) as f:
         result = f.read()
     return result
+
+
+def add_script_tag(source):
+    """ wrap the source file in a script tag """
+    return """<script src="{}" type="text/javascript"></script>""".format(source)
+
+
+class D3Object(object):
+    """ Base class for d3.js helper classes """
+    libs = []  # custom libs (for the page tail)
+    styles = []  # custom styles
+    css = ""  # component specific css
+    js = ""  # component specific js
+    name = property(lambda self: '%s_%s' % (self.__class__.__name__, id(self)))
+    ref = property(lambda self: self.name, doc="the reference to the object")
+    wrapper = '<div class="dz-d3-vis" id="{}"></div>'
+
+    def __init__(self, data, options=None, **kwargs):
+        """ Initialize the d3 object class
+
+            data -- data for the chart
+            options -- chart spcific options (passthrough)
+            kwargs -- kwargs used by the helper object to build the component (class specific)
+        """
+        self.view = data
+        self.selector = as_selector(kwargs.pop('selector', 'chart'))
+        self.options = options or {}
+
+    def __str__(self):
+        return self.render()
+
+    def render(self):
+        """ return the web component for the chart """
+        css = self.css % dict(selector=self.selector)
+        js = self.js % dict(
+            ref=self.ref,
+            view=self.view,
+            selector=self.selector,
+            methods=chain_methods(self.options)
+        )
+        js = map(add_script_tag, d3_libs + self.libs) + [
+            """<script type="text/javascript">{}</script>""".format(js),
+        ]
+        return component(
+            self.wrapper.format(self.selector[1:]),
+            css=css,
+            tail=js,
+            styles=self.styles,
+        )
 
 
 class Scatter(object):
@@ -158,3 +207,42 @@ class Force(object):
             styles=self.styles,
             libs=d3_libs,
         )
+
+
+class Treemap(D3Object):
+    """ d3.js treemap component """
+    libs = ['/static/dz/d3/lib/tip/d3.tip.js', ]
+
+    css = """
+    /* tree */
+    body {
+      -webkit-print-color-adjust: exact; }
+    %(selector)s .node {
+      border: solid 1px white;
+      font: 10px sans-serif;
+      line-height: 12px;
+      overflow: hidden;
+      position: absolute;
+      text-indent: 2px; }
+    @media print {
+      %(selector)s .node {
+        background-color: #cdcdcd !important;
+        -webkit-print-color-adjust: exact; }}"""
+
+    js = """
+    $(function(){
+      var %(ref)s = d3.charts.treemap()%(methods)s;
+      d3.json("%(view)s", function(data) {
+          d3.select("%(selector)s")
+            .datum(data)
+            .call(%(ref)s);
+
+          window.dispatchEvent(new Event('resize'));
+      });
+
+    });"""
+
+
+def treemap(data, options=None, **kwargs):
+    """ return a treemap component given the supplied data and config options """
+    return str(Treemap(data, options, **kwargs))
