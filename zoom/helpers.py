@@ -258,7 +258,7 @@ def _app_menu(uri, route, items):
     app_menu_size = system.app.app_menu_size
     menu_items = _app_menu_items(uri, route, items)
     app_dropdown_list = ''.join(['<li>'] + menu_items + ['</li>'])
-    if len(menu_items) <= app_menu_size:
+    if not app_menu_size or len(menu_items) <= app_menu_size:
         return ''.join(['<ul>'] + menu_items + ['</ul>'])
     elif len(menu_items) > app_menu_size:
         return """
@@ -1007,5 +1007,3 @@ if __name__ == '__main__':
             self.assertEqual(text_input('name',size=2,value='Joe'),'<input name="name" value="Joe" maxlength="40" type="text" class="text" size="40" />')
 
     unittest.main()
-
-
