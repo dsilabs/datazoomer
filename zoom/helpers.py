@@ -13,6 +13,8 @@ import goals
 from urllib import quote
 from string import ascii_letters, digits
 
+APP_MENU_LENGTH = 5
+
 def elapsed(fmt='%f'):
     """Returns time it took to generate current page."""
     return fmt % system.elapsed_time
@@ -255,9 +257,9 @@ def _app_menu(uri, route, items):
     """
     app_menu_size = system.app.app_menu_size
     menu_items = _app_menu_items(uri, route, items)
-    app_dropdown_list = ''.join(['<li>'] + links + ['</li>'])
+    app_dropdown_list = ''.join(['<li>'] + menu_items + ['</li>'])
     if len(menu_items) <= app_menu_size:
-        return ''.join(['<ul>'] + links + ['</ul>'])
+        return ''.join(['<ul>'] + menu_items + ['</ul>'])
     elif len(menu_items) > app_menu_size:
         return """
             <div class="dropdown">
@@ -271,6 +273,7 @@ def _app_menu(uri, route, items):
             """ %(system.app.name.title(), app_dropdown_list)
     else:
         return ''
+
 
 def app_menu_items():
     """Returns the app menu items."""
