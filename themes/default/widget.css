@@ -357,7 +357,7 @@
 
 /* Misc
 ==========================*/
-    .user_info { font-size: 0.8em; display:inline; height:40px; }
+    .user_info { color: #777; display:inline; height:40px; float: right; }
     .meta { color: #555; font-size: 0.8em; }
     .wrong { color: red; font-size: 0.8em; margin-right: 1em;}
     .hint {

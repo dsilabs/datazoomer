@@ -1525,3 +1525,153 @@ d3.charts.chosenSelect = function() {
 
     return my;
 }  /* end chosen select */
+
+
+d3.charts.treemap = function() {
+    /* A treemap plot
+
+    treedata = {
+      "name": "My Name",
+      "children": d3.nest()
+                    .key(function(d) { return d[0];}).sortKeys(d3.ascending)
+                    .rollup(function(d) {
+                      return {
+                          value: d3.sum(d, function(g) {return +g[1]; }),
+                      }
+                    })
+                    .entries(jsondata.data.slice(1).filter( function(d) {
+                          var d = parseDate(d[dindex]);
+                          var ex = mid_bullet.extent();
+                          if (ex==null || ex[0]==null || ex[1]==null) {
+                             return 1;
+                          }
+                          return d>=ex[0] && d<=ex[1];
+                        }))
+                        .map(function(d) { return {'name':d.key, 'size':d.values.value, 'values':d.values}; })
+      };
+    */
+        var margin = {top: 40, right: 10, bottom: 10, left: 10},
+            width = 960 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom,
+            disableResize = false,
+            default_tran = 1100,
+            color = d3.scale.ordinal().range(["#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"]),
+            key_accessor = function(d) { return d[0]; },
+            value_accessor = function(d) { return d[1]; },
+            tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([-6, 0])
+                .html(function(d) {
+                    return "<strong>" + key_accessor(d) + "</strong>" + value_accessor(d);
+                });
+            treemap = d3.layout.treemap()
+                .size([width, height]);
+
+        function my(selection) {
+          selection.each(function(root, i) {
+            treedata = {
+                "name": root.title || 'Treemap',
+                "children": d3.nest()
+                              .key(function(d) { return key_accessor(d);}).sortKeys(d3.ascending)
+                              .rollup(function(d) {
+                                return {
+                                    value: d3.sum(d, function(g) {return +value_accessor(g); }),
+                                }
+                              })
+                              .entries(root.data)
+                              .map(function(d) { return {'name':d.key, 'size':d.values.value, 'values':d.values}; })
+            };
+            // console.log(treedata);
+
+            // generate the chart
+            treemap.size([width, height]);
+            treemap.value(function(d) { return d.size; });
+
+            var div = d3.select(this).selectAll("div.root").data([treedata]);
+            div.enter().append("div")
+                .attr("class", "root");
+            div
+                .style("position", "relative")
+                .style("width", (width + margin.left + margin.right) + "px")
+                .style("height", (height + margin.top + margin.bottom) + "px")
+                .style("left", margin.left + "px")
+                .style("top", margin.top + "px");
+
+            var node = div.datum(treedata).selectAll(".node")
+              .data(treemap.nodes);
+            node
+              .enter().append("div")
+                .attr("class", "node")
+                .call(position);
+
+            node
+              .style("background", "white")
+              .transition()
+                .duration(default_tran)
+                .call(position)
+                  .style("background", function(d) { return color(d.name); })
+                  .attr("title", function(d) { return  d.children ? null : d.name + ': ' + d.size; })
+                  .text(function(d) { return d.children ? null : d.name; });
+
+            node.exit().remove();
+
+            // support responsive by default
+            if (!disableResize) { d3.select(window).on('resize', resizeContainer); }
+            function resizeContainer() {
+                var cwidth = parseInt(selection.style("width"));
+                cwidth = cwidth - parseInt(selection.style("padding-left")) - parseInt(selection.style("padding-right"));
+
+                my.width(cwidth);
+                selection
+                  .datum(root)
+                  .call(my);
+            }
+          });
+
+        } /* end-chart */
+
+        function position() {
+          this.style("left", function(d) { return d.x + "px"; })
+              .style("top", function(d) { return d.y + "px"; })
+              .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
+              .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
+        }
+
+        my.width = function(value) {
+            if (!arguments.length) return width;
+            width = value - margin.left - margin.right;
+            return my;
+        };
+
+        my.height = function(value) {
+            if (!arguments.length) return height;
+            height = value - margin.top - margin.bottom;
+            return my;
+        };
+
+        my.key_accessor = function(fn) {
+            if (!arguments.length) return key_accessor;
+            key_accessor = fn;
+            return my;
+        };
+
+        my.value_accessor = function(fn) {
+            if (!arguments.length) return value_accessor;
+            value_accessor = fn;
+            return my;
+        };
+
+        my.color = function(fn) {
+            if (!arguments.length) return color;
+            color = fn;
+            return my;
+        };
+
+        my.resize = function(bool) {
+            if (!arguments.length) return disableResize;
+            disableResize = bool;
+            return my;
+        };
+
+        return my;
+    } /* end treemap chart */

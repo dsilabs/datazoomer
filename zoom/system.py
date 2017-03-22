@@ -47,6 +47,7 @@ class NoApp(object):
     title = name
     theme = ''
     menu = []
+    app_menu_size = None
     url = ''
 
     def run(self):

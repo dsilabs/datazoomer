@@ -91,7 +91,19 @@ calendar_eg = """<p>Example usage:</p>
   </pre>
 """
 
+
 def get_calendar_data(obs, metrics, dims):
+    """ return calendar of events (fake data) """
     metadata = data_list_generator(obs=obs, metrics=metrics, dims=dims)
     metadata['description'] = "{}{}".format(metadata['description'], calendar_eg)
     return metadata
+
+
+def get_treemap_data(obs):
+    """ return system log data for the treemap view """
+    return {
+        'title': '{} {}'.format(system.config.get('site', 'name', 'Site'), 'System Log'),
+        'description': "A visual view of the system log",
+        'labels': {'app': 'Application Name', 'route': 'Application Route', 'hit': 'Application Hits', 'elapsed': 'Elapsed Time (ms)'},
+        'data': list(system.db("select app, route, 1 as hit, elapsed from log limit {}".format(obs)))
+    }
