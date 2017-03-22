@@ -14,7 +14,9 @@ import datetime
 from sys import version_info
 
 norm = string.maketrans('', '')
+
 special = string.translate(norm, norm, string.letters + string.digits + ' ')
+special2 = string.translate(norm, norm, string.letters + string.digits + ' -')
 PY2 = version_info[0] == 2
 
 
@@ -73,6 +75,32 @@ def id_for(*args):
     """
     def id_(text):
         return str(text).strip().translate(norm, special).lower().replace(' ','-')
+
+    return '~'.join([id_(arg) for arg in args])
+
+
+def id_for_with_dashes(*args):
+    """
+    Calculates a valid HTML tag id given an arbitrary string.
+
+        >>> id_for_with_dashes('Test 123')
+        'test-123'
+        >>> id_for_with_dashes('New Record')
+        'new-record'
+        >>> id_for_with_dashes('New "special" Record')
+        'new-special-record'
+        >>> id_for_with_dashes("hi", "test")
+        'hi~test'
+        >>> id_for_with_dashes("hi test")
+        'hi-test'
+        >>> id_for_with_dashes("hi-test")
+        'hi-test'
+        >>> id_for_with_dashes(1234)
+        '1234'
+
+    """
+    def id_(text):
+        return str(text).strip().translate(norm, special2).lower().replace(' ','-')
 
     return '~'.join([id_(arg) for arg in args])
 
@@ -186,7 +214,7 @@ def get_attributes(obj):
         return text.endswith('_id')
 
     all_keys = obj.keys() + properties(obj)
-    id_keys = [key for key in all_keys if looks_like_an_id(key)]
+    id_keys = sorted(key for key in all_keys if looks_like_an_id(key))
     special_keys = id_keys + [
         'id', 'userid', 'groupid', 'key',
         'name', 'title', 'description',
@@ -291,6 +319,14 @@ class Record(Storage):
 
     def allows(self, user, action):
         return True
+
+    def get(self, name, *default):
+        try:
+            return self.__getitem__(name)
+        except KeyError, k:
+            if default:
+                return default[0]
+            raise k
 
     def __getitem__(self, name):
         try:
@@ -415,7 +451,7 @@ class RecordList(list):
         title = '%s\n' % kind(self[0])
 
         keys = labels = get_attributes(self[0])
-        rows = [[record.get(key) for key in keys] for record in self]
+        rows = [[record.get(key, None) for key in keys] for record in self]
 
         footer = '\n{} {} records'.format(len(self), kind(self[0]))
 
@@ -508,7 +544,9 @@ class ItemList(list):
                 if data_type in [int, long, float, decimal.Decimal]:
                     return '{:{width},}'
                 elif data_type in [datetime.date]:
-                    return '{}'
+                    return '{:%Y-%m-%d}'
+                elif data_type in [datetime.datetime]:
+                    return '{:%Y-%m-%d %H:%M:%S}'
                 elif label in ['_id', 'userid']:
                     return '{:10}'
             return '{:<{width}}'
