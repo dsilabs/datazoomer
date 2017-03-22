@@ -243,6 +243,14 @@ class Treemap(D3Object):
     });"""
 
 
+class TreemapBrewer(Treemap):
+    """ d3.js treemap component with color brewer support """
+    libs = [
+        '/static/dz/d3/lib/tip/d3.tip.js',
+        '/static/dz/d3/lib/colorbrewer/colorbrewer.js'
+    ]
+
+
 def treemap(data, options=None, **kwargs):
     """ return a treemap component given the supplied data and config options """
     return str(Treemap(data, options, **kwargs))

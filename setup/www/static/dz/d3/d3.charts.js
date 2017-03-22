@@ -1661,6 +1661,12 @@ d3.charts.treemap = function() {
             return my;
         };
 
+        my.color = function(fn) {
+            if (!arguments.length) return color;
+            color = fn;
+            return my;
+        };
+
         my.resize = function(bool) {
             if (!arguments.length) return disableResize;
             disableResize = bool;
