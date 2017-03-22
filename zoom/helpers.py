@@ -254,12 +254,11 @@ def _app_menu(uri, route, items):
 
     """
     app_menu_size = system.app.app_menu_size
-    links = _app_menu_items(uri, route, items)
-    links = _app_menu_items(uri, route, items)
+    menu_items = _app_menu_items(uri, route, items)
     app_dropdown_list = ''.join(['<li>'] + links + ['</li>'])
-    if len(links) <= app_menu_size:
+    if len(menu_items) <= app_menu_size:
         return ''.join(['<ul>'] + links + ['</ul>'])
-    elif len(links) > app_menu_size:
+    elif len(menu_items) > app_menu_size:
         return """
             <div class="dropdown">
                 <button class="dropdown-toggle" type="button" id="app-menu-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
