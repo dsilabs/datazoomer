@@ -33,12 +33,18 @@ from zoom.component import component
 
 HINT_TPL = \
         """
-        <span class="form-group">%(widget)s</span>
-        <span class="hint">%(hints)s</span>
+        <table class="transparent">
+            <tr>
+                <td%(wrap)s>%(widget)s</td>
+                <td>
+                    <div class="hint">%(hints)s</div>
+                </td>
+            </tr>
+        </table>
         """
 
 FIELD_TPL = \
-'<div class="field form-group row"><div class="field_label">%(label)s</div><div class="field_%(mode)s">%(content)s</div></div>'
+'<div class="field"><div class="field_label">%(label)s</div><div class="field_%(mode)s">%(content)s</div></div>'
 
 
 def div(content, **attributes):
@@ -458,7 +464,7 @@ class EmailField(TextField):
         >>> EmailField('Email').widget()
         '<INPUT NAME="EMAIL" VALUE="" CLASS="text_field" MAXLENGTH="40" TYPE="text" ID="EMAIL" SIZE="40" />'
     """
-    _type='email'
+
     def __init__(self, label, *validators, **keywords):
         TextField.__init__(self, label, valid_email, *validators, **keywords)
 
@@ -535,7 +541,7 @@ class URLField(TextField):
         u'<a target="_window" href="https://www.dsilabs.ca">www.dsilabs.ca</a>'
 
     """
-    _type='url'
+
     size = 60
     maxlength = 120
     trim = False
@@ -651,7 +657,7 @@ class NumberField(TextField):
             return """
             <div class="input-group">
               {w}
-              <span class="input-group-addon" style="width:auto;">{u}</span>
+              <span class="input-group-addon">{u}</span>
             </div>
             """.format(w=w, u=self.units)
         else:
@@ -891,7 +897,7 @@ class MoneyField(DecimalField):
             v = websafe(locale.currency(self.value, grouping=True))
         else:
             v = self.symbol + ('{:20,.2f}'.format(self.value)).strip()
-        if self.units and self.value != None:
+        if self.units and self.value <> None:
             v += ' '+self.units
         return websafe(v)
 
@@ -1802,8 +1808,6 @@ class PhoneField(TextField):
 
 
     """
-    # No validation on this type, it is included for improved mobile keyboard
-    _type='tel'
     size=20
     validators = [valid_phone]
 
@@ -2352,7 +2356,7 @@ class ImagesField(SimpleField):
     >>> i.validate(**{'PHOTOS': 'fromdatabase'})
     True
     >>> v2 = i.evaluate()
-    >>> v1 != v2
+    >>> v1 <> v2
     True
     >>> v2
     {'PHOTOS': 'fromdatabase'}
