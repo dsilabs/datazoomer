@@ -209,14 +209,24 @@ class Force(object):
         )
 
 
-class Treemap(D3Object):
+class HtmlTreemap(D3Object):
     """ d3.js treemap component """
     libs = ['/static/dz/d3/lib/tip/d3.tip.js', ]
 
     css = """
-    /* tree */
+    /* treemap */
     body {
       -webkit-print-color-adjust: exact; }
+    %(selector)s { margin-top: 10px; }
+    %(selector)s .grandparent {
+        position: relative;
+        margin-left: 1px;
+        padding-left: 5px; }
+    %(selector)s .grandparent,
+    %(selector)s g.grandparent rect {
+        background-color: #eee;
+        fill: #38c0ef; }
+    %(selector)s g.grandparent text { fill: black; font-weight: bold; }
     %(selector)s .node {
       border: solid 1px white;
       font: 10px sans-serif;
@@ -224,14 +234,73 @@ class Treemap(D3Object):
       overflow: hidden;
       position: absolute;
       text-indent: 2px; }
+
+    %(selector)s text {
+      pointer-events: none; }
+    rect {
+      fill: #eee;
+      stroke-width: 1px;
+      stroke: white; }
+
+    rect.parent,
+    .grandparent rect {
+      stroke-width: 2px; }
+
+    .children rect.parent,
+    .grandparent rect {
+      cursor: pointer; }
+
+    .children rect.parent {
+      fill: #ddd;
+      fill-opacity: .5; }
+
+    .children:hover rect.child {
+      fill: #ddd; }
+
     @media print {
       %(selector)s .node {
         background-color: #cdcdcd !important;
-        -webkit-print-color-adjust: exact; }}"""
+        -webkit-print-color-adjust: exact; }}
+
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+        -webkit-transition: display 1s;
+        /* For Safari 3.1 to 6.0 */
+        transition: opacity .5s;
+    }
+
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 98%%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\\25BC";
+        position: absolute;
+        text-align: center;
+    }
+
+
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 98%%;
+        left: 0;
+    }
+
+    """
 
     js = """
     $(function(){
-      var %(ref)s = d3.charts.treemap()%(methods)s;
+      var %(ref)s = d3.charts.html_treemap()%(methods)s;
       d3.json("%(view)s", function(data) {
           d3.select("%(selector)s")
             .datum(data)
@@ -239,11 +308,10 @@ class Treemap(D3Object):
 
           window.dispatchEvent(new Event('resize'));
       });
-
     });"""
 
 
-class TreemapBrewer(Treemap):
+class TreemapBrewer(HtmlTreemap):
     """ d3.js treemap component with color brewer support """
     libs = [
         '/static/dz/d3/lib/tip/d3.tip.js',
@@ -253,4 +321,22 @@ class TreemapBrewer(Treemap):
 
 def treemap(data, options=None, **kwargs):
     """ return a treemap component given the supplied data and config options """
-    return str(Treemap(data, options, **kwargs))
+    return str(HtmlTreemap(data, options, **kwargs))
+
+
+class Treemap(HtmlTreemap):
+    """ An explorable Treemap heirarchy plot with a custom .js treedata function """
+    js = """
+    $(function(){
+      var %(ref)s = d3.charts.treemap()%(methods)s;
+      d3.json("%(view)s", function(data) {
+
+            // override here and format data (via d3.nest) if necessary
+
+          d3.select("%(selector)s")
+            .datum(data)
+            .call(%(ref)s);
+
+          window.dispatchEvent(new Event('resize'));
+      });
+    });"""

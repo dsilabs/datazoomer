@@ -105,5 +105,5 @@ def get_treemap_data(obs):
         'title': '{} {}'.format(system.config.get('site', 'name', 'Site'), 'System Log'),
         'description': "A visual view of the system log",
         'labels': {'app': 'Application Name', 'route': 'Application Route', 'hit': 'Application Hits', 'elapsed': 'Elapsed Time (ms)'},
-        'data': list(system.db("select app, route, 1 as hit, elapsed from log limit {}".format(obs)))
+        'data': list(system.db("select app, route, 1 as hit, elapsed from log order by timestamp desc limit {}".format(obs)))
     }
