@@ -27,8 +27,8 @@
         RewriteBase /
 
         # Prepend www
-        RewriteCond %{HTTP_HOST} !^(.+)\.(.+)\.(.+) [NC]
-        RewriteRule (.*) http://www.%{HTTP_HOST} [L,R=301]
+        # RewriteCond %{HTTP_HOST} !^(.+)\.(.+)\.(.+) [NC]
+        # RewriteRule (.*) http://www.%{HTTP_HOST} [L,R=301]
 
         # Static Content
         RewriteRule ^images/(.*)$ site-content/%{HTTP_HOST}/content/images/$1 [L]
