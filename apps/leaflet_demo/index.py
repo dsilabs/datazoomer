@@ -1,4 +1,5 @@
 from zoom import *
+from zoom.response import JSONResponse
 from zoom.vis.map import Leaflet as Map
 from zoom.vis.map import *
 from random import randrange, uniform
@@ -44,6 +45,11 @@ bc_places = [(p.latitude,p.longitude) for p in generate_pins()]
 historical_locations = [(p.latitude,p.longitude) for p in generate_pins()]
 
 class MyView(View):
+
+    def geojson(self, dataset='ha_2013.json'):
+        """ url callback geoJSON format thematic boundary """
+        geojson = load('ha_2013.json')
+        return JSONResponse(geojson)
 
     def index(sefl):
         """test the vis\map module of datazoomer"""

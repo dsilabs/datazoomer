@@ -37,10 +37,13 @@ NOTES:
     False easting: 1000000.0 (one million metres)
     The datum is NAD83, based on the GRS80 ellipsoid.
 """
+from os.path import isfile
 
 import json
-from zoom import id_for, system
+from zoom import id_for, system, load
 from zoom.component import component
+from zoom.tools import wrap_iterator
+
 
 available_tilesets = {
     # (service, attribution)
@@ -431,18 +434,62 @@ class ThematicLayer(LayerGroup):
 
     var %(var)s = %(inline)s;
     """
-
     def __init__(self, layers):
+        self.key = 'KEY'
         LayerGroup.__init__(self, layers=layers)
-        self.handlers = ''
-        self.props = {}
+        self.handlers = [
+            """
+                function onEachFeature%(key)s(feature, layer) {
+                  if (feature.properties && '%(key)s' in feature.properties && feature.properties['%(key)s']) {
+                    layer.bindPopup(feature.properties['%(key)s']);
+                  }
+                };""",
+            """
+            color = d3.scale.category10();
+            function colorFeature%(key)s(feature) {
+                if (feature.properties && '%(key)s' in feature.properties && feature.properties['%(key)s']) {
+                  return {color: color(feature.properties['%(key)s']), weight: 1};
+                }
+              return {color: color(1), weight: 1};
+            };
+            """
+        ]
+        self.props = """{style: colorFeature%(key)s, onEachFeature: onEachFeature%(key)s}"""
+
+    def render(self):
+        system.libs = system.libs | ["/static/dz/d3/d3.min.js", ]
+        return self.declare()
 
     def inline(self):
-        return self._inline_ % (self.ref, self.props)
+        return self._inline_ % (self.ref, self.props % dict(key=self.key))
 
     def declare(self):
+        handlers = wrap_iterator(self.handlers)
         var = self.ref
         inline = self.inline()
         geojson_boundary = self.layers
-        handlers = self.handlers
+        handlers = ''.join([handle % dict(key=self.key) for handle in handlers])
         return self._declare_ % locals()
+
+
+class ThematicMap(Leaflet):
+    """ Leaflet map with a thematic overlay """
+    def __init__(self, layers=None, **kwargs):
+        Leaflet.__init__(self, **kwargs)
+        self.actions = ""
+
+        layer_objects = []
+        for layer in layers or []:
+            if isinstance(layer, ThematicLayer):
+                thematic_layer = layer
+            else:
+                geo = layer['data']
+                thematic_layer = ThematicLayer(layers=isfile(geo) and load(geo) or geo)
+                thematic_layer.description = layer['title']
+                thematic_layer.key = layer.get('key', 'KEY')
+            layer_objects.append(thematic_layer)
+
+        layer_objects = filter(bool, layer_objects)
+        if layer_objects:
+            self.overlays(layer_objects)
+            self.actions = self.actions + """var fg = L.featureGroup([%s]); %s.fitBounds(fg.getBounds());""" % (layer_objects[0].ref, self.ref)
