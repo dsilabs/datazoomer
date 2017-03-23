@@ -1809,6 +1809,8 @@ d3.charts.html_treemap = function() {
                 grandparent
                     .datum(d.parent)
                     .on("click", transition)
+                    .on('mouseover', function(g) {tip.show(d); })
+                    .on('mouseout', function(g) {tip.hide(d); })
                   .select("text")
                     .text(name(d));
 
