@@ -1,5 +1,7 @@
 """
-    messages system (experimental)
+    zoom.queues
+
+    message queues
 """
 
 import uuid
@@ -23,17 +25,36 @@ DELAY = 0.1
 
 now = datetime.datetime.now
 
-class EmptyException(Exception): pass
-class WaitException(Exception): pass
-class StopListening(Exception): pass
-class StopHandling(Exception): pass
-class StopProcessing(Exception): pass
+
+class EmptyException(Exception):
+    pass
+
+
+class WaitException(Exception):
+    pass
+
+
+class StopListening(Exception):
+    pass
+
+
+class StopHandling(Exception):
+    pass
+
+
+class StopProcessing(Exception):
+    pass
+
 
 def response_topic_name(topic, id):
     """calculate the name of the reponse topic for a topic"""
     return '%s.response.%s' % (topic, id)
-        
-class SystemMessage(Record): pass
+
+
+class SystemMessage(Record):
+    pass
+
+
 Message = SystemMessage
 
 
@@ -69,15 +90,14 @@ class Topic(object):
         self.name = name
         self.db = db
         self.messages = EntityStore(db, Message)
-        self.newest = newest != None and newest or self.last() or -1
-
+        self.newest = newest is not None and newest or self.last() or -1
 
     def last(self):
         """get row_id of the last (newest) message in the topic"""
         if self.name:
             cmd = """
-                select max(row_id) n 
-                from attributes 
+                select max(row_id) n
+                from attributes
                 where kind=%s and attribute="topic" and value=%s
                 """
             rec = self.db(cmd, self.messages.kind, self.name)
@@ -89,18 +109,16 @@ class Topic(object):
         row_id = rec.first()[0]
         return row_id or 0
 
-
     def put(self, message):
         """put a message in the topic"""
         return self.messages.put(
                 Message(
-                    topic = self.name,
-                    timestamp = now(),
-                    node = platform.node(),
-                    body = json.dumps(message),
+                    topic=self.name,
+                    timestamp=now(),
+                    node=platform.node(),
+                    body=json.dumps(message),
                     )
                 )
-
 
     def send(self, *messages):
         """send list of messages
@@ -116,21 +134,22 @@ class Topic(object):
         """
         return [self.put(message) for message in messages]
 
-
     def _peek(self, newest=None):
-        top_one = newest != None and newest or self.newest or 0
+        top_one = newest is not None and newest or self.newest or 0
         db = self.db
         if self.last() > self.newest:
             if self.name:
                 cmd = """
-                    select min(row_id) as row_id 
-                    from attributes 
-                    where kind=%s and attribute="topic" and value=%s and row_id>%s
+                    select min(row_id) as row_id
+                    from attributes
+                    where
+                        kind=%s and attribute="topic" and
+                        value=%s and row_id>%s
                     """
                 rec = db(cmd, self.messages.kind, self.name, top_one)
             else:
                 cmd = """
-                    select min(row_id) as row_id 
+                    select min(row_id) as row_id
                     from attributes where kind=%s and row_id>%s
                     """
                 rec = db(cmd, self.messages.kind, top_one)
@@ -143,7 +162,6 @@ class Topic(object):
                 if message:
                     return row_id, message.topic, json.loads(message.body)
         raise EmptyException
-
 
     def peek(self, newest=None):
         """
@@ -166,12 +184,10 @@ class Topic(object):
         except EmptyException:
             return None
 
-
     def _poll(self, newest=None):
         r = self._peek(newest)
         self.newest = r[0]
         return r
-
 
     def poll(self, newest=None):
         """
@@ -206,7 +222,6 @@ class Topic(object):
         """
         return self._poll(newest)[2]
 
-
     def _pop(self):
         r = self._peek()
         row_id = r[0]
@@ -219,7 +234,6 @@ class Topic(object):
             # has already deleted it between the time that
             # we saw it and the time we attempted to delete it.
             raise EmptyException
-
 
     def pop(self):
         """
@@ -258,7 +272,6 @@ class Topic(object):
         except EmptyException:
             return None
 
-
     def len(self, newest=None):
         """
         return the number of messages in the topic
@@ -277,7 +290,8 @@ class Topic(object):
                 cmd = """
                     select count(row_id) as n
                     from attributes
-                    where kind=%s and attribute="topic" and value=%s and row_id>%s
+                    where kind=%s and attribute="topic" and
+                    value=%s and row_id>%s
                     """
                 t = self.db(cmd, self.messages.kind, self.name, self.newest)
             else:
@@ -289,7 +303,6 @@ class Topic(object):
             n = t.first()[0] or 0L
             return n
         return 0L
-
 
     def __len__(self):
         """
@@ -307,7 +320,6 @@ class Topic(object):
         """
         return self.len()
 
-
     def __iter__(self):
         """
         iterate through a topic
@@ -323,7 +335,6 @@ class Topic(object):
             you!
         """
         return TopicIterator(self, self.newest)
-
 
     def wait(self, delay=DELAY, timeout=15):
         """
@@ -344,11 +355,10 @@ class Topic(object):
         while True:
             msg = self.pop()
             if msg:
-               return msg
+                return msg
             time.sleep(delay)
             if time.time() > deadline:
                 raise WaitException
-
 
     def listen(self, f, delay=DELAY, meta=False):
         """
@@ -407,7 +417,6 @@ class Topic(object):
                 time.sleep(delay)
         return n
 
-
     def join(self, jobs):
         """wait for responses from consumers"""
         return [
@@ -418,11 +427,9 @@ class Topic(object):
                     ).wait() for job in jobs
                 ]
 
-
     def call(self, *messages):
         """send messages and wait for responses"""
         return self.join(self.send(*messages))
-
 
     def handle(self, f, timeout=0, delay=DELAY, one_pass=False):
         """respond to and consume messages
@@ -454,7 +461,8 @@ class Topic(object):
                         try:
                             row, topic, message = self._pop()
                             result = f(message)
-                            t = Topic(response_topic_name(topic, row), None, self.db)
+                            response_topic = response_topic_name(topic, row)
+                            t = Topic(response_topic, None, self.db)
                             t.send(result)
                             deadline = timeout and time.time() + timeout
                             n += 1
@@ -462,7 +470,7 @@ class Topic(object):
                             more_to_do = False
                         time.sleep(0)
                 except StopHandling:
-                    done = True 
+                    done = True
                 else:
                     time.sleep(delay)
             except KeyboardInterrupt:
@@ -564,6 +572,7 @@ class Queues(object):
 
     def __str__(self):
         return str(EntityStore(self.db, Message))
+
 
 if __name__ == '__main__':
     import doctest
