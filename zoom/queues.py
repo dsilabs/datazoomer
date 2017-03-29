@@ -336,6 +336,34 @@ class Topic(object):
         """
         return TopicIterator(self, self.newest)
 
+    def _wait(self, delay=DELAY, timeout=15):
+        """
+        wait for a message to arrive and return it in
+        raw form
+
+            >>> messages = setup_test()
+            >>> t = messages.get('test_topic')
+            >>> t.put('hey!')
+            1L
+            >>> t.put('you!')
+            2L
+            >>> t._wait()
+            (1L, 'test_topic', u'hey!')
+            >>> t._wait()
+            (2L, 'test_topic', u'you!')
+        """
+        deadline = time.time() + timeout
+        while True:
+            try:
+                msg = self._pop()
+            except EmptyException:
+                msg = None
+            if msg:
+                return msg
+            time.sleep(delay)
+            if time.time() > deadline:
+                raise WaitException
+
     def wait(self, delay=DELAY, timeout=15):
         """
         wait for a message to arrive and return it
@@ -416,6 +444,13 @@ class Topic(object):
             else:
                 time.sleep(delay)
         return n
+
+    def responder(self, job_id):
+        response_topic = response_topic_name(self.name, job_id)
+        return Topic(response_topic, 1, self.db)
+
+    def respond(self, job_id, message):
+        return self.responder(job_id).send(message)
 
     def join(self, jobs):
         """wait for responses from consumers"""
