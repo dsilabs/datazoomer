@@ -83,6 +83,10 @@ Sparklines
 ----
 * [Sparkline Line]({path}/sparkline)
 * [Sparkline Bar]({path}/sparkbar)
+
+VisJS Charts
+----
+* [Gantt Timeline]({path}/timeline)
 """.format(path='/' + '/'.join([
     system.app.name,
     'data-visualization',
@@ -864,6 +868,48 @@ class MyView(View):
         data = [randint(1, 50) for i in range(20)]
         text = 'This {} is an example of a sparkline for the data<br>{}'
         visualization = text.format(sparkline.bar(data), data)
+
+        return locals()
+
+    def timeline(self):
+        """VisJS timeline
+
+        Example showing how to generate a Gantt Timeline chart using vis.js module.
+        """
+
+        from random import randint
+        from zoom.vis.visjs import timeline
+
+        page_title = 'VisJS Gantt Timeline Chart'
+
+        data = [
+            {
+                'id': 1,
+                'content': 'First event',
+                'start': '2017-02-01'
+            }, {
+                'id': 2,
+                'content': 'Pi and Mash',
+                'start': '2017-03-14'
+            }, {
+                'id': 3,
+                'content': 'Wikimania',
+                'start': '2017-11-08',
+                'end': '2019-01-10'
+            }, {
+                'id': 4,
+                'content': 'Data Days',
+                'start': '2017-12-20'
+            }, {
+                'id': 5,
+                'content': 'Summer Vacation',
+                'start': '2017-8-25'
+            }
+        ]
+
+        options = {'height': '320px'}
+
+        visualization = timeline(data, options, title='Project Schedule')
 
         return locals()
 
