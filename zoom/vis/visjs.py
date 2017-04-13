@@ -37,9 +37,7 @@ def timeline(data, options=None, **kwargs):
     title = kwargs.pop('title', None)
     title = title and '<div class="visjs-title">{}</div>'.format(title) or ''
 
-    default_options = {
-        'editable': 'false',
-    }
+    default_options = {}
 
     options = merge_options(merge_options(default_options, options), kwargs)
 
