@@ -34,6 +34,9 @@ def timeline(data, options=None, **kwargs):
 
     chart_id = get_chart_id(**kwargs)
 
+    title = kwargs.pop('title', None)
+    title = title and '<div class="visjs-title">{}</div>'.format(title) or ''
+
     default_options = {
         'editable': 'false',
     }
@@ -41,8 +44,9 @@ def timeline(data, options=None, **kwargs):
     options = merge_options(merge_options(default_options, options), kwargs)
 
     content = """
+        %s
         <div class="dz-visjs-chart placeholder" id="%s"></div>
-    """ % chart_id
+    """ % (title, chart_id)
 
     js = """
     $(function(){
