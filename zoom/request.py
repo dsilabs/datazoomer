@@ -66,8 +66,8 @@ class Webvars(object):
         items = {}
         for key in cgi_fields.keys():
 
-            # ignore legacy setup
-            if key == '_route':
+            # ignore non-string keys (as keywords must be strings), ignore legacy setup
+            if not isinstance(key, basestring) or key == '_route':
                 continue
 
             if type(cgi_fields[key]) == ListType:
