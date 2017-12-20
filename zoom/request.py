@@ -32,16 +32,19 @@ class Webvars(object):
 
         env = env or os.environ
 
-        # switch to binary mode on windows systems
-        # msvcrt and O_BINARY are only defined in Windows Python
         # pylint: disable=import-error
         # pylint: disable=no-member
-        try:
-            import msvcrt
-            msvcrt.setmode(0, os.O_BINARY)  # stdin  = 0
-            msvcrt.setmode(1, os.O_BINARY)  # stdout = 1
-        except ImportError:
-            pass
+        if not (hasattr(sys, 'ps1') or hasattr(sys, 'ps2')):
+            # if not interactive we will look at switching the mode
+            try:
+                # switch to binary mode on windows systems
+                # msvcrt and O_BINARY are only defined in Windows Python
+                import msvcrt
+                import os
+                msvcrt.setmode(0, os.O_BINARY)  # stdin  = 0
+                msvcrt.setmode(1, os.O_BINARY)  # stdout = 1
+            except ImportError:
+                pass
 
         module = env.get('wsgi.version', None) and 'wsgi' or 'cgi'
 
