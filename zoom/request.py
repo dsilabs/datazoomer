@@ -40,7 +40,6 @@ class Webvars(object):
                 # switch to binary mode on windows systems
                 # msvcrt and O_BINARY are only defined in Windows Python
                 import msvcrt
-                import os
                 msvcrt.setmode(0, os.O_BINARY)  # stdin  = 0
                 msvcrt.setmode(1, os.O_BINARY)  # stdout = 1
             except ImportError:
