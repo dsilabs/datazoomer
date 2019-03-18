@@ -27,6 +27,8 @@
         RewriteBase /
 
         # Prepend www
+        RewriteCond %{HTTP_HOST} !^localhost [NC]
+        RewriteCond %{HTTP_HOST} !^(.+)\.local [NC]
         RewriteCond %{HTTP_HOST} !^(.+)\.(.+)\.(.+) [NC]
         RewriteRule (.*) http://www.%{HTTP_HOST} [L,R=301]
 
